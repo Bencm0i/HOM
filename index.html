@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suivi Sinusite</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap');
+
+:root {
+  --bg: #09090f;
+  --s1: #111118;
+  --s2: #18181f;
+  --s3: #22222c;
+  --border: #2a2a38;
+  --border2: #363648;
+  --c1: #7c6aff;
+  --c2: #ff6b9d;
+  --c3: #4ecdc4;
+  --c4: #ffd166;
+  --c5: #ff6b35;
+  --text: #e8e8f0;
+  --text2: #888899;
+  --text3: #555566;
+  --mono: 'DM Mono', monospace;
+  --title: 'Syne', sans-serif;
+  --r: 10px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.app { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+
+/* SIDEBAR */
+.sidebar {
+  background: var(--s1);
+  border-right: 1px solid var(--border);
+  padding: 28px 20px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.logo {
+  font-family: var(--title);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--c1);
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+.logo span { color: var(--text2); font-weight: 400; font-size: 0.72rem; display: block; margin-top: 3px; letter-spacing: 0.05em; font-family: var(--mono); }
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px; border-radius: 7px; cursor: pointer;
+  font-size: 0.82rem; color: var(--text2);
+  transition: all 0.2s; border: 1px solid transparent;
+}
+.nav-item:hover { background: var(--s2); color: var(--text); }
+.nav-item.active { background: rgba(124,106,255,0.1); color: var(--c1); border-color: rgba(124,106,255,0.2); }
+.nav-icon { width: 20px; text-align: center; font-size: 0.9rem; }
+.nav-sep { height: 1px; background: var(--border); margin: 8px 0; }
+
+.sidebar-stats { margin-top: auto; background: var(--s2); border: 1px solid var(--border); border-radius: var(--r); padding: 14px; }
+.sidebar-stats h4 { font-size: 0.68rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+.stat-mini { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; }
+.stat-mini span { font-size: 0.74rem; color: var(--text2); }
+.stat-mini strong { font-size: 0.8rem; color: var(--text); }
+
+/* MAIN */
+.main { overflow-y: auto; }
+.page { display: none; padding: 32px 28px; }
+.page.active { display: block; }
+
+.page-header { margin-bottom: 26px; }
+.page-header h1 { font-family: var(--title); font-size: 1.5rem; font-weight: 700; }
+.page-header p { color: var(--text2); font-size: 0.8rem; margin-top: 4px; }
+
+/* CARDS */
+.card { background: var(--s1); border: 1px solid var(--border); border-radius: var(--r); padding: 22px; margin-bottom: 18px; }
+
+.card-title {
+  font-family: var(--title); font-size: 0.8rem; font-weight: 600;
+  color: var(--text2); text-transform: uppercase; letter-spacing: 0.1em;
+  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+}
+.card-title::before { content: ''; width: 3px; height: 14px; border-radius: 2px; background: var(--c1); flex-shrink: 0; }
+
+/* FORM */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-grid .full { grid-column: 1/-1; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+label.lbl { font-size: 0.69rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+
+input[type=date], input[type=time], input[type=text], select, textarea {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); font-family: var(--mono); font-size: 0.85rem;
+  padding: 8px 10px; outline: none; transition: border-color 0.2s; width: 100%;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--c1); }
+textarea { resize: vertical; min-height: 68px; }
+
+/* SLIDERS */
+.sliders { display: flex; flex-direction: column; gap: 9px; }
+.slider-row { display: grid; grid-template-columns: 160px 1fr 36px; align-items: center; gap: 10px; }
+.slider-name { font-size: 0.78rem; color: var(--text2); }
+
+input[type=range] {
+  -webkit-appearance: none; appearance: none;
+  height: 3px; background: var(--border2); border-radius: 2px; outline: none; width: 100%;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--c1); cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.3); box-shadow: 0 0 0 4px rgba(124,106,255,0.2); }
+.slider-val { font-size: 0.85rem; font-weight: 500; color: var(--c1); text-align: right; min-width: 28px; }
+
+/* CHECKBOXES */
+.cb-grid { display: flex; flex-wrap: wrap; gap: 7px; }
+.cb-item {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  padding: 6px 10px; cursor: pointer; transition: all 0.15s; user-select: none;
+}
+.cb-item:hover { border-color: var(--border2); }
+.cb-item input { display: none; }
+.cb-item .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border2); transition: background 0.15s; flex-shrink: 0; }
+.cb-item span { font-size: 0.78rem; color: var(--text2); transition: color 0.15s; }
+.cb-item.on { border-color: rgba(124,106,255,0.4); background: rgba(124,106,255,0.07); }
+.cb-item.on .dot { background: var(--c1); }
+.cb-item.on span { color: var(--c1); }
+
+/* BUTTONS */
+.btn-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+button { font-family: var(--mono); font-size: 0.8rem; font-weight: 500; border: none; border-radius: 7px; padding: 9px 18px; cursor: pointer; letter-spacing: 0.04em; transition: opacity 0.2s, transform 0.1s; }
+button:active { transform: scale(0.97); }
+button:hover { opacity: 0.85; }
+.btn-save { background: var(--c1); color: #fff; }
+.btn-clear { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+.btn-export { background: var(--c3); color: #09090f; font-weight: 600; }
+.btn-del { background: transparent; border: none; color: var(--text3); cursor: pointer; font-size: 1rem; padding: 2px 6px; transition: color 0.15s; }
+.btn-del:hover { color: var(--c2); }
+
+/* TABLE */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.78rem; }
+thead tr { border-bottom: 2px solid var(--border); }
+th { text-align: left; padding: 8px 10px; color: var(--text3); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 400; white-space: nowrap; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background 0.12s; }
+tbody tr:hover { background: rgba(124,106,255,0.03); }
+td { padding: 9px 10px; vertical-align: middle; }
+
+.pill { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.72rem; font-weight: 500; }
+.pill-0 { background: rgba(78,205,196,0.15); color: var(--c3); }
+.pill-low { background: rgba(78,205,196,0.15); color: var(--c3); }
+.pill-mid { background: rgba(255,209,102,0.15); color: var(--c4); }
+.pill-high { background: rgba(255,107,53,0.15); color: var(--c5); }
+.pill-crit { background: rgba(255,107,157,0.2); color: var(--c2); }
+
+.tags { display: flex; flex-wrap: wrap; gap: 3px; }
+.tag { background: var(--s2); border-radius: 4px; padding: 1px 6px; font-size: 0.68rem; color: var(--text3); }
+
+/* CHARTS */
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+.kpi { background: var(--s1); border: 1px solid var(--border); border-radius: var(--r); padding: 16px 18px; }
+.kpi .kpi-label { font-size: 0.68rem; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+.kpi .kpi-val { font-family: var(--title); font-size: 1.9rem; font-weight: 700; line-height: 1; }
+.kpi .kpi-sub { font-size: 0.7rem; color: var(--text3); margin-top: 4px; }
+
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 18px; }
+.chart-grid.one { grid-template-columns: 1fr; }
+.chart-card { background: var(--s1); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; }
+.chart-card h3 { font-family: var(--title); font-size: 0.8rem; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
+.chart-wrap { position: relative; height: 210px; }
+
+.empty { text-align: center; padding: 48px; color: var(--text3); font-size: 0.82rem; }
+.empty .ei { font-size: 2.5rem; margin-bottom: 12px; opacity: 0.3; }
+
+#toast {
+  position: fixed; bottom: 24px; right: 24px;
+  background: var(--c3); color: #09090f;
+  font-family: var(--mono); font-size: 0.8rem; font-weight: 500;
+  padding: 10px 18px; border-radius: 8px;
+  opacity: 0; transform: translateY(8px);
+  transition: all 0.3s; pointer-events: none; z-index: 9999;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+
+@media (max-width: 780px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; flex-direction: row; flex-wrap: wrap; gap: 4px; padding: 14px; }
+  .logo { width: 100%; }
+  .sidebar-stats { display: none; }
+  .nav-sep { display: none; }
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .chart-grid { grid-template-columns: 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid .full { grid-column: 1/-1; }
+  .page { padding: 16px; }
+  .slider-row { grid-template-columns: 110px 1fr 30px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">Sinus Tracker<span>journal médical personnel</span></div>
+  <div class="nav-item active" onclick="showPage('saisie',this)"><span class="nav-icon">✏️</span>Nouvelle entrée</div>
+  <div class="nav-item" onclick="showPage('graphiques',this)"><span class="nav-icon">📈</span>Graphiques</div>
+  <div class="nav-item" onclick="showPage('historique',this)"><span class="nav-icon">📋</span>Historique</div>
+  <div class="nav-sep"></div>
+  <div class="nav-item" onclick="exportCSV()"><span class="nav-icon">↓</span>Export CSV</div>
+  <div class="nav-item" onclick="clearAll()" style="color:var(--c2)"><span class="nav-icon">🗑</span>Tout effacer</div>
+  <div class="sidebar-stats">
+    <h4>Résumé rapide</h4>
+    <div class="stat-mini"><span>Entrées</span><strong id="st-total">0</strong></div>
+    <div class="stat-mini"><span>Douleur moy.</span><strong id="st-pain">—</strong></div>
+    <div class="stat-mini"><span>Essouff. moy.</span><strong id="st-breath">—</strong></div>
+    <div class="stat-mini"><span>Dernière saisie</span><strong id="st-last">—</strong></div>
+  </div>
+</aside>
+
+<main class="main">
+
+  <!-- PAGE SAISIE -->
+  <div class="page active" id="page-saisie">
+    <div class="page-header"><h1>Nouvelle entrée</h1><p>Enregistrez vos symptômes du moment</p></div>
+
+    <div class="card">
+      <div class="card-title">Date &amp; heure</div>
+      <div class="form-grid">
+        <div class="field"><label class="lbl">Date</label><input type="date" id="f-date"></div>
+        <div class="field"><label class="lbl">Heure</label><input type="time" id="f-time"></div>
+        <div class="field"><label class="lbl">Température (°C)</label><input type="text" id="f-temp" placeholder="ex : 37.8"></div>
+        <div class="field"><label class="lbl">Côté atteint</label>
+          <select id="f-cote"><option value="">—</option><option>Gauche</option><option>Droit</option><option>Bilatéral</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Douleur sinus (0–10)</div>
+      <div class="sliders">
+        <div class="slider-row"><span class="slider-name">Globale</span><input type="range" id="s-global" min="0" max="10" value="0" oninput="sv(this,'v-global')"><span class="slider-val" id="v-global">0</span></div>
+        <div class="slider-row"><span class="slider-name">Front / sourcils</span><input type="range" id="s-front" min="0" max="10" value="0" oninput="sv(this,'v-front')"><span class="slider-val" id="v-front">0</span></div>
+        <div class="slider-row"><span class="slider-name">Pommettes / nez</span><input type="range" id="s-joues" min="0" max="10" value="0" oninput="sv(this,'v-joues')"><span class="slider-val" id="v-joues">0</span></div>
+        <div class="slider-row"><span class="slider-name">Mâchoire / dents</span><input type="range" id="s-dents" min="0" max="10" value="0" oninput="sv(this,'v-dents')"><span class="slider-val" id="v-dents">0</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Essoufflement</div>
+      <div class="sliders" style="margin-bottom:14px">
+        <div class="slider-row"><span class="slider-name">Intensité (0–10)</span><input type="range" id="s-essouffle" min="0" max="10" value="0" oninput="sv(this,'v-essouffle')"><span class="slider-val" id="v-essouffle">0</span></div>
+      </div>
+      <label class="lbl" style="margin-bottom:8px;display:block;">État lors de l'essoufflement</label>
+      <div class="cb-grid" id="etat-grid"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Symptômes présents</div>
+      <div class="cb-grid" id="symp-grid"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Sécrétions &amp; traitement</div>
+      <div class="form-grid">
+        <div class="field"><label class="lbl">Sécrétions nasales</label>
+          <select id="f-secretions">
+            <option value="Aucune">Aucune</option><option>Claires / liquides</option>
+            <option>Épaisses blanches</option><option>Épaisses jaunes</option>
+            <option>Épaisses vertes / purulentes</option><option>Sanglantes</option>
+          </select>
+        </div>
+        <div class="field"><label class="lbl">Traitement pris</label>
+          <select id="f-traitement">
+            <option value="Aucun">Aucun</option><option>Paracétamol</option><option>Ibuprofène</option>
+            <option>Antibiotique</option><option>Corticoïdes nasaux</option>
+            <option>Décongestionnant nasal</option><option>Lavage nasal (sérum)</option>
+            <option>Antihistaminique</option><option>Autre</option>
+          </select>
+        </div>
+        <div class="field full"><label class="lbl">Notes libres</label>
+          <textarea id="f-notes" placeholder="Contexte, facteurs déclenchants, observations..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-save" onclick="addEntry()">+ Enregistrer</button>
+      <button class="btn-clear" onclick="clearForm()">Effacer</button>
+    </div>
+  </div>
+
+  <!-- PAGE GRAPHIQUES -->
+  <div class="page" id="page-graphiques">
+    <div class="page-header"><h1>Graphiques</h1><p>Évolution de vos symptômes dans le temps</p></div>
+
+    <div class="kpi-row">
+      <div class="kpi"><div class="kpi-label">Entrées</div><div class="kpi-val" id="k-total" style="color:var(--c1)">0</div></div>
+      <div class="kpi"><div class="kpi-label">Douleur moy.</div><div class="kpi-val" id="k-pain" style="color:var(--c4)">—</div><div class="kpi-sub">/ 10</div></div>
+      <div class="kpi"><div class="kpi-label">Essoufflement moy.</div><div class="kpi-val" id="k-breath" style="color:var(--c2)">—</div><div class="kpi-sub">/ 10</div></div>
+      <div class="kpi"><div class="kpi-label">Dernière saisie</div><div class="kpi-val" id="k-last" style="color:var(--c3);font-size:0.95rem;padding-top:6px">—</div></div>
+    </div>
+
+    <div class="chart-grid one">
+      <div class="chart-card"><h3>Évolution douleur &amp; essoufflement</h3><div class="chart-wrap"><canvas id="chart-main"></canvas></div></div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-card"><h3>Douleur par zone</h3><div class="chart-wrap"><canvas id="chart-zones"></canvas></div></div>
+      <div class="chart-card"><h3>Fréquence des symptômes</h3><div class="chart-wrap"><canvas id="chart-symp"></canvas></div></div>
+    </div>
+    <div class="chart-grid">
+      <div class="chart-card"><h3>Traitements utilisés</h3><div class="chart-wrap"><canvas id="chart-traitement"></canvas></div></div>
+      <div class="chart-card" id="etats-card"><h3>États lors des essoufflements</h3><div class="chart-wrap"><canvas id="chart-etats"></canvas></div></div>
+    </div>
+
+    <div id="no-data-chart" class="empty" style="display:none"><div class="ei">📊</div>Aucune donnée.<br>Commencez par saisir quelques entrées.</div>
+  </div>
+
+  <!-- PAGE HISTORIQUE -->
+  <div class="page" id="page-historique">
+    <div class="page-header"><h1>Historique</h1><p>Toutes vos entrées enregistrées</p></div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div class="card-title" style="margin:0">Journal complet</div>
+        <button class="btn-export" onclick="exportCSV()">↓ Export CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Date</th><th>Heure</th><th>Douleur</th><th>Zones</th>
+            <th>Essouffle.</th><th>États</th><th>Côté</th><th>Sécrétions</th>
+            <th>Temp.</th><th>Symptômes</th><th>Traitement</th><th>Notes</th><th></th>
+          </tr></thead>
+          <tbody id="hist-body"></tbody>
+        </table>
+        <div class="empty" id="hist-empty"><div class="ei">📋</div>Aucune entrée enregistrée.</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SYMPTOMS = [
+  "Congestion nasale","Nez qui coule","Éternuements","Perte odorat",
+  "Pression faciale","Maux de tête","Fatigue","Fièvre",
+  "Toux","Mal de gorge","Douleur oreilles","Vertiges",
+  "Sensibilité lumière","Douleur dents","Halitose"
+];
+
+const ETATS = [
+  "Au repos","Effort léger (marche lente)","Effort modéré (marche rapide)",
+  "Effort intense (escaliers/sport)","En parlant","En mangeant","La nuit / allongé"
+];
+
+function buildGrid(items, id) {
+  const c = document.getElementById(id);
+  items.forEach(s => {
+    const el = document.createElement('label');
+    el.className = 'cb-item';
+    el.innerHTML = `<input type="checkbox" value="${s}"><div class="dot"></div><span>${s}</span>`;
+    el.addEventListener('click', () => {
+      const cb = el.querySelector('input');
+      cb.checked = !cb.checked;
+      el.classList.toggle('on', cb.checked);
+    });
+    c.appendChild(el);
+  });
+}
+buildGrid(SYMPTOMS, 'symp-grid');
+buildGrid(ETATS, 'etat-grid');
+
+function sv(el, vid) {
+  const v = +el.value;
+  const out = document.getElementById(vid);
+  out.textContent = v;
+  out.style.color = v <= 2 ? 'var(--c3)' : v <= 5 ? 'var(--c4)' : v <= 7 ? 'var(--c5)' : 'var(--c2)';
+}
+
+function pillClass(v) {
+  if (!v) return 'pill-0';
+  if (v <= 3) return 'pill-low';
+  if (v <= 6) return 'pill-mid';
+  if (v <= 8) return 'pill-high';
+  return 'pill-crit';
+}
+
+function setNow() {
+  const d = new Date();
+  document.getElementById('f-date').value = d.toISOString().slice(0,10);
+  document.getElementById('f-time').value = d.toTimeString().slice(0,5);
+}
+setNow();
+
+const KEY = 'sinus_v2';
+function getData() { try { return JSON.parse(localStorage.getItem(KEY)||'[]'); } catch { return []; } }
+function saveData(d) { localStorage.setItem(KEY, JSON.stringify(d)); }
+
+function checked(gid) { return [...document.querySelectorAll(`#${gid} input:checked`)].map(c=>c.value); }
+
+function addEntry() {
+  const date = document.getElementById('f-date').value;
+  if (!date) { alert('Veuillez renseigner la date.'); return; }
+  const entry = {
+    id: Date.now(), date,
+    time: document.getElementById('f-time').value,
+    dg: +document.getElementById('s-global').value,
+    df: +document.getElementById('s-front').value,
+    dj: +document.getElementById('s-joues').value,
+    dd: +document.getElementById('s-dents').value,
+    es: +document.getElementById('s-essouffle').value,
+    etats: checked('etat-grid'),
+    symptomes: checked('symp-grid'),
+    cote: document.getElementById('f-cote').value,
+    secretions: document.getElementById('f-secretions').value,
+    temperature: document.getElementById('f-temp').value,
+    traitement: document.getElementById('f-traitement').value,
+    notes: document.getElementById('f-notes').value.trim()
+  };
+  const data = getData();
+  data.push(entry);
+  data.sort((a,b) => a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||''));
+  saveData(data);
+  refresh();
+  toast('✓ Entrée enregistrée');
+}
+
+function delEntry(id) { saveData(getData().filter(e=>e.id!==id)); refresh(); }
+function clearAll() { if (confirm('Effacer tout l\'historique ?')) { saveData([]); refresh(); } }
+
+function clearForm() {
+  ['s-global','s-front','s-joues','s-dents','s-essouffle'].forEach(id => {
+    document.getElementById(id).value = 0;
+    const el = document.getElementById('v-'+id.split('-')[1]);
+    if(el) { el.textContent = '0'; el.style.color = 'var(--c1)'; }
+  });
+  document.getElementById('v-essouffle').textContent = '0';
+  document.getElementById('v-essouffle').style.color = 'var(--c1)';
+  document.querySelectorAll('#symp-grid input,#etat-grid input').forEach(cb => cb.checked = false);
+  document.querySelectorAll('#symp-grid label,#etat-grid label').forEach(l => l.classList.remove('on'));
+  document.getElementById('f-cote').value = '';
+  document.getElementById('f-secretions').value = 'Aucune';
+  document.getElementById('f-temp').value = '';
+  document.getElementById('f-traitement').value = 'Aucun';
+  document.getElementById('f-notes').value = '';
+  setNow();
+}
+
+function renderHistory() {
+  const data = getData();
+  const tbody = document.getElementById('hist-body');
+  const empty = document.getElementById('hist-empty');
+  if (!data.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = [...data].reverse().map(e => `
+    <tr>
+      <td>${e.date}</td>
+      <td style="color:var(--text2)">${e.time||'—'}</td>
+      <td><span class="pill ${pillClass(e.dg)}">${e.dg}/10</span></td>
+      <td style="font-size:0.71rem;color:var(--text2)">F:${e.df} P:${e.dj} D:${e.dd}</td>
+      <td><span class="pill ${pillClass(e.es)}">${e.es}/10</span></td>
+      <td><div class="tags">${(e.etats||[]).map(t=>`<span class="tag">${t}</span>`).join('')||'—'}</div></td>
+      <td style="color:var(--text2)">${e.cote||'—'}</td>
+      <td style="font-size:0.71rem;color:var(--text2)">${e.secretions||'—'}</td>
+      <td style="color:var(--text2)">${e.temperature?e.temperature+'°':'—'}</td>
+      <td><div class="tags">${(e.symptomes||[]).map(s=>`<span class="tag">${s}</span>`).join('')||'—'}</div></td>
+      <td style="font-size:0.71rem;color:var(--text2)">${e.traitement||'—'}</td>
+      <td style="font-size:0.71rem;max-width:130px;overflow-wrap:break-word;color:var(--text2)">${e.notes||'—'}</td>
+      <td><button class="btn-del" onclick="delEntry(${e.id})">✕</button></td>
+    </tr>`).join('');
+}
+
+function updateStats() {
+  const data = getData();
+  const n = data.length;
+  document.getElementById('st-total').textContent = n;
+  document.getElementById('k-total').textContent = n;
+  if (!n) {
+    ['st-pain','k-pain','st-breath','k-breath'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent='—'; });
+    ['st-last','k-last'].forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent='—'; });
+    return;
+  }
+  const ap = (data.reduce((s,e)=>s+(e.dg||0),0)/n).toFixed(1);
+  const ab = (data.reduce((s,e)=>s+(e.es||0),0)/n).toFixed(1);
+  const last = data[data.length-1].date;
+  document.getElementById('st-pain').textContent = ap+'/10';
+  document.getElementById('k-pain').textContent = ap;
+  document.getElementById('st-breath').textContent = ab+'/10';
+  document.getElementById('k-breath').textContent = ab;
+  document.getElementById('st-last').textContent = last;
+  document.getElementById('k-last').textContent = last;
+}
+
+// CHARTS
+let charts = {};
+function destroyCharts() { Object.values(charts).forEach(c=>{ try{c.destroy();}catch{} }); charts={}; }
+
+const BASE = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: {
+    legend: { labels: { color: '#888899', font: { family:'DM Mono', size:11 }, boxWidth:12, padding:12 } },
+    tooltip: {
+      backgroundColor:'#18181f', borderColor:'#2a2a38', borderWidth:1,
+      titleColor:'#e8e8f0', bodyColor:'#888899',
+      titleFont:{family:'Syne',size:12}, bodyFont:{family:'DM Mono',size:11}
+    }
+  },
+  scales: {
+    x: { ticks:{color:'#555566',font:{family:'DM Mono',size:10}}, grid:{color:'#161620'} },
+    y: { ticks:{color:'#555566',font:{family:'DM Mono',size:10}}, grid:{color:'#161620'} }
+  }
+};
+
+function renderCharts() {
+  const data = getData();
+  document.getElementById('no-data-chart').style.display = data.length ? 'none' : 'block';
+  destroyCharts();
+  if (!data.length) return;
+
+  const labels = data.map(e => { const p=e.date.split('-'); return `${p[2]}/${p[1]}`; });
+
+  // 1. Main line chart
+  charts.main = new Chart(document.getElementById('chart-main'), {
+    type: 'line',
+    data: { labels, datasets: [
+      { label:'Douleur globale', data:data.map(e=>e.dg), borderColor:'#7c6aff', backgroundColor:'rgba(124,106,255,0.08)', tension:0.4, fill:true, pointRadius:4, pointHoverRadius:6, pointBackgroundColor:'#7c6aff' },
+      { label:'Essoufflement', data:data.map(e=>e.es), borderColor:'#ff6b9d', backgroundColor:'rgba(255,107,157,0.06)', tension:0.4, fill:true, pointRadius:4, pointHoverRadius:6, pointBackgroundColor:'#ff6b9d' },
+      { label:'Temp. (offset -36°)', data:data.map(e=>e.temperature?+e.temperature-36:null), borderColor:'#ffd166', backgroundColor:'transparent', tension:0.4, borderDash:[5,4], pointRadius:3, pointBackgroundColor:'#ffd166', spanGaps:true }
+    ]},
+    options: { ...BASE, scales: { ...BASE.scales, y:{...BASE.scales.y, min:0, max:10} } }
+  });
+
+  // 2. Zones
+  charts.zones = new Chart(document.getElementById('chart-zones'), {
+    type: 'line',
+    data: { labels, datasets: [
+      { label:'Front', data:data.map(e=>e.df), borderColor:'#7c6aff', tension:0.4, pointRadius:3, fill:false },
+      { label:'Pommettes', data:data.map(e=>e.dj), borderColor:'#4ecdc4', tension:0.4, pointRadius:3, fill:false },
+      { label:'Mâchoire', data:data.map(e=>e.dd), borderColor:'#ffd166', tension:0.4, pointRadius:3, fill:false }
+    ]},
+    options: { ...BASE, scales: { ...BASE.scales, y:{...BASE.scales.y, min:0, max:10} } }
+  });
+
+  // 3. Symptômes fréquence
+  const sc = {}; data.forEach(e=>(e.symptomes||[]).forEach(s=>{ sc[s]=(sc[s]||0)+1; }));
+  const ss = Object.entries(sc).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  charts.symp = new Chart(document.getElementById('chart-symp'), {
+    type: 'bar',
+    data: { labels:ss.map(s=>s[0].length>16?s[0].slice(0,14)+'…':s[0]), datasets:[{
+      label:'Occurrences', data:ss.map(s=>s[1]),
+      backgroundColor:ss.map((_,i)=>`hsla(${230+i*22},65%,62%,0.75)`),
+      borderRadius:4, borderSkipped:false
+    }]},
+    options: { ...BASE, indexAxis:'y', plugins:{...BASE.plugins,legend:{display:false}}, scales:{
+      x:{...BASE.scales.x, min:0}, y:{...BASE.scales.y,ticks:{...BASE.scales.y.ticks,font:{size:9}}}
+    }}
+  });
+
+  // 4. Traitements
+  const tc = {}; data.forEach(e=>{ if(e.traitement&&e.traitement!=='Aucun') tc[e.traitement]=(tc[e.traitement]||0)+1; });
+  const te = Object.entries(tc);
+  const donutColors = ['#7c6aff','#ff6b9d','#4ecdc4','#ffd166','#ff6b35','#a78bfa','#34d399'];
+  charts.traitement = new Chart(document.getElementById('chart-traitement'), {
+    type: 'doughnut',
+    data: te.length
+      ? { labels:te.map(t=>t[0]), datasets:[{ data:te.map(t=>t[1]), backgroundColor:donutColors.slice(0,te.length), borderWidth:0, hoverOffset:8 }]}
+      : { labels:['Aucun traitement'], datasets:[{ data:[1], backgroundColor:['#22222c'], borderWidth:0 }]},
+    options: { ...BASE, cutout:'62%', scales:{}, plugins:{...BASE.plugins, legend:{position:'right',labels:{color:'#888899',font:{family:'DM Mono',size:10},boxWidth:10,padding:8}}} }
+  });
+
+  // 5. États essoufflement
+  const ec = {}; data.forEach(e=>(e.etats||[]).forEach(s=>{ ec[s]=(ec[s]||0)+1; }));
+  const es = Object.entries(ec).sort((a,b)=>b[1]-a[1]);
+  const eCard = document.getElementById('etats-card');
+  if (!es.length) {
+    eCard.innerHTML = '<h3>États lors des essoufflements</h3><div class="empty" style="padding:24px"><div class="ei" style="font-size:1.4rem">💨</div>Aucun état enregistré</div>';
+  } else {
+    eCard.innerHTML = '<h3>États lors des essoufflements</h3><div class="chart-wrap"><canvas id="chart-etats"></canvas></div>';
+    charts.etats = new Chart(document.getElementById('chart-etats'), {
+      type: 'bar',
+      data: { labels:es.map(s=>s[0].length>22?s[0].slice(0,20)+'…':s[0]), datasets:[{
+        label:'Occurrences', data:es.map(s=>s[1]),
+        backgroundColor:'rgba(255,107,157,0.65)', borderColor:'#ff6b9d', borderWidth:1,
+        borderRadius:4, borderSkipped:false
+      }]},
+      options: { ...BASE, indexAxis:'y', plugins:{...BASE.plugins,legend:{display:false}}, scales:{
+        x:{...BASE.scales.x,min:0}, y:{...BASE.scales.y,ticks:{...BASE.scales.y.ticks,font:{size:9}}}
+      }}
+    });
+  }
+}
+
+function exportCSV() {
+  const data = getData();
+  if (!data.length) { alert('Aucune donnée à exporter.'); return; }
+  const h = ['Date','Heure','Douleur globale','Douleur front','Douleur pommettes','Douleur mâchoire','Essoufflement (intensité)','États essoufflement','Côté','Sécrétions','Température','Traitement','Symptômes','Notes'];
+  const rows = data.map(e=>[e.date,e.time,e.dg,e.df,e.dj,e.dd,e.es,(e.etats||[]).join(' | '),e.cote,e.secretions,e.temperature,e.traitement,(e.symptomes||[]).join(' | '),e.notes].map(v=>'"'+String(v??'').replace(/"/g,'""')+'"'));
+  const csv = '\uFEFF'+[h,...rows].map(r=>r.join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  a.download = 'suivi_sinus_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  toast('↓ Export CSV généré');
+}
+
+function showPage(name, el) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(el) el.classList.add('active');
+  if(name==='graphiques') renderCharts();
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2500);
+}
+
+function refresh() { renderHistory(); updateStats(); if(document.getElementById('page-graphiques').classList.contains('active')) renderCharts(); }
+refresh();
+</script>
+</body>
+</html>
