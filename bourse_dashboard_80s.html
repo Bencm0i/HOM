@@ -1,0 +1,220 @@
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Share+Tech+Mono&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0a0a}
+:root{
+--green:#00ff41;--amber:#ffb000;--red:#ff3131;--dim:#003300;--bg:#050d05;--border:#00aa22;
+--font:'VT323',monospace;--mono:'Share Tech Mono',monospace;
+}
+#app{background:var(--bg);min-height:100vh;padding:12px;font-family:var(--font);color:var(--green);position:relative;overflow:hidden}
+#app::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,65,0.03) 2px,rgba(0,255,65,0.03) 4px);pointer-events:none;z-index:0}
+.content{position:relative;z-index:1}
+.header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);padding-bottom:8px;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.logo{font-size:28px;letter-spacing:4px;color:var(--amber);text-shadow:0 0 10px var(--amber)}
+.clock-block{text-align:right;font-size:14px;color:var(--amber)}
+.clock{font-size:22px;letter-spacing:2px}
+.markets-row{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.market-pill{font-family:var(--mono);font-size:11px;padding:3px 10px;border:1px solid;border-radius:2px}
+.market-open{border-color:var(--green);color:var(--green)}
+.market-closed{border-color:#555;color:#555}
+.market-pre{border-color:var(--amber);color:var(--amber)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;margin-bottom:12px}
+.card{background:#040904;border:1px solid var(--border);padding:10px 12px;position:relative}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--border)}
+.card-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.ticker{font-size:20px;letter-spacing:2px;color:var(--amber)}
+.asset-name{font-size:12px;color:#888;font-family:var(--mono)}
+.price-row{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+.price{font-size:30px;letter-spacing:1px}
+.currency{font-size:14px;color:#888;margin-right:4px}
+.change-row{display:flex;gap:12px;font-family:var(--mono);font-size:12px}
+.up{color:var(--green)}
+.dn{color:var(--red)}
+.neutral{color:var(--amber)}
+.eur-block{margin-top:6px;border-top:1px solid #1a3a1a;padding-top:6px;font-family:var(--mono);font-size:12px;display:flex;justify-content:space-between;align-items:center}
+.eur-val{font-size:16px;color:#aaffaa}
+.copy-btn{background:transparent;border:1px solid #2a4a2a;color:#668866;font-family:var(--mono);font-size:10px;padding:2px 6px;cursor:pointer;transition:all .2s}
+.copy-btn:hover{border-color:var(--green);color:var(--green)}
+.copy-btn.copied{border-color:var(--amber);color:var(--amber)}
+.bottom-bar{border-top:1px solid var(--border);padding-top:8px;display:flex;gap:12px;font-family:var(--mono);font-size:11px;color:#557755;overflow:hidden;white-space:nowrap}
+.ticker-tape{animation:scroll 40s linear infinite;display:flex;gap:24px}
+@keyframes scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.loading{text-align:center;color:var(--green);font-size:18px;padding:40px;letter-spacing:4px}
+.error{color:var(--red);font-size:13px;text-align:center;padding:10px;font-family:var(--mono)}
+.blink{animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+</style>
+<div id="app">
+<div class="content">
+<div class="header">
+  <div class="logo">TERMINAL PRO <span class="blink">_</span></div>
+  <div class="clock-block">
+    <div class="clock" id="clock">--:--:--</div>
+    <div style="font-size:12px;color:#668866" id="date-str">CHARGEMENT</div>
+  </div>
+</div>
+<div class="markets-row" id="market-status"></div>
+<div id="grid-container"><div class="loading">CONNEXION AU MARCHÉ<span class="blink">...</span></div></div>
+<div class="bottom-bar"><div class="ticker-tape" id="tape"></div></div>
+</div>
+</div>
+
+<script>
+const ASSETS=[
+  {id:'btc',ticker:'BTC',name:'BITCOIN',sym:'USD',pairEur:1},
+  {id:'gold',ticker:'XAU',name:'OR/GOLD',sym:'USD/oz',pairEur:1},
+  {id:'sp500',ticker:'SPX',name:'S&P 500',sym:'pts',pairEur:0},
+  {id:'nasdaq',ticker:'NDX',name:'NASDAQ 100',sym:'pts',pairEur:0},
+  {id:'vix',ticker:'VIX',name:'CBOE VIX',sym:'pts',pairEur:0,noEur:true},
+  {id:'eurusd',ticker:'EUR/USD',name:'EURO/DOLLAR',sym:'',pairEur:0,noEur:true},
+  {id:'usdeur',ticker:'USD/EUR',name:'DOLLAR/EURO',sym:'',pairEur:0,noEur:true},
+];
+
+let rates={};
+let eurUsd=1.08;
+
+function fmt(n,dec=2){
+  if(n===null||n===undefined||isNaN(n))return'---';
+  return parseFloat(n).toLocaleString('fr-FR',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+}
+
+function copyRaw(val,btn){
+  const raw=parseFloat(val).toString();
+  navigator.clipboard.writeText(raw).catch(()=>{});
+  btn.textContent='COPIÉ';
+  btn.classList.add('copied');
+  setTimeout(()=>{btn.textContent='COPIER';btn.classList.remove('copied')},1500);
+}
+
+function getEurValue(id,price){
+  if(!price||isNaN(price))return null;
+  if(id==='eurusd')return 1/price;
+  if(id==='usdeur')return price;
+  if(id==='btc'||id==='gold')return price/eurUsd;
+  return null;
+}
+
+async function fetchData(){
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        model:"claude-sonnet-4-20250514",
+        max_tokens:1000,
+        tools:[{type:"web_search_20250305",name:"web_search"}],
+        messages:[{role:"user",content:`Search for current market prices today March 2026. Return ONLY valid JSON, no markdown, no explanation:
+{
+  "btc": <BTC/USD price as number>,
+  "gold": <gold USD per oz as number>,
+  "sp500": <S&P500 index as number>,
+  "nasdaq": <NASDAQ 100 index as number>,
+  "vix": <VIX as number>,
+  "eurusd": <EUR/USD rate as number>,
+  "usdeur": <USD/EUR rate as number>,
+  "btc_chg": <BTC 24h % change as number>,
+  "gold_chg": <gold daily % change as number>,
+  "sp500_chg": <SP500 daily % change as number>,
+  "nasdaq_chg": <NASDAQ daily % change as number>,
+  "vix_chg": <VIX daily change as number>,
+  "eurusd_chg": <EUR/USD daily change as number>,
+  "usdeur_chg": <USD/EUR daily change as number>
+}
+Only return the JSON object, nothing else.`}]
+      })
+    });
+    const data=await res.json();
+    const txt=data.content.map(b=>b.text||'').filter(Boolean).join('');
+    const clean=txt.replace(/```[a-z]*|```/g,'').trim();
+    const json=JSON.parse(clean);
+    return json;
+  }catch(e){return null}
+}
+
+function marketStatus(){
+  const now=new Date();
+  const parisH=parseInt(new Intl.DateTimeFormat('fr-FR',{hour:'numeric',hour12:false,timeZone:'Europe/Paris'}).format(now));
+  const parisM=parseInt(new Intl.DateTimeFormat('fr-FR',{minute:'numeric',timeZone:'Europe/Paris'}).format(now));
+  const nyH=parseInt(new Intl.DateTimeFormat('en-US',{hour:'numeric',hour12:false,timeZone:'America/New_York'}).format(now));
+  const nyM=parseInt(new Intl.DateTimeFormat('en-US',{minute:'numeric',timeZone:'America/New_York'}).format(now));
+  const day=now.getDay();
+  const wkd=day===0||day===6;
+  const parisMin=parisH*60+parisM;
+  const nyMin=nyH*60+nyM;
+  const parisOpen=parisMin>=570&&parisMin<1050;// 9:30-17:30
+  const nyOpen=nyMin>=570&&nyMin<960;// 9:30-16:00
+  return{paris:wkd?'closed':parisOpen?'open':'closed',ny:wkd?'closed':nyOpen?'open':'closed',parisH,parisM,nyH,nyM};
+}
+
+function renderMarkets(){
+  const s=marketStatus();
+  const fmt2=(h,m)=>String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+  document.getElementById('market-status').innerHTML=`
+    <span class="market-pill ${s.paris==='open'?'market-open':'market-closed'}">▐ PARIS ${fmt2(s.parisH,s.parisM)} ${s.paris==='open'?'OUVERT':'FERMÉ'} (9:30-17:30)</span>
+    <span class="market-pill ${s.ny==='open'?'market-open':'market-closed'}">▐ NEW YORK ${fmt2(s.nyH,s.nyM)} ${s.ny==='open'?'OUVERT':'FERMÉ'} (9:30-16:00)</span>
+  `;
+}
+
+function renderGrid(d){
+  const grid=document.getElementById('grid-container');
+  if(!d){grid.innerHTML='<div class="error">ERREUR DE CONNEXION — DONNÉES INDISPONIBLES</div>';return}
+  eurUsd=d.eurusd||1.08;
+  const cards=ASSETS.map(a=>{
+    const price=d[a.id];
+    const chg=d[a.id+'_chg'];
+    const eur=a.noEur?null:getEurValue(a.id,price);
+    const chgClass=chg===undefined||chg===null?'neutral':chg>0?'up':'dn';
+    const chgSign=chg>0?'+':'';
+    const dec=a.id==='eurusd'||a.id==='usdeur'?4:a.id==='vix'?2:a.id==='gold'?2:a.id==='btc'?0:2;
+    const copyVal=price?parseFloat(price).toFixed(dec):'0';
+    const copyChg=chg?parseFloat(chg).toFixed(2):'0';
+    return`<div class="card">
+      <div class="card-header">
+        <span class="ticker">${a.ticker}</span>
+        <span class="asset-name">${a.name}</span>
+      </div>
+      <div class="price-row">
+        <span class="currency">${a.sym}</span>
+        <span class="price ${chgClass}">${price?fmt(price,dec):'---'}</span>
+      </div>
+      <div class="change-row">
+        <span class="${chgClass}">CHGT: ${chg!==null&&chg!==undefined?chgSign+fmt(chg,2):'---'}</span>
+        <button class="copy-btn" onclick="copyRaw('${copyVal}',this)">COPIER</button>
+        <button class="copy-btn" onclick="copyRaw('${copyChg}',this)">COPIER CHGT</button>
+      </div>
+      ${eur!==null?`<div class="eur-block"><span style="color:#558855">EUR:</span><span class="eur-val">${fmt(eur,a.id==='usdeur'?4:2)}</span><button class="copy-btn" onclick="copyRaw('${eur.toFixed(4)}',this)">COPIER EUR</button></div>`:''}
+    </div>`;
+  }).join('');
+  grid.innerHTML=`<div class="grid">${cards}</div>`;
+}
+
+function renderTape(d){
+  if(!d)return;
+  const tape=document.getElementById('tape');
+  const items=ASSETS.map(a=>{
+    const p=d[a.id];
+    const c=d[a.id+'_chg'];
+    const cl=c>0?'up':c<0?'dn':'neutral';
+    const dec=a.id==='eurusd'||a.id==='usdeur'?4:a.id==='vix'?2:a.id==='btc'?0:2;
+    return`<span>${a.ticker} <span class="${cl}">${p?parseFloat(p).toFixed(dec):'---'} ${c!==null&&c!==undefined?(c>0?'+':'')+parseFloat(c).toFixed(2):'---'}</span></span>`;
+  }).join('');
+  tape.innerHTML=items+' &nbsp;&nbsp;&nbsp; '+items;
+}
+
+function clock(){
+  const now=new Date();
+  document.getElementById('clock').textContent=now.toLocaleTimeString('fr-FR');
+  document.getElementById('date-str').textContent=now.toLocaleDateString('fr-FR',{weekday:'short',day:'2-digit',month:'long',year:'numeric'}).toUpperCase();
+  renderMarkets();
+}
+
+clock();
+setInterval(clock,1000);
+
+(async()=>{
+  const data=await fetchData();
+  renderGrid(data);
+  renderTape(data);
+})();
+</script>
