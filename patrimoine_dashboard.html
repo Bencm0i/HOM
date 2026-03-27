@@ -1,0 +1,2919 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tableau de Bord Patrimonial</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📊</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --bg:       #1e2228;
+  --surface:  #262b33;
+  --surface2: #2f353f;
+  --border:   #3a4150;
+  --accent:   #7eb8d4;
+  --accent2:  #5b9fba;
+  --text:     #c8cdd8;
+  --muted:    #6b7585;
+  --gold:     #c8a96e;
+  --green:    #5aab7a;
+  --red:      #c05a5a;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;min-height:100vh;}
+header{padding:18px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:100;backdrop-filter:blur(8px);}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:-1px;color:var(--accent);}
+.logo span{color:var(--text);}
+.header-right{display:flex;gap:10px;align-items:center;}
+.btn{padding:7px 14px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.btn:hover{border-color:var(--accent);color:var(--accent);}
+.btn-accent{background:var(--accent);color:#1e2228;border-color:var(--accent);font-weight:500;}
+.btn-accent:hover{background:var(--accent2);color:#1e2228;}
+.masked{filter:blur(8px);user-select:none;transition:filter .3s;}
+.editable-val{cursor:pointer;border-bottom:1px dashed var(--muted);transition:color .15s,border-color .15s;}
+.editable-val:hover{color:var(--accent);border-bottom-color:var(--accent);}
+.status{font-size:11px;color:var(--green);opacity:0;transition:opacity .5s;}
+.status.show{opacity:1;}
+.tabs{display:flex;border-bottom:1px solid var(--border);padding:0 40px;background:var(--bg);overflow-x:auto;}
+.tab{padding:12px 22px;font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:all .2s;margin-bottom:-1px;white-space:nowrap;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+main{padding:26px 40px;max-width:1400px;margin:0 auto;}
+.section-title{font-family:'Syne',sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
+.kpi-row-5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:26px;}
+.kpi-row-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:26px;}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi.green::before{background:var(--green);}.kpi.gold::before{background:var(--gold);}
+.kpi.blue::before{background:var(--accent2);}.kpi.red::before{background:var(--red);}
+.kpi.purple::before{background:#8b7cc8;}.kpi.accent::before{background:var(--accent);}
+.kpi.orange::before{background:#ea7c1e;}
+.kpi-label{color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.kpi-value{font-family:'Syne',sans-serif;font-size:21px;font-weight:700;line-height:1;}
+.kpi-sub{color:var(--muted);font-size:10px;margin-top:4px;}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:26px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:26px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;}
+.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:13px;display:flex;align-items:center;gap:8px;}
+.bank-badge{font-size:9px;letter-spacing:2px;text-transform:uppercase;padding:2px 7px;border-radius:4px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+.table-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);}
+.table-row:last-child{border-bottom:none;}
+.row-label{color:var(--muted);}
+.row-right{display:flex;align-items:center;gap:12px;}
+.row-val{font-weight:500;color:var(--text);}
+.row-pct{font-size:11px;min-width:46px;text-align:right;color:var(--muted);}
+.donut-wrap{display:flex;gap:18px;align-items:center;}
+.donut-legend{flex:1;}
+.legend-item{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:11px;}
+.legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.legend-label{color:var(--muted);flex:1;}
+.legend-val{font-weight:500;}
+.legend-pct{color:var(--muted);font-size:10px;min-width:36px;text-align:right;}
+.liq-bar{height:26px;border-radius:8px;overflow:hidden;display:flex;margin-bottom:8px;}
+.liq-seg{height:100%;transition:width .5s;position:relative;}
+.liq-labels{display:flex;gap:12px;flex-wrap:wrap;}
+.liq-lbl{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+.liq-dot{width:9px;height:9px;border-radius:3px;}
+.risk-scale{display:flex;gap:3px;margin:9px 0;}
+.risk-box{flex:1;height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#ffffff;position:relative;}
+.risk-arrow{position:absolute;top:-10px;left:50%;transform:translateX(-50%);color:var(--accent);font-size:13px;}
+.risk-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);}
+.scpi-table{width:100%;border-collapse:collapse;}
+.scpi-table th{text-align:left;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:6px 7px;border-bottom:1px solid var(--border);}
+.scpi-table td{padding:8px 7px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.perf-pill{padding:2px 7px;border-radius:20px;font-size:11px;font-weight:500;}
+.perf-neg{background:rgba(192,90,90,.18);color:var(--red);}
+.perf-pos{background:rgba(90,171,122,.18);color:var(--green);}
+.inv-table{width:100%;border-collapse:collapse;}
+.inv-table th{text-align:left;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--border);white-space:nowrap;}
+.inv-table td{padding:10px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.inv-table tbody tr:hover{background:var(--surface2);}
+.inv-table tfoot td{padding:10px 10px;border-top:2px solid var(--border);font-weight:700;}
+.asset-name{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;}
+.asset-sub{font-size:10px;color:var(--muted);margin-top:2px;}
+.day-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:500;}
+.day-up{background:rgba(90,171,122,.18);color:var(--green);}
+.day-down{background:rgba(192,90,90,.18);color:var(--red);}
+.day-flat{background:var(--surface2);color:var(--muted);}
+.gain-pos{color:var(--green);}
+.gain-neg{color:var(--red);}
+.cell-edit{cursor:pointer;border-bottom:1px dashed var(--muted);transition:color .15s;}
+.cell-edit:hover{color:var(--accent);border-bottom-color:var(--accent);}
+.section-group{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:18px;overflow:hidden;}
+.section-group-header{padding:11px 20px;background:var(--surface2);font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:8px;}
+.section-group-body{padding:0 8px;overflow-x:auto;}
+.refresh-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 12px;font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .2s;}
+.refresh-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+.refresh-btn.spinning svg{animation:spin 1s linear infinite;}
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.price-live{font-size:11px;color:var(--accent2);}
+.price-stale{font-size:11px;color:var(--muted);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card,.kpi{animation:fadeUp .35s ease both;}
+.kpi:nth-child(1){animation-delay:.04s}.kpi:nth-child(2){animation-delay:.08s}
+.kpi:nth-child(3){animation-delay:.12s}.kpi:nth-child(4){animation-delay:.16s}.kpi:nth-child(5){animation-delay:.20s}
+@media(max-width:900px){main{padding:12px;}header{padding:12px;}.kpi-row,.kpi-row-5,.kpi-row-3{grid-template-columns:1fr 1fr;}.grid2,.grid3{grid-template-columns:1fr;}.tabs{padding:0 12px;}}
+
+
+.inv-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.inv-modal{background:var(--surface);border:1px solid var(--accent);border-radius:16px;padding:28px 32px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.inv-modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:20px;color:var(--accent);display:flex;align-items:center;gap:10px;}
+.inv-modal-close{position:absolute;top:16px;right:18px;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:4px 8px;border-radius:4px;transition:color .15s;}
+.inv-modal-close:hover{color:var(--red);}
+.inv-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.inv-form-field{display:flex;flex-direction:column;gap:5px;}
+.inv-form-field.full{grid-column:1/-1;}
+.inv-form-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);}
+.inv-form-input{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-family:'DM Mono',monospace;font-size:13px;outline:none;transition:border-color .2s;}
+.inv-form-input:focus{border-color:var(--accent);}
+.inv-form-select{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-family:'DM Mono',monospace;font-size:13px;outline:none;cursor:pointer;}
+.inv-form-select:focus{border-color:var(--accent);}
+.inv-form-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border);}
+.inv-add-btn{background:none;border:1px dashed var(--border);color:var(--muted);border-radius:6px;padding:6px 16px;font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .2s;margin-top:6px;display:flex;align-items:center;gap:6px;}
+.inv-add-btn:hover{border-color:var(--accent);color:var(--accent);}
+.inv-del-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 6px;border-radius:4px;transition:color .15s;opacity:0.6;}
+.inv-del-btn:hover{color:var(--red);opacity:1;}
+
+
+
+.entretien-table{width:100%;border-collapse:collapse;}
+.entretien-table th{text-align:center;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:7px 10px;border-bottom:2px solid var(--border);}
+.entretien-table th:first-child{text-align:left;}
+.entretien-table td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:center;font-size:12px;vertical-align:middle;}
+.entretien-table td:first-child{text-align:left;font-weight:600;}
+.entretien-table tbody tr:hover{background:var(--surface2);}
+.entretien-table tfoot td{padding:8px 10px;border-top:2px solid var(--border);font-weight:700;text-align:center;}
+.entretien-table tfoot td:first-child{text-align:left;}
+.cell-rev-toyota{background:rgba(192,90,90,0.18);color:#c87070;border-radius:4px;padding:2px 8px;font-weight:700;display:inline-block;min-width:70px;}
+.cell-rev-empty{color:var(--muted);}
+.cell-ct{background:rgba(91,159,186,0.18);color:#7eb8d4;border-radius:4px;padding:2px 8px;font-weight:700;display:inline-block;min-width:60px;}
+.cell-ct-planned{background:rgba(91,159,186,0.28);color:#7eb8d4;border-radius:4px;padding:2px 8px;font-weight:700;display:inline-block;min-width:60px;}
+.entretien-add-btn{background:none;border:1px dashed var(--border);color:var(--muted);border-radius:6px;padding:5px 14px;font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .2s;margin-top:8px;}
+.entretien-add-btn:hover{border-color:var(--accent);color:var(--accent);}
+.legend-box{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:middle;margin-right:4px;}
+
+.ia-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:600;display:flex;align-items:flex-start;justify-content:center;backdrop-filter:blur(6px);overflow-y:auto;padding:20px;}
+.ia-modal{background:var(--surface);border:1px solid var(--accent2);border-radius:16px;padding:0;width:760px;max-width:96vw;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.5);margin:auto;}
+.ia-modal-header{padding:22px 28px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.ia-modal-header-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--accent2);display:flex;align-items:center;gap:10px;}
+.ia-modal-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:4px 8px;border-radius:4px;transition:color .15s;line-height:1;}
+.ia-modal-close:hover{color:var(--red);}
+.ia-modal-body{padding:22px 28px;}
+.ia-report-box{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:18px 20px;font-size:12px;line-height:1.8;color:var(--text);white-space:pre-wrap;font-family:'DM Mono',monospace;min-height:120px;max-height:65vh;overflow-y:auto;position:relative;}
+.ia-report-box.loading{color:var(--muted);font-style:italic;}
+.ia-report-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;align-items:center;}
+.ia-section{margin-bottom:18px;}
+.ia-section-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.ia-prompt-box{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;line-height:1.6;max-height:180px;overflow-y:auto;cursor:text;}
+.ia-copy-btn{background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:6px 14px;font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.ia-copy-btn:hover{border-color:var(--accent2);color:var(--accent2);}
+.ia-copy-btn.copied{border-color:var(--green);color:var(--green);}
+.ia-tag{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:600;margin:0 2px;}
+.ia-tag-pos{background:rgba(77,240,122,.15);color:var(--green);}
+.ia-tag-neg{background:rgba(240,77,77,.15);color:var(--red);}
+.ia-tag-neu{background:var(--surface2);color:var(--muted);}
+.ia-divider{height:1px;background:var(--border);margin:16px 0;}
+::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* ═══ LOCK SCREEN ═══ */
+#lockScreen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0;}
+.lock-box{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:40px 44px;width:380px;max-width:92vw;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.5);}
+.lock-logo{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;letter-spacing:-1px;color:var(--accent);margin-bottom:6px;}
+.lock-logo span{color:var(--text);}
+.lock-icon{font-size:36px;margin-bottom:18px;display:block;}
+.lock-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:24px;}
+.lock-input{width:100%;background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-family:'DM Mono',monospace;font-size:16px;letter-spacing:4px;text-align:center;outline:none;transition:border-color .2s;margin-bottom:14px;}
+.lock-input:focus{border-color:var(--accent);}
+.lock-input.shake{animation:lockShake .35s ease;}
+.lock-btn{width:100%;padding:12px;border-radius:8px;background:var(--accent);color:#1e2228;border:none;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;cursor:pointer;transition:background .2s;}
+.lock-btn:hover{background:var(--accent2);}
+.lock-error{color:var(--red);font-size:11px;height:16px;margin-bottom:10px;transition:opacity .3s;}
+.lock-change{margin-top:18px;font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px;transition:color .15s;}
+.lock-change:hover{color:var(--accent);}
+@keyframes lockShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+.dep-category{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden;}
+.dep-cat-header{padding:11px 18px;background:var(--surface2);display:flex;align-items:center;justify-content:space-between;}
+.dep-cat-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.dep-cat-total{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;}
+.dep-table{width:100%;border-collapse:collapse;}
+.dep-table th{text-align:left;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:7px 16px;border-bottom:1px solid var(--border);}
+.dep-table td{padding:9px 16px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.dep-table tr:last-child td{border-bottom:none;}
+.dep-table tbody tr:hover{background:var(--surface2);}
+.dep-link{color:var(--accent2);text-decoration:none;font-size:11px;opacity:0.7;transition:opacity .2s;}
+.dep-link:hover{opacity:1;}
+.dep-annuel{color:var(--muted);font-size:11px;}
+.dep-pct-bar{height:4px;border-radius:2px;margin-top:3px;transition:width .4s;}
+.taux-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);}
+.taux-row:last-child{border-bottom:none;}
+
+.mob-odometer-log{width:100%;border-collapse:collapse;}
+.mob-odometer-log th{text-align:left;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:7px 10px;border-bottom:1px solid var(--border);}
+.mob-odometer-log td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.mob-odometer-log tbody tr:hover{background:var(--surface2);}
+.mob-odometer-log tfoot td{padding:8px 10px;border-top:2px solid var(--border);font-weight:700;}
+.mob-add-btn{background:none;border:1px dashed var(--border);color:var(--muted);border-radius:6px;padding:6px 14px;font-size:11px;cursor:pointer;font-family:'DM Mono',monospace;transition:all .2s;width:100%;margin-top:8px;}
+.mob-add-btn:hover{border-color:var(--accent);color:var(--accent);}
+.mob-delete-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 5px;border-radius:4px;transition:color .15s;}
+.mob-delete-btn:hover{color:var(--red);}
+.usure-bar-wrap{margin:8px 0;}
+.usure-bar-bg{height:10px;background:var(--surface2);border-radius:5px;overflow:hidden;border:1px solid var(--border);}
+.usure-bar-fill{height:100%;border-radius:5px;transition:width .5s;}
+.mob-section-header{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:8px 0 6px;margin-bottom:4px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
+.split-pct-bar{height:20px;border-radius:6px;overflow:hidden;display:flex;margin:8px 0;}
+.mob-stat-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);}
+.mob-stat-row:last-child{border-bottom:none;}
+.mob-stat-label{color:var(--muted);font-size:11px;}
+.mob-stat-val{font-weight:600;font-size:12px;}
+</style>
+</head>
+<body>
+
+<!-- ═══ LOCK SCREEN ═══ -->
+<div id="lockScreen">
+  <div class="lock-box">
+    <div class="lock-logo">PATRI<span>MOINE</span></div>
+    <span class="lock-icon">🔐</span>
+    <div class="lock-title">Accès sécurisé</div>
+    <input id="lockInput" class="lock-input" type="password" placeholder="••••••••"
+      onkeydown="if(event.key==='Enter')checkPassword()"
+      oninput="el('lockError').style.opacity=0" autocomplete="current-password">
+    <div id="lockError" class="lock-error" style="opacity:0;">Mot de passe incorrect</div>
+    <button class="lock-btn" onclick="checkPassword()">Déverrouiller</button>
+    <div class="lock-change" onclick="changePassword()">Changer le mot de passe</div>
+  </div>
+</div>
+
+<header>
+  <div class="logo">PATRI<span>MOINE</span></div>
+  <div class="header-right">
+    <span class="status" id="saveStatus">✓ Sauvegardé</span>
+    <span id="autoSaveIndicator" style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;">
+      <span id="autoSaveDot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--muted);"></span>
+      <span id="autoSaveLabel">—</span>
+    </span>
+    <button class="btn" onclick="toggleMask()"><span id="eyeIcon">👁</span> <span id="maskLabel">Masquer</span></button>
+    <button class="btn btn-accent" onclick="saveData()">💾 JSON</button>
+    <span title="Données locales uniquement — export chiffré AES-256" style="display:flex;align-items:center;gap:4px;font-size:10px;font-family:'DM Mono',monospace;letter-spacing:.08em;color:#5aab7a;border:1px solid #5aab7a44;border-radius:6px;padding:3px 8px;white-space:nowrap;">🔒 Sécurisé Web</span>
+    <button class="btn" onclick="loadFile()">📂 Charger</button>
+    <button class="btn" onclick="clearAutoSave()" title="Effacer la sauvegarde automatique du navigateur" style="color:var(--muted);">🗑 Auto</button>
+    <span id="jsonDateLbl" style="display:none;font-size:11px;color:var(--muted);line-height:1.3;text-align:right;">
+      <span style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;display:block;color:var(--muted);opacity:.6;">Date du JSON</span>
+      <span id="jsonDateVal" style="font-family:'DM Mono',monospace;color:var(--text);"></span>
+    </span>
+    <input type="file" id="fileInput" accept=".json,.patrenenc" style="display:none" onchange="loadData(event)">
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('patrimoine')">📊 Patrimoine</div>
+  <div class="tab" onclick="switchTab('investissement')">📈 Investissements</div>
+</div>
+
+<!-- ═══ TAB PATRIMOINE ═══ -->
+<div id="tab-patrimoine" class="tab-content active">
+<main>
+  <div class="kpi-row" id="mainKpiRow" style="grid-template-columns:repeat(7,1fr);">
+    <div class="kpi accent"><div class="kpi-label">Gain Investissements</div><div class="kpi-value" id="kpiInvGain">—</div><div class="kpi-sub" id="kpiInvGainSub">—</div></div>
+    <div class="kpi green"><div class="kpi-label">Patrimoine Total</div><div class="kpi-value amount" id="kpiTotal">—</div><div class="kpi-sub">Toutes classes</div></div>
+    <div class="kpi" id="kpiAthCard" style="border-color:#c8a96e44;"><div class="kpi-label" style="color:#c8a96e;">🏆 All-Time High</div><div class="kpi-value amount" id="kpiAth" style="color:#c8a96e;">—</div><div class="kpi-sub" id="kpiAthSub">—</div></div>
+    <div class="kpi gold"><div class="kpi-label">Disponible immédiat</div><div class="kpi-value amount" id="kpiLiq0">—</div><div class="kpi-sub" id="kpiLiq0pct">—</div></div>
+    <div class="kpi blue"><div class="kpi-label">1–3 mois</div><div class="kpi-value amount" id="kpiLiq1">—</div><div class="kpi-sub" id="kpiLiq1pct">—</div></div>
+    <div class="kpi red"><div class="kpi-label">+6 mois</div><div class="kpi-value amount" id="kpiLiq2">—</div><div class="kpi-sub" id="kpiLiq2pct">—</div></div>
+    <div class="kpi purple"><div class="kpi-label">📒 Livrets (LA + LDDS)</div><div class="kpi-value amount" id="kpiLivrets">—</div><div class="kpi-sub" id="kpiLivretsSub">—</div></div>
+  </div>
+  <div class="card" style="margin-bottom:18px;display:none;" id="athHistCard">
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>🏆 Historique All-Time High</span>
+      <button class="btn" onclick="toggleAthHist()" id="athHistToggle" style="font-size:11px;padding:4px 10px;">▾ Voir</button>
+    </div>
+    <div id="athHistContent" style="display:none;"></div>
+  </div>
+  <p class="section-title">Liquidité & Disponibilité</p>
+  <div class="card" style="margin-bottom:18px;">
+    <div class="liq-bar" id="liqBar"></div>
+    <div class="liq-labels">
+      <div class="liq-lbl"><div class="liq-dot" style="background:#5aab7a"></div>Immédiat</div>
+      <div class="liq-lbl"><div class="liq-dot" style="background:#b45309"></div>1–3 mois</div>
+      <div class="liq-lbl"><div class="liq-dot" style="background:#c87070"></div>+6 mois</div>
+    </div>
+  </div>
+  <div class="grid2" style="margin-bottom:26px;">
+    <div class="card">
+      <div class="card-title">📊 Répartition par classe</div>
+      <div class="donut-wrap">
+        <canvas id="donutCanvas" width="130" height="130"></canvas>
+        <div class="donut-legend" id="donutLegend"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚠️ Risque & Liquidité /7</div>
+      <div style="margin-bottom:14px;"><div style="font-size:10px;color:var(--muted);margin-bottom:4px;letter-spacing:1px;">RISQUE GLOBAL</div><div class="risk-scale" id="riskScale"></div><div class="risk-labels"><span>Très faible</span><span>Très élevé</span></div></div>
+      <div style="margin-bottom:14px;"><div style="font-size:10px;color:var(--muted);margin-bottom:4px;letter-spacing:1px;">LIQUIDITÉ GLOBALE</div><div class="risk-scale" id="liqScale"></div><div class="risk-labels"><span>Très illiquide</span><span>Très liquide</span></div></div>
+      <div id="riskTable"></div>
+    </div>
+  </div>
+  <p class="section-title">Comptes Bancaires</p>
+  <div style="margin-bottom:10px;display:flex;align-items:center;justify-content:flex-end;">
+    <button class="btn" onclick="switchTab('investissement')" style="font-size:11px;padding:5px 14px;gap:6px;">
+      <span>📈</span> Détail portefeuille → Onglet Investissement
+    </button>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="card-title" id="titleBourso"></div><div id="bankBourso"></div></div>
+    <div class="card"><div class="card-title" id="titleFortunneo"></div><div id="bankFortunneo"></div></div>
+    <div class="card"><div class="card-title" id="titleRevolut"></div><div id="bankRevolut"></div></div>
+    <div class="card"><div class="card-title" id="titleNatixis"></div><div id="bankNatixis"></div></div>
+  </div>
+  <p class="section-title">SCPI</p>
+  <div class="card" style="margin-bottom:26px;overflow-x:auto;">
+    <table class="scpi-table">
+      <thead><tr><th>Gestionnaire</th><th>Produit</th><th>Parts</th><th>Px achat</th><th>Px actuel</th><th>Valeur actuelle</th><th>Montant investi</th><th>Perf.</th></tr></thead>
+      <tbody id="scpiBody"></tbody><tfoot id="scpiFoot"></tfoot>
+    </table>
+  </div>
+  <p class="section-title">Actifs Physiques & Alternatifs</p>
+  <div class="grid3">
+    <div class="card"><div class="card-title">🏠 Immobilier</div><div id="immobilier"></div></div>
+    <div class="card"><div class="card-title">✨ Or & Métaux</div><div id="or"></div></div>
+    <div class="card"><div class="card-title">₿ Crypto</div><div id="crypto"></div></div>
+  </div>
+</main>
+</div>
+
+<!-- ═══ TAB INVESTISSEMENT ═══ -->
+<div id="tab-investissement" class="tab-content">
+
+
+
+<main>
+  <div class="kpi-row-5">
+    <div class="kpi accent"><div class="kpi-label">Valorisation Portefeuille</div><div class="kpi-value amount" id="invKpiTotal">—</div><div class="kpi-sub" id="invKpiTotalSub">actifs investis</div></div>
+    <div class="kpi green"><div class="kpi-label">Gain / Perte Global</div><div class="kpi-value" id="invKpiGain">—</div><div class="kpi-sub" id="invKpiGainPct">—</div></div>
+    <div class="kpi gold"><div class="kpi-label">Capital Investi (P.R.)</div><div class="kpi-value amount" id="invKpiInvested">—</div><div class="kpi-sub">Prix de revient total</div></div>
+    <div class="kpi blue"><div class="kpi-label">Variation du Jour</div><div class="kpi-value" id="invKpiDay">—</div><div class="kpi-sub" id="invKpiDaySub">—</div></div>
+    <div class="kpi purple"><div class="kpi-label">Meilleure Perf.</div><div class="kpi-value" id="invKpiBest">—</div><div class="kpi-sub" id="invKpiBestName">—</div></div>
+  </div>
+  <div style="margin-bottom:18px;">
+    <p class="section-title">Cours en temps réel</p>
+  </div>
+  <div class="section-group">
+    <div class="section-group-header" style="justify-content:space-between;">
+      <span>🏦 FORTUNEO — PEA</span>
+      <button class="inv-add-btn" style="margin:0;padding:3px 12px;" onclick="openInvModal('pea')">＋ Ajouter</button>
+    </div>
+    <div class="section-group-body">
+      <table class="inv-table">
+        <thead><tr><th>Actif</th><th>Qté ✎</th><th>P.R. unit. ✎</th><th>Cours actuel ✎</th><th>Var. Jour ✎</th><th>Valorisation</th><th>Gain €</th><th>Gain %</th><th></th></tr></thead>
+        <tbody id="invPEA"></tbody><tfoot id="invPEAFoot"></tfoot>
+      </table>
+    </div>
+  </div>
+  <div class="section-group">
+    <div class="section-group-header" style="justify-content:space-between;">
+      <span>🏦 FORTUNEO — CTO</span>
+      <button class="inv-add-btn" style="margin:0;padding:3px 12px;" onclick="openInvModal('cto')">＋ Ajouter</button>
+    </div>
+    <div class="section-group-body">
+      <table class="inv-table">
+        <thead><tr><th>Actif</th><th>Qté ✎</th><th>P.R. unit. ✎</th><th>Cours actuel ✎</th><th>Var. Jour ✎</th><th>Valorisation</th><th>Gain €</th><th>Gain %</th><th></th></tr></thead>
+        <tbody id="invCTO"></tbody><tfoot id="invCTOFoot"></tfoot>
+      </table>
+    </div>
+  </div>
+  <div class="section-group">
+    <div class="section-group-header" style="justify-content:space-between;">
+      <span>💳 REVOLUT — BTC & Or</span>
+      <button class="inv-add-btn" style="margin:0;padding:3px 12px;" onclick="openInvModal('revolut')">＋ Ajouter</button>
+    </div>
+    <div class="section-group-body">
+      <table class="inv-table">
+        <thead><tr><th>Actif</th><th>Qté ✎</th><th>P.R. unit. ✎</th><th>Cours actuel ✎</th><th>Var. Jour ✎</th><th>Valorisation</th><th>Gain €</th><th>Gain %</th><th></th></tr></thead>
+        <tbody id="invRevolut"></tbody><tfoot id="invRevolutFoot"></tfoot>
+      </table>
+    </div>
+  </div>
+  <div class="section-group">
+    <div class="section-group-header" style="justify-content:space-between;">
+      <span>🏢 NATIXIS — ÉPARGNE ENTREPRISE (PEE / PERCO)</span>
+      <button class="inv-add-btn" style="margin:0;padding:3px 12px;" onclick="openEeModal()">＋ Ajouter</button>
+    </div>
+    <div class="section-group-body">
+      <table class="inv-table" id="invEeTable">
+        <thead><tr><th>Produit / Fonds</th><th>Nb parts ✎</th><th>PRU ✎</th><th>Valeur actuelle ✎</th><th>Taux rend. ✎</th><th>Capital investi</th><th>Gain €</th><th>Gain %</th><th></th></tr></thead>
+        <tbody id="invEE"></tbody><tfoot id="invEEFoot"></tfoot>
+      </table>
+    </div>
+  </div>
+  <div class="section-group">
+    <div class="section-group-header" style="justify-content:space-between;">
+      <span>🛡️ ASSURANCES VIE</span>
+      <button class="inv-add-btn" style="margin:0;padding:3px 12px;" onclick="openAvModal()">＋ Ajouter</button>
+    </div>
+    <div class="section-group-body">
+      <table class="inv-table" id="invAvTable">
+        <thead><tr><th>Contrat</th><th>Assureur ✎</th><th>Versements ✎</th><th>Valeur actuelle ✎</th><th>Taux rend. ✎</th><th>Gain €</th><th>Gain %</th><th>Intérêts / an</th><th></th></tr></thead>
+        <tbody id="invAV"></tbody><tfoot id="invAVFoot"></tfoot>
+      </table>
+    </div>
+  </div>
+  <div class="section-group">
+    <div class="section-group-header" style="justify-content:space-between;">
+      <span>🔒 ÉPARGNE RÉGLEMENTÉE & BLOQUÉE</span>
+      <button class="inv-add-btn" style="margin:0;padding:3px 12px;" onclick="openEbModal()">＋ Ajouter</button>
+    </div>
+    <div class="section-group-body">
+      <table class="inv-table" id="invEbTable">
+        <thead><tr><th>Produit</th><th>Banque ✎</th><th>Type ✎</th><th>Montant ✎</th><th>Taux % ✎</th><th>Intérêts / an est.</th><th>URL</th><th></th></tr></thead>
+        <tbody id="invEB"></tbody><tfoot id="invEBFoot"></tfoot>
+      </table>
+    </div>
+  </div>
+  <div class="grid3">
+    <div class="card">
+      <div class="card-title">📊 Répartition portefeuille</div>
+      <div class="donut-wrap">
+        <canvas id="invDonut" width="130" height="130"></canvas>
+        <div id="invDonutLegend" class="donut-legend"></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">🔗 Lien avec le Patrimoine Global</div>
+      <div id="patrimoineLink"></div>
+    </div>
+    <div class="card" id="dcaCard">
+      <div class="card-title" style="justify-content:space-between;">
+        <span>📅 Suivi DCA</span>
+        <button class="inv-add-btn" style="margin:0;padding:3px 12px;" onclick="addDcaEntry()">＋ Versement</button>
+      </div>
+      <div id="dcaContent"></div>
+    </div>
+  </div>
+</main>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════════════
+let DATA = {
+  boursorama:[
+    {label:"Compte courant",val:0,liq:0,risk:1},{label:"Livret A",val:0,liq:1,risk:1},
+    {label:"Livret B+",val:0,liq:1,risk:1},{label:"CTO",val:0,liq:1,risk:4},
+    {label:"CTO Liquidités",val:0,liq:0,risk:1},{label:"PEA",val:0,liq:1,risk:4},
+    {label:"PEA Liquidités",val:0,liq:0,risk:1},{label:"Assurance Vie",val:0,liq:1,risk:3},
+  ],
+  fortuneo:[
+    {label:"Compte Courant",val:0,liq:0,risk:1},{label:"Livret+",val:0,liq:1,risk:1},
+    {label:"LDDS",val:0,liq:1,risk:1},{label:"Assurance Vie",val:0,liq:1,risk:3},
+    {label:"CTO Liquidités",val:0,liq:0,risk:1},{label:"CTO",val:0,liq:1,risk:4},
+    {label:"PEA Liquidités",val:0,liq:0,risk:1},{label:"PEA",val:0,liq:1,risk:4},
+  ],
+  revolut:[
+    {label:"Compte Courant",val:0,liq:0,risk:1},{label:"€ster (€)",val:0,liq:0,risk:1},
+    {label:"$ster (USD)",val:0,liq:0,risk:2},{label:"Gold (or)",val:0,liq:1,risk:3},
+    {label:"Actions US",val:0,liq:1,risk:5},{label:"Obligations",val:0,liq:1,risk:2},
+    {label:"REITs",val:0,liq:1,risk:4},{label:"Crypto",val:0,liq:1,risk:7},
+  ],
+  natixis:[{label:"Placement",val:0,liq:1,risk:2}],
+  liens:{
+    boursorama:"https://clients.boursobank.com/",
+    fortuneo:"https://clients.fortuneo.fr/index.php",
+    revolut:"https://app.revolut.com/home",
+    natixis:"https://www.assurances.natixis.fr/espaceClient/login.do",
+    carburant:"https://www.e.leclerc/mag/e-leclerc-bourg-les-valence",
+  },
+  scpi:[
+    {gestionnaire:"ALDERAN",produit:"Activimmo Falcon",parts:34,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,url:"https://www.alderan-re.com/activimmo/"},
+    {gestionnaire:"ATLAND VOISIN",produit:"Epargne Pierre",parts:98,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,url:"https://www.atland-voisin.fr/scpi/epargne-pierre/"},
+    {gestionnaire:"NORMACAPITAL",produit:"Vendome Région",parts:30,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,url:"https://www.normacapital.fr/vendome-regions/"},
+    {gestionnaire:"PERIAL",produit:"PFO Perial",parts:400,pxAchat:0,pxActuel:0,totalActuel:0,montantPlace:0,url:"https://www.perial.com/nos-scpi/pfo/"},
+  ],
+  maison:0,
+  especeCache:0,
+  revenuMensuelNet: 0,
+  ath:[],
+  dca:[],
+  depenses:{
+    categories:[
+      {
+        nom:"Impôts & Taxes", icon:"🏛️", color:"#ef4444",
+        items:[
+          {label:"Impôt sur le revenu", mensuel:0, annuel:0, url:"https://cfspart-idp.impots.gouv.fr/oauth2/authorize?authType=sso&response_type=code&scope=openid+profile+authChoice+otpEscape&redirect_uri=https%3A%2F%2Fcfspart.impots.gouv.fr%2F%3Fopenidconnectcallback%3D1", note:"mensuel"},
+          {label:"Taxe foncière", mensuel:0, annuel:0, url:"https://cfspart-idp.impots.gouv.fr/oauth2/authorize?authType=sso&response_type=code&scope=openid+profile+authChoice+otpEscape&redirect_uri=https%3A%2F%2Fcfspart.impots.gouv.fr%2F%3Fopenidconnectcallback%3D1", note:"mensuel"},
+        ]
+      },
+      {
+        nom:"Logement & Énergie", icon:"🏠", color:"#d4875a",
+        items:[
+          {label:"Électricité (Engie)", mensuel:0, annuel:0, url:"https://particuliers.engie.fr/login-page/authentification.html", note:"mensuel"},
+          {label:"Eau", mensuel:0, annuel:0, url:"https://espaceclient.valenceromanseau.fr/#/dashboard", note:"mensuel"},
+          {label:"Bois chauffage", mensuel:0, annuel:0, url:"", note:"mensuel"},
+          {label:"Ramonage", mensuel:0, annuel:0, url:"", note:"mensuel"},
+        ]
+      },
+      {
+        nom:"Assurances & Santé", icon:"🛡️", color:"#3b82f6",
+        items:[
+          {label:"Assurance auto (AXA)", mensuel:0, annuel:0, url:"https://www.axa.fr/espace-client.html", note:"mensuel"},
+          {label:"Assurance responsabilité (AXA)", mensuel:0, annuel:0, url:"https://www.axa.fr/espace-client.html", note:"mensuel"},
+          {label:"Assurance habitation (AXA)", mensuel:0, annuel:0, url:"https://www.axa.fr/espace-client.html", note:"mensuel"},
+          {label:"Mutuelle", mensuel:0, annuel:0, url:"", note:"mensuel"},
+        ]
+      },
+      {
+        nom:"Télécom", icon:"📡", color:"#7eb8d4",
+        items:[
+          {label:"Téléphone (RED SFR)", mensuel:0, annuel:0, url:"https://www.sfr.fr/cas/login?service=https%3A%2F%2Fwww.red-by-sfr.fr%2Faccueil%2Fj_spring_cas_security_check", note:"mensuel"},
+          {label:"Internet (RED SFR)", mensuel:0, annuel:0, url:"https://www.sfr.fr/cas/login?service=https%3A%2F%2Fwww.red-by-sfr.fr%2Faccueil%2Fj_spring_cas_security_check", note:"mensuel"},
+        ]
+      },
+      {
+        nom:"Vie Courante", icon:"🛒", color:"#7eb8d4",
+        items:[
+          {label:"Alimentation (E.Leclerc Drive)", mensuel:0, annuel:0, url:"https://www.leclercdrive.fr/?mag=082601-082601&sRedirect=false", note:"mensuel"},
+          {label:"Essence (E.Leclerc)", mensuel:0, annuel:0, url:"", note:"mensuel"},
+          {label:"Entretien voiture (Feu Vert)", mensuel:0, annuel:0, url:"", note:"mensuel"},
+          {label:"Crédit immobilier", mensuel:0, annuel:0, url:"", note:"mensuel"},
+          {label:"Chien / Chat", mensuel:0, annuel:0, url:"", note:"mensuel"},
+          {label:"Ménage", mensuel:0, annuel:0, url:"", note:"mensuel"},
+        ]
+      },
+    ]
+  },
+  investissements:{
+    pea:[
+      {nom:"iShares MSCI World Swap PEA UCITS ETF - EUR ACC",ticker:"WPEA",isin:"IE0002XZSHO1",qte:0.5,pr:0,coursActuel:0,varJour:0,lastUpdate:null,url:"https://www.fortuneo.fr/bourse/cours/action/WPEA-IE0002XZSHO1-EUR"},
+    ],
+    cto:[
+      {nom:"iShares MSCI World Swap PEA UCITS ETF - EUR ACC",ticker:"WPEA",isin:"IE0002XZSHO1",qte:0.3,pr:0,coursActuel:0,varJour:0,lastUpdate:null,url:"https://www.fortuneo.fr/bourse/cours/action/WPEA-IE0002XZSHO1-EUR"},
+    ],
+    revolut:[
+      {nom:"Bitcoin",ticker:"BTC",isin:"",qte:0.1234,pr:0,coursActuel:0,varJour:0,lastUpdate:null,url:"https://www.coindesk.com/price/bitcoin/"},
+      {nom:"Or (XAU/EUR)",ticker:"XAU",isin:"",qte:3.5,pr:0,coursActuel:0,varJour:0,lastUpdate:null,url:"https://www.gold.org/goldhub/data/gold-prices"},
+    ],
+    epargne_entreprise:[
+      {nom:"PEE — Natixis",fonds:"Fonds diversifié",parts:10,pr:0,valeurActuelle:0,tauxRendement:0,url:"https://www.assurances.natixis.fr/espaceClient/login.do"},
+    ],
+    assurance_vie:[
+      {nom:"Assurance Vie Boursorama",assureur:"Boursorama",contrat:"",versements:0,valeurActuelle:0,tauxRendement:0,url:"https://clients.boursobank.com/"},
+      {nom:"Assurance Vie Fortuneo",assureur:"Fortuneo",contrat:"",versements:0,valeurActuelle:0,tauxRendement:0,url:"https://clients.fortuneo.fr/index.php"},
+    ],
+    epargne_bloquee:[
+      {nom:"Livret A — Boursorama",type:"Livret A",banque:"Boursorama",montant:0,tauxAnnuel:0,dateOuverture:"",url:"https://clients.boursobank.com/"},
+      {nom:"Livret B+ — Boursorama",type:"Livret B+",banque:"Boursorama",montant:0,tauxAnnuel:0,dateOuverture:"",url:"https://clients.boursobank.com/"},
+      {nom:"LDDS — Fortuneo",type:"LDDS",banque:"Fortuneo",montant:0,tauxAnnuel:0,dateOuverture:"",url:"https://clients.fortuneo.fr/index.php"},
+      {nom:"Livret+ — Fortuneo",type:"Livret+",banque:"Fortuneo",montant:0,tauxAnnuel:0,dateOuverture:"",url:"https://clients.fortuneo.fr/index.php"},
+    ],
+  },
+  mobilite: {
+    auto: {
+      odoLog: [
+        {date:"2025-01-01", km:41580},
+        {date:"2026-03-13", km:47793},
+      ],
+      composants: [
+        {nom:"Pneus avant", datePose:"2025-01-01", kmPose:41580, dureeTheoKm:40000},
+      ],
+      entretien: [
+        {annee:2022, revision:0,  pneusAV:0,      ct:0,     km:null,  commentaire:"", revType:"toyota"},
+        {annee:2023, revision:0,  pneusAV:0,      ct:0,     km:null,  commentaire:"", revType:"toyota"},
+        {annee:2024, revision:0,  pneusAV:0,      ct:0,     km:null,  commentaire:"", revType:"toyota"},
+        {annee:2025, revision:0,  pneusAV:0, ct:0, km:42453, commentaire:"", revType:"toyota"},
+        {annee:2026, revision:0,       pneusAV:0,      ct:0,     km:null,  commentaire:"pneu a permuter", revType:""},
+        {annee:2027, revision:0,       pneusAV:0,      ct:0,     km:null,  commentaire:"", revType:""},
+        {annee:2028, revision:0,       pneusAV:0,      ct:0,     km:null,  commentaire:"", revType:""},
+        {annee:2029, revision:0,       pneusAV:0,      ct:0,     km:null,  commentaire:"", revType:""},
+        {annee:2030, revision:0,       pneusAV:0,      ct:0,     km:null,  commentaire:"", revType:"toyota"},
+        {annee:2031, revision:0,       pneusAV:0,      ct:0,     km:null,  commentaire:"", revType:""},
+      ],
+    },
+    velo: {
+      odoLog: [
+        {date:"2025-09-19", km:4429},
+        {date:"2026-03-13", km:5210},
+      ],
+      batterie: {
+        datePose:    "2022-07-21",
+        kmPose:      1410,
+        cyclesActuels: 0,
+        cyclesMax:   150,
+        dureeTheoKm: 6750,
+      },
+      moteur: {
+        datePose:     "2018-07-21",
+        kmPose:       5210,
+        kmTotal:      5210,
+        dureeTheoKm:  12000,
+      },
+    },
+    travail: {
+      trajetAR:    0,
+      joursAn:     0,
+    },
+    carburant: {
+      essence:     0,
+      prixLitre:   0,
+      capaciteTank: 0,
+      conso100km:   0,
+    },
+  },
+};
+
+let masked = false;
+let activeTab = 'patrimoine';
+const riskColors=['#7eb8d4','#7eb8d4','#22c55e','#c8a96e','#d4875a','#ef4444','#7f1d1d'];
+const liqColors=['#7f1d1d','#ef4444','#d4875a','#c8a96e','#22c55e','#7eb8d4','#7eb8d4'];
+
+function fmt(v){return v.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';}
+function fmtN(v,d=2){return v.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function pct(v,t){return t>0?((v/t)*100).toFixed(1)+'%':'0.0%';}
+function fmtDate(s){if(!s)return'—';const d=new Date(s);return d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});}
+const el=id=>document.getElementById(id);
+
+function switchTab(tab){
+  activeTab=tab;
+  const tabNames=['patrimoine','investissement'];
+  document.querySelectorAll('.tab').forEach((t,i)=>{t.classList.toggle('active',tabNames[i]===tab);});
+  tabNames.forEach(n=>{const e=el('tab-'+n);if(e)e.classList.toggle('active',n===tab);});
+  if(tab==='investissement'){
+    renderInvestissement();
+    renderTickerBand();
+    fetchTickerBand();
+    renderDcaCard();
+  }
+}
+
+function classifyAssets(){
+  const c={
+    "Liquidités":{val:0,color:"#5aab7a",risk:1},"Livrets":{val:0,color:"#7eb8d4",risk:1},
+    "Assurance Vie":{val:0,color:"#d4875a",risk:3},"CTO/PEA":{val:0,color:"#3b82f6",risk:4},
+    "Or":{val:0,color:"#c8a96e",risk:3},"Crypto":{val:0,color:"#c87070",risk:7},
+    "SCPI":{val:0,color:"#a090d8",risk:3},"Immobilier":{val:0,color:"#c8a96e",risk:2},
+    "Espèces":{val:0,color:"#6b7280",risk:1},
+  };
+  c["Liquidités"].val+=DATA.boursorama[0].val+DATA.boursorama[4].val+DATA.boursorama[6].val+DATA.fortuneo[0].val+DATA.fortuneo[4].val+DATA.fortuneo[6].val+DATA.revolut[0].val+DATA.revolut[1].val+DATA.revolut[2].val;
+  c["Espèces"].val+=DATA.especeCache;
+  c["Livrets"].val+=DATA.boursorama[1].val+DATA.boursorama[2].val+DATA.fortuneo[1].val+DATA.fortuneo[2].val;
+  c["Assurance Vie"].val+=DATA.boursorama[7].val+DATA.fortuneo[3].val+DATA.natixis[0].val;
+  c["CTO/PEA"].val+=DATA.fortuneo[5].val+DATA.fortuneo[7].val+DATA.boursorama[3].val+DATA.boursorama[5].val;
+  c["Or"].val+=DATA.revolut[3].val;
+  c["Crypto"].val+=DATA.revolut[7].val;
+  DATA.scpi.forEach(s=>c["SCPI"].val+=s.totalActuel);
+  c["Immobilier"].val+=DATA.maison;
+  return c;
+}
+
+function liqBuckets(){
+  let imm=0,mid=0,long=0;
+  [DATA.boursorama[0],DATA.boursorama[4],DATA.boursorama[6],DATA.fortuneo[0],DATA.fortuneo[4],DATA.fortuneo[6]].forEach(a=>imm+=a.val);
+  imm+=DATA.revolut[0].val+DATA.revolut[1].val+DATA.revolut[2].val+DATA.especeCache;
+  [DATA.boursorama[1],DATA.boursorama[2],DATA.boursorama[3],DATA.boursorama[5],DATA.boursorama[7],DATA.fortuneo[1],DATA.fortuneo[2],DATA.fortuneo[3],DATA.fortuneo[5],DATA.fortuneo[7]].forEach(a=>mid+=a.val);
+  mid+=DATA.revolut[3].val+DATA.revolut[4].val+DATA.revolut[5].val+DATA.revolut[6].val+DATA.revolut[7].val+DATA.natixis[0].val;
+  DATA.scpi.forEach(s=>long+=s.totalActuel);
+  long+=DATA.maison;
+  return{imm,mid,long};
+}
+
+function drawDonut(canvasId,entries,total){
+  const canvas=el(canvasId);if(!canvas)return;
+  const ctx=canvas.getContext('2d'),cx=65,cy=65,R=58,r=36;
+  ctx.clearRect(0,0,130,130);
+  let angle=-Math.PI/2;
+  entries.forEach(([,v])=>{
+    const sw=(v.val/total)*2*Math.PI;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,angle,angle+sw);ctx.closePath();ctx.fillStyle=v.color;ctx.fill();angle+=sw;
+  });
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle='#262b33';ctx.fill();
+  ctx.fillStyle='#c8cdd8';ctx.font='bold 10px DM Mono';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('Total',cx,cy-6);
+  if(!masked){ctx.font='8px DM Mono';ctx.fillStyle='#6b7280';ctx.fillText(fmt(total).replace(' €','€'),cx,cy+7);}
+}
+
+function drawScale(id,value,colors){
+  const e=el(id);if(!e)return;
+  e.innerHTML=colors.map((c,i)=>`<div class="risk-box" style="background:${c}">${i===value-1?'<span class="risk-arrow">▼</span>':''}${i+1}</div>`).join('');
+}
+
+// Rows managed automatically by the investissement tab — not manually editable here
+const INVEST_MANAGED={
+  bankBourso:[7],       // AV Boursorama
+  bankFortunneo:[3,5,7],// AV Fortuneo, CTO, PEA
+  bankRevolut:[3,7],    // Or, Crypto/BTC
+  bankNatixis:[0],      // PEE
+};
+
+function renderRows(containerId,rows,total){
+  const e=el(containerId);if(!e)return;
+  const managed=INVEST_MANAGED[containerId]||[];
+  e.innerHTML=rows.map((r,i)=>{
+    const p=total>0?((r.val/total)*100).toFixed(1):'0.0';
+    const isManaged=managed.includes(i);
+    const valCell=isManaged
+      ?`<span class="row-val amount" style="color:var(--accent2);" title="Valeur synchronisée depuis l'onglet Investissements">${fmt(r.val)}</span><span style="font-size:9px;color:var(--muted);margin-left:4px;" title="Géré dans Investissements">⇄</span>`
+      :`<span class="row-val amount editable-val" onclick="startEdit(this,'${containerId}',${i})">${fmt(r.val)}</span>`;
+    return `<div class="table-row"><span class="row-label">${r.label}</span>
+      <div class="row-right">${valCell}<span class="row-pct">${p}%</span></div></div>`;
+  }).join('');
+}
+
+const bankMap={bankBourso:'boursorama',bankFortunneo:'fortuneo',bankRevolut:'revolut',bankNatixis:'natixis'};
+function startEdit(span,cid,idx){
+  if(masked)return;
+  const inp=mkInput(DATA[bankMap[cid]][idx].val);
+  span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){const v=parseFloat(inp.value);if(!isNaN(v)&&v>=0)DATA[bankMap[cid]][idx].val=v;render();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')render();});
+}
+
+function mkInput(val,w='110px',step='0.01'){
+  const inp=document.createElement('input');inp.type='number';inp.step=step;inp.value=val;
+  inp.style.cssText=`background:#1a1f2e;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:2px 6px;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;width:${w};outline:none;`;
+  return inp;
+}
+
+function renderSCPI(){
+  const body=el('scpiBody'),foot=el('scpiFoot');if(!body)return;
+  let tA=0,tI=0;
+  body.innerHTML=DATA.scpi.map((s,si)=>{
+    tA+=s.totalActuel;tI+=s.montantPlace;
+    const perf=((s.totalActuel-s.montantPlace)/s.montantPlace*100).toFixed(2);
+    const cls=perf>=0?'perf-pos':'perf-neg';
+    return `<tr><td style="color:var(--muted)">${s.gestionnaire}</td>
+      <td style="font-weight:500">${s.url?`<a href="${s.url}" target="_blank" style="color:var(--text);text-decoration:none;transition:color .15s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text)'">${s.produit} ↗</a>`:s.produit}&nbsp;<span class="cell-edit" onclick="editScpiUrl(${si},this)" style="font-size:9px;color:var(--muted);" title="Éditer le lien">✎</span></td>
+      <td>${s.parts}</td>
+      <td class="amount editable-val" onclick="startEditSCPI(${si},'pxAchat',this)">${fmt(s.pxAchat)}</td>
+      <td class="amount editable-val" onclick="startEditSCPI(${si},'pxActuel',this)">${fmt(s.pxActuel)}</td>
+      <td class="amount">${fmt(s.totalActuel)}</td>
+      <td class="amount editable-val" onclick="startEditSCPI(${si},'montantPlace',this)">${fmt(s.montantPlace)}</td>
+      <td><span class="perf-pill ${cls}">${perf}%</span></td></tr>`;
+  }).join('');
+  const tp=((tA-tI)/tI*100).toFixed(2);
+  foot.innerHTML=`<tr style="border-top:2px solid var(--border);">
+    <td colspan="5" style="font-weight:700;padding:8px 7px;color:var(--muted)">TOTAL SCPI</td>
+    <td class="amount" style="font-weight:700;">${fmt(tA)}</td><td class="amount" style="font-weight:700;">${fmt(tI)}</td>
+    <td><span class="perf-pill ${tp>=0?'perf-pos':'perf-neg'}">${tp}%</span></td></tr>`;
+}
+
+function startEditSCPI(si,field,span){
+  if(masked)return;
+  const inp=mkInput(DATA.scpi[si][field],'100px');span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){const v=parseFloat(inp.value);if(!isNaN(v)&&v>=0){DATA.scpi[si][field]=v;if(field==='pxActuel'||field==='parts')DATA.scpi[si].totalActuel=DATA.scpi[si].parts*DATA.scpi[si].pxActuel;}render();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')render();});
+}
+
+function renderAltAssets(total){
+  el('immobilier').innerHTML=`
+    <div class="table-row"><span class="row-label">Résidence principale</span><div class="row-right"><span class="row-val amount editable-val" onclick="startEditField('maison',this)">${fmt(DATA.maison)}</span><span class="row-pct">${pct(DATA.maison,total)}</span></div></div>
+    <div class="table-row"><span class="row-label">Espèces cachées</span><div class="row-right"><span class="row-val amount editable-val" onclick="startEditField('especeCache',this)">${fmt(DATA.especeCache)}</span><span class="row-pct">${pct(DATA.especeCache,total)}</span></div></div>`;
+  el('or').innerHTML=`<div class="table-row"><span class="row-label">Or Revolut</span><div class="row-right"><span class="row-val amount" style="color:var(--accent2);" title="Synchronisé depuis Investissements">${fmt(DATA.revolut[3].val)}</span><span style="font-size:9px;color:var(--muted);margin-left:4px;">⇄</span><span class="row-pct">${pct(DATA.revolut[3].val,total)}</span></div></div>`;
+  el('crypto').innerHTML=`<div class="table-row"><span class="row-label">Crypto Revolut</span><div class="row-right"><span class="row-val amount" style="color:var(--accent2);" title="Synchronisé depuis Investissements">${fmt(DATA.revolut[7].val)}</span><span style="font-size:9px;color:var(--muted);margin-left:4px;">⇄</span><span class="row-pct">${pct(DATA.revolut[7].val,total)}</span></div></div>`;
+}
+
+function startEditField(field,span){
+  if(masked)return;
+  const inp=mkInput(DATA[field]);span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){const v=parseFloat(inp.value);if(!isNaN(v)&&v>=0)DATA[field]=v;render();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')render();});
+}
+function render(){_renderCore();scheduleAutoSave();}
+function _renderCore(){
+  const classes=classifyAssets();
+  const total=Object.values(classes).reduce((s,v)=>s+v.val,0);
+  const{imm,mid,long}=liqBuckets();
+  if(!el('kpiTotal'))return;
+  el('kpiTotal').textContent=fmt(total);
+  el('kpiLiq0').textContent=fmt(imm);el('kpiLiq0pct').textContent=pct(imm,total)+' du patrimoine';
+  el('kpiLiq1').textContent=fmt(mid);el('kpiLiq1pct').textContent=pct(mid,total)+' du patrimoine';
+  el('kpiLiq2').textContent=fmt(long);el('kpiLiq2pct').textContent=pct(long,total)+' du patrimoine';
+  // KPI Livrets = Livret A + Livret B+ (Boursorama) + Livret+ + LDDS (Fortuneo)
+  const livrets=DATA.boursorama[1].val+DATA.boursorama[2].val+DATA.fortuneo[1].val+DATA.fortuneo[2].val;
+  const kpiLivrets=el('kpiLivrets'),kpiLivretsSub=el('kpiLivretsSub');
+  if(kpiLivrets){kpiLivrets.textContent=fmt(livrets);}
+  if(kpiLivretsSub){kpiLivretsSub.textContent='LA · B+ · Livret+ · LDDS';}
+  const bar=el('liqBar');
+  if(bar){const tb=imm+mid+long;bar.innerHTML=`
+    <div class="liq-seg" style="width:${pct(imm,tb)};background:#5aab7a"></div>
+    <div class="liq-seg" style="width:${pct(mid,tb)};background:#b45309"></div>
+    <div class="liq-seg" style="width:${pct(long,tb)};background:#c87070"></div>`;}
+  const entries=Object.entries(classes).filter(([,v])=>v.val>0);
+  drawDonut('donutCanvas',entries,total);
+  const leg=el('donutLegend');
+  if(leg)leg.innerHTML=entries.map(([name,v])=>`
+    <div class="legend-item"><div class="legend-dot" style="background:${v.color}"></div>
+    <span class="legend-label">${name}</span><span class="legend-val amount">${fmt(v.val)}</span>
+    <span class="legend-pct">${pct(v.val,total)}</span></div>`).join('');
+  let rS=0,rW=0;
+  Object.values(classes).forEach(v=>{if(v.val>0){rS+=v.risk*v.val;rW+=v.val;}});
+  drawScale('riskScale',Math.round(rS/rW)||3,riskColors);
+  drawScale('liqScale',Math.max(1,Math.min(7,Math.round(7-(long/(total||1))*4))),liqColors);
+  const rt=el('riskTable');
+  if(rt)rt.innerHTML=`<div style="font-size:10px;color:var(--muted);margin-bottom:5px;letter-spacing:1px;text-transform:uppercase;">Risque par classe</div>
+    ${entries.map(([name,v])=>`<div class="table-row"><span class="row-label" style="font-size:11px;">${name}</span>
+      <div style="display:flex;gap:3px;align-items:center;">
+        ${[1,2,3,4,5,6,7].map(n=>`<div style="width:12px;height:12px;border-radius:3px;background:${n<=v.risk?riskColors[v.risk-1]:'var(--border)'};opacity:${n<=v.risk?1:0.4}"></div>`).join('')}
+        <span style="color:var(--muted);font-size:10px;margin-left:3px;">SRI ${v.risk}</span>
+      </div></div>`).join('')}`;
+  renderRows('bankBourso',DATA.boursorama,total);renderRows('bankFortunneo',DATA.fortuneo,total);
+  renderRows('bankRevolut',DATA.revolut,total);renderRows('bankNatixis',DATA.natixis,total);
+  if(!DATA.liens)DATA.liens={boursorama:"https://clients.boursobank.com/",fortuneo:"https://clients.fortuneo.fr/index.php",revolut:"https://app.revolut.com/home",natixis:"https://www.assurances.natixis.fr/espaceClient/login.do",carburant:"https://www.e.leclerc/mag/e-leclerc-bourg-les-valence"};
+  renderBankTitle('titleBourso','BOURSORAMA','boursorama','#1');
+  renderBankTitle('titleFortunneo','FORTUNEO','fortuneo','#2');
+  renderBankTitle('titleRevolut','REVOLUT','revolut','#3');
+  renderBankTitle('titleNatixis','NATIXIS','natixis','#4');
+  const allInv=[...DATA.investissements.pea,...DATA.investissements.cto,...DATA.investissements.revolut];
+  const invVal=allInv.reduce((s,a)=>s+(a.coursActuel>0?a.qte*a.coursActuel:a.qte*a.pr),0);
+  const invPR=allInv.reduce((s,a)=>s+a.qte*a.pr,0);
+  const invGain=invVal-invPR;const invGainPct=invPR>0?(invGain/invPR)*100:0;
+  const kpiG=el('kpiInvGain'),kpiGS=el('kpiInvGainSub');
+  if(kpiG){
+    const gc=invGain>=0?'gain-pos':'gain-neg',gs=invGain>=0?'+':'';
+    kpiG.className='kpi-value amount '+gc;
+    kpiG.textContent=gs+fmt(invGain);
+    kpiGS.textContent=(gs+fmtN(invGainPct,2)+'% vs P.R.')+(allInv.some(a=>a.coursActuel>0)?' · live':'· P.R. estimé');
+  }
+  if(!Array.isArray(DATA.ath))DATA.ath=[];
+  const today=new Date().toISOString().split('T')[0];
+  const curATH=DATA.ath.length>0?Math.max(...DATA.ath.map(e=>e.val)):0;
+  if(total>0&&total>curATH){
+    const lastEntry=DATA.ath[DATA.ath.length-1];
+    if(lastEntry&&lastEntry.date===today){DATA.ath[DATA.ath.length-1].val=total;}
+    else{DATA.ath.push({date:today,val:total});}
+  }
+  const athVal=DATA.ath.length>0?Math.max(...DATA.ath.map(e=>e.val)):total;
+  const athEntry=DATA.ath.find(e=>e.val===athVal);
+  const athKpi=el('kpiAth'),athSub=el('kpiAthSub'),athCard=el('kpiAthCard');
+  if(athKpi){
+    athKpi.textContent=fmt(athVal);
+    const isATH=total>=athVal-0.01;
+    const mainRow=el('mainKpiRow');
+    if(isATH){
+      // Patrimoine = ATH → carte inutile, on masque, 6 colonnes
+      athCard.style.display='none';
+      if(mainRow)mainRow.style.gridTemplateColumns='repeat(6,1fr)';
+    } else {
+      athCard.style.display='';
+      if(mainRow)mainRow.style.gridTemplateColumns='repeat(7,1fr)';
+      const drawdown=athVal>0?((athVal-total)/athVal)*100:0;
+      athSub.textContent='−'+fmtN(drawdown,1)+'% vs ATH · '+athEntry.date;athSub.style.color='var(--muted)';
+      athCard.style.borderColor='#b4530944';athCard.style.background='';
+    }
+  }
+  const athHistCard=el('athHistCard');
+  if(athHistCard&&DATA.ath.length>0){athHistCard.style.display='';renderAthHist();}
+  renderSCPI();renderAltAssets(total);applyMask();
+}
+
+// ═══ MOBILITÉ ════════════════════════════════════════════════════════════
+function calcOdoStats(log){
+  if(!log||log.length<1)return{kmTotal:0,kmJour:0,kmMois:0,kmAn:0,firstDate:null,lastDate:null};
+  const sorted=[...log].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const first=sorted[0],last=sorted[sorted.length-1];
+  const kmTotal=last.km-first.km;
+  const days=(new Date(last.date)-new Date(first.date))/(1000*86400)||1;
+  const kmJour=kmTotal/days;
+  return{kmTotal,kmJour,kmMois:kmJour*30.44,kmAn:kmJour*365.25,firstDate:first.date,lastDate:last.date};
+}
+
+function usureColor(pct){
+  if(pct<40) return 'var(--green)';
+  if(pct<70) return 'var(--gold)';
+  return 'var(--red)';
+}
+
+function renderOdoTable(tbodyId, tfootId, log, vehicule){
+  const tbody=el(tbodyId),tfoot=el(tfootId);
+  if(!tbody)return;
+  const sorted=[...log].sort((a,b)=>new Date(a.date)-new Date(b.date));
+  tbody.innerHTML=sorted.map((entry,i)=>{
+    const prev=i>0?sorted[i-1].km:null;
+    const delta=prev!==null?entry.km-prev:null;
+    const idx=log.findIndex(e=>e.date===entry.date&&e.km===entry.km);
+    return `<tr>
+      <td><span class="cell-edit" onclick="editOdoDate('${vehicule}',${idx},this)">${fmtDate(entry.date)}</span></td>
+      <td style="font-weight:600;color:var(--text)"><span class="cell-edit" onclick="editOdoKm('${vehicule}',${idx},this)">${fmtN(entry.km,0)} km</span></td>
+      <td style="color:var(--accent2)">${delta!==null?'+'+fmtN(delta,0)+' km':'—'}</td>
+      <td><button class="mob-delete-btn" onclick="deleteOdoEntry('${vehicule}',${idx})" title="Supprimer">✕</button></td>
+    </tr>`;
+  }).join('');
+  const stats=calcOdoStats(log);
+  tfoot.innerHTML=`<tr>
+    <td colspan="2" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Total période</td>
+    <td style="color:var(--accent);font-weight:700;">+${fmtN(stats.kmTotal,0)} km</td>
+    <td></td>
+  </tr>`;
+}
+
+function addOdoEntry(vehicule){
+  const today=new Date().toISOString().split('T')[0];
+  DATA.mobilite[vehicule].odoLog.push({date:today,km:0});
+  renderMobilite();
+}
+
+function deleteOdoEntry(vehicule,idx){
+  DATA.mobilite[vehicule].odoLog.splice(idx,1);
+  renderMobilite();
+}
+
+function editOdoDate(vehicule,idx,span){
+  const inp=document.createElement('input');
+  inp.type='date';inp.value=DATA.mobilite[vehicule].odoLog[idx].date;
+  inp.style.cssText='background:#1a1f2e;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:2px 4px;font-family:"DM Mono",monospace;font-size:11px;width:120px;outline:none;';
+  span.replaceWith(inp);inp.focus();
+  function commit(){DATA.mobilite[vehicule].odoLog[idx].date=inp.value;renderMobilite();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderMobilite();});
+}
+
+function editOdoKm(vehicule,idx,span){
+  const inp=mkInput(DATA.mobilite[vehicule].odoLog[idx].km,'100px','1');
+  span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){const v=parseFloat(inp.value);if(!isNaN(v)&&v>=0)DATA.mobilite[vehicule].odoLog[idx].km=v;renderMobilite();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderMobilite();});
+}
+
+function editMobField(path,span,step='0.01',w='100px'){
+  const parts=path.split('.');
+  let obj=DATA;
+  for(let i=0;i<parts.length-1;i++) obj=obj[parts[i]];
+  const key=parts[parts.length-1];
+  const inp=mkInput(obj[key],w,step);
+  span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){const v=parseFloat(inp.value);if(!isNaN(v)&&v>=0)obj[key]=v;renderMobilite();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderMobilite();});
+}
+
+function renderUsureBar(container, items){
+  container.innerHTML=items.map(item=>{
+    const pctUsure=Math.min(100,(item.kmParcourus/item.dureeTheoKm)*100);
+    const couleur=usureColor(pctUsure);
+    const restant=Math.max(0,item.dureeTheoKm-item.kmParcourus);
+    return `<div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+        <span style="font-size:11px;font-weight:600;">${item.nom}</span>
+        <span style="font-size:11px;color:${couleur};font-weight:700;">${fmtN(pctUsure,1)}% usé</span>
+      </div>
+      <div class="usure-bar-bg">
+        <div class="usure-bar-fill" style="width:${pctUsure.toFixed(1)}%;background:${couleur};"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px;">
+        <span>${fmtN(item.kmParcourus,0)} km / ${fmtN(item.dureeTheoKm,0)} km théo.</span>
+        <span style="color:${couleur};">Reste ≈ ${fmtN(restant,0)} km</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderMobilite(){_renderMobiliteCore();scheduleAutoSave();}
+function _renderMobiliteCore(){
+  if(!el('mobKpiAutoAn'))return;
+  const M=DATA.mobilite;
+  const autoStats=calcOdoStats(M.auto.odoLog);
+  const veloStats=calcOdoStats(M.velo.odoLog);
+  const nbKmTravailAuto=M.travail.trajetAR * M.travail.joursAn;
+  const veloPartTravail=autoStats.kmAn>0?(veloStats.kmAn/((autoStats.kmAn+veloStats.kmAn)||1)*100):0;
+  const autoPart=100-veloPartTravail;
+  const coutPer100km = M.carburant.prixLitre * M.carburant.conso100km;
+  const coutPerKm    = coutPer100km / 100;
+  const autonomieKm  = M.carburant.capaciteTank / M.carburant.conso100km * 100;
+  const pleinCalc    = M.carburant.capaciteTank * M.carburant.prixLitre;
+  const ecoVelo = veloStats.kmAn * coutPerKm;
+  el('mobKpiAutoAn').textContent=fmtN(autoStats.kmAn,0)+' km';
+  el('mobKpiAutoMois').textContent=fmtN(autoStats.kmMois,0)+' km/mois · '+fmtN(autoStats.kmJour,1)+' km/j';
+  el('mobKpiVeloAn').textContent=fmtN(veloStats.kmAn,0)+' km';
+  el('mobKpiVeloMois').textContent=fmtN(veloStats.kmMois,0)+' km/mois · '+fmtN(veloStats.kmJour,1)+' km/j';
+  el('mobKpiTotal').textContent=fmtN(autoStats.kmAn+veloStats.kmAn,0)+' km';
+  el('mobKpiEssence').textContent=fmtN(M.carburant.prixLitre,3)+' €/L';
+  el('mobKpiEssenceSub').textContent=fmtN(coutPer100km,2)+' € / 100 km';
+  el('mobKpiEco').textContent=fmt(ecoVelo);
+  const splitEl=el('mobSplitPct');
+  const splitBar=el('mobSplitBar');
+  if(splitEl){
+    splitEl.innerHTML=`
+      <div class="mob-stat-row"><span class="mob-stat-label">🚗 Auto</span><span class="mob-stat-val" style="color:#7eb8d4">${fmtN(autoPart,1)}% — ${fmtN(autoStats.kmAn,0)} km/an</span></div>
+      <div class="mob-stat-row"><span class="mob-stat-label">🚲 Vélo</span><span class="mob-stat-val" style="color:#5aab7a">${fmtN(veloPartTravail,1)}% — ${fmtN(veloStats.kmAn,0)} km/an</span></div>
+      <div class="mob-stat-row"><span class="mob-stat-label">Total km/an</span><span class="mob-stat-val" style="color:var(--accent)">${fmtN(autoStats.kmAn+veloStats.kmAn,0)} km</span></div>`;
+  }
+  if(splitBar){
+    splitBar.innerHTML=`
+      <div style="width:${autoPart.toFixed(1)}%;background:#3b82f6;height:100%;"></div>
+      <div style="width:${veloPartTravail.toFixed(1)}%;background:#5aab7a;height:100%;"></div>`;
+  }
+  const tEl=el('mobTravail');
+  if(tEl){
+    tEl.innerHTML=`
+      <div class="mob-stat-row"><span class="mob-stat-label">Trajet A/R</span>
+        <span class="mob-stat-val"><span class="cell-edit" onclick="editMobField('mobilite.travail.trajetAR',this,'1','60px')">${M.travail.trajetAR}</span> km</span></div>
+      <div class="mob-stat-row"><span class="mob-stat-label">Jours travaillés</span>
+        <span class="mob-stat-val"><span class="cell-edit" onclick="editMobField('mobilite.travail.joursAn',this,'1','60px')">${M.travail.joursAn}</span> j/an</span></div>
+      <div class="mob-stat-row"><span class="mob-stat-label">Km travail / an</span><span class="mob-stat-val" style="color:var(--accent)">${fmtN(nbKmTravailAuto,0)} km</span></div>
+      <div class="mob-stat-row"><span class="mob-stat-label">% sur km auto total</span><span class="mob-stat-val">${autoStats.kmAn>0?fmtN(nbKmTravailAuto/autoStats.kmAn*100,1):'—'}%</span></div>
+      <div class="mob-stat-row" style="margin-top:6px;border-top:1px solid var(--border);padding-top:6px;">
+        <span class="mob-stat-label">Vélo vs Auto (trajet estimé)</span>
+        <span class="mob-stat-val" style="color:#5aab7a">${fmtN(veloPartTravail,1)}%</span>
+      </div>`;
+  }
+  const cEl=el('mobCarburant');
+  if(cEl){
+    const coutAn = autoStats.kmAn * coutPerKm;
+    cEl.innerHTML=`
+      <div class="mob-stat-row"><span class="mob-stat-label">Prix litre SP95-E10</span>
+        <span class="mob-stat-val" style="color:var(--accent)"><span class="cell-edit" onclick="editMobField('mobilite.carburant.prixLitre',this,'0.001','70px')">${fmtN(M.carburant.prixLitre,3)}</span> €/L &nbsp;<a id='lienCarburant' href='#' onclick="openLien('carburant');return false;" style='font-size:10px;color:var(--accent2);text-decoration:none;opacity:0.8;transition:opacity .2s;' onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.8" title='Ouvrir le lien carburant'>⛽ Leclerc →</a>&nbsp;<span class='cell-edit' onclick="editLien('carburant',this)" style='font-size:9px;color:var(--muted);' title='Éditer le lien'>✎</span></span></div>
+      <div class="mob-stat-row"><span class="mob-stat-label">Conso mixte</span>
+        <span class="mob-stat-val"><span class="cell-edit" onclick="editMobField('mobilite.carburant.conso100km',this,'0.1','60px')">${fmtN(M.carburant.conso100km,1)}</span> L/100km</span></div>
+      <div class="mob-stat-row"><span class="mob-stat-label">Capacité réservoir</span>
+        <span class="mob-stat-val"><span class="cell-edit" onclick="editMobField('mobilite.carburant.capaciteTank',this,'1','60px')">${M.carburant.capaciteTank}</span> L</span></div>
+      <div style="height:1px;background:var(--border);margin:6px 0;"></div>
+      <div class="mob-stat-row"><span class="mob-stat-label" style="font-style:italic;">→ Coût / 100 km</span><span class="mob-stat-val amount" style="color:var(--gold)">${fmtN(coutPer100km,2)} €</span></div>
+      <div class="mob-stat-row"><span class="mob-stat-label" style="font-style:italic;">→ Coût / km</span><span class="mob-stat-val">${fmtN(coutPerKm,4)} €</span></div>
+      <div class="mob-stat-row"><span class="mob-stat-label" style="font-style:italic;">→ Plein estimé</span><span class="mob-stat-val amount">${fmt(pleinCalc)}</span></div>
+      <div class="mob-stat-row"><span class="mob-stat-label" style="font-style:italic;">→ Autonomie estimée</span><span class="mob-stat-val">${fmtN(autonomieKm,0)} km</span></div>
+      <div style="height:1px;background:var(--border);margin:6px 0;"></div>
+      <div class="mob-stat-row"><span class="mob-stat-label">Coût carburant / an</span><span class="mob-stat-val amount" style="color:var(--red)">${fmt(coutAn)}</span></div>
+      <div class="mob-stat-row"><span class="mob-stat-label">Économie vélo / an</span><span class="mob-stat-val amount" style="color:var(--green)">+${fmt(ecoVelo)}</span></div>`;
+  }
+  renderOdoTable('autoOdoBody','autoOdoFoot', M.auto.odoLog,'auto');
+  const autoOdoActuel=M.auto.odoLog.reduce((max,e)=>e.km>max?e.km:max,0);
+  const autoUsureItems=M.auto.composants.map(c=>({nom:c.nom,kmParcourus:autoOdoActuel-c.kmPose,dureeTheoKm:c.dureeTheoKm}));
+  renderUsureBar(el('autoUsure'), autoUsureItems);
+  renderOdoTable('veloOdoBody','veloOdoFoot', M.velo.odoLog,'velo');
+  const veloOdoActuel=M.velo.odoLog.reduce((max,e)=>e.km>max?e.km:max,0);
+  const bat=M.velo.batterie;
+  const mot=M.velo.moteur;
+  const batKm=veloOdoActuel-bat.kmPose;
+  const ageAn=(d)=>((new Date()-new Date(d))/(1000*86400*365.25)).toFixed(1);
+  el('veloComposants').innerHTML=`
+    <div class="mob-section-header">🔋 Batterie</div>
+    <div style="margin-bottom:12px;">
+      <div class="mob-stat-row"><span class="mob-stat-label">Date de pose</span><span class="mob-stat-val">${fmtDate(bat.datePose)} (${ageAn(bat.datePose)} ans)</span></div>
+      <div class="mob-stat-row"><span class="mob-stat-label">Cycles actuels</span><span class="mob-stat-val"><span class="cell-edit" onclick="editVeloComp('batterie','cyclesActuels',this)">${fmtN(bat.cyclesActuels,1)}</span> / <span class="cell-edit" onclick="editVeloComp('batterie','cyclesMax',this)">${bat.cyclesMax}</span></span></div>
+      <div class="mob-stat-row"><span class="mob-stat-label">Km parcourus</span><span class="mob-stat-val">${fmtN(batKm,0)} km / <span class="cell-edit" onclick="editVeloComp('batterie','dureeTheoKm',this)">${fmtN(bat.dureeTheoKm,0)}</span> km théo.</span></div>
+    </div>
+    ${renderUsureBarHTML('Batterie (cycles)', bat.cyclesActuels, bat.cyclesMax)}
+    ${renderUsureBarHTML('Batterie (km)', batKm, bat.dureeTheoKm)}
+    <div class="mob-section-header" style="margin-top:14px;">⚙️ Moteur</div>
+    <div style="margin-bottom:12px;">
+      <div class="mob-stat-row"><span class="mob-stat-label">Date de pose</span><span class="mob-stat-val">${fmtDate(mot.datePose)} (${ageAn(mot.datePose)} ans)</span></div>
+      <div class="mob-stat-row"><span class="mob-stat-label">Km total</span><span class="mob-stat-val">${fmtN(veloOdoActuel,0)} km / <span class="cell-edit" onclick="editVeloComp('moteur','dureeTheoKm',this)">${fmtN(mot.dureeTheoKm,0)}</span> km théo.</span></div>
+    </div>
+    ${renderUsureBarHTML('Moteur (km)', veloOdoActuel, mot.dureeTheoKm)}
+  `;
+  renderEntretienTable();
+  applyMask();
+}
+
+function renderUsureBarHTML(nom, actuel, max){
+  const pctU=Math.min(100,(actuel/max)*100);
+  const couleur=usureColor(pctU);
+  const restant=Math.max(0,max-actuel);
+  return `<div style="margin-bottom:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+      <span style="font-size:11px;font-weight:600;">${nom}</span>
+      <span style="font-size:11px;color:${couleur};font-weight:700;">${fmtN(pctU,1)}% usé</span>
+    </div>
+    <div class="usure-bar-bg">
+      <div class="usure-bar-fill" style="width:${pctU.toFixed(1)}%;background:${couleur};"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px;">
+      <span>${fmtN(actuel,actuel<10?1:0)} / ${fmtN(max,0)}</span>
+      <span style="color:${couleur};">Reste ≈ ${fmtN(restant,restant<10?1:0)}</span>
+    </div>
+  </div>`;
+}
+
+function editVeloComp(composant, field, span){
+  const obj=DATA.mobilite.velo[composant];
+  const inp=mkInput(obj[field],'80px','0.1');
+  span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){const v=parseFloat(inp.value);if(!isNaN(v)&&v>=0)obj[field]=v;renderMobilite();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderMobilite();});
+}
+
+// ═══ TICKER BAND ══════════════════════════════════════════════════════════
+const TICKER_DEFS = [
+  {label:'BTC',       key:'btc',   icon:'₿',  color:'#d4875a', source:'coinbase'},
+  {label:'OR',        key:'xau',   icon:'✨',  color:'#c8a96e', source:'metals'},
+  {label:'S&P 500',   key:'sp500', icon:'🇺🇸', color:'#7eb8d4', source:'stooq'},
+  {label:'NASDAQ',    key:'ndx',   icon:'💻',  color:'#a090d8', source:'stooq'},
+  {label:'CAC 40',    key:'cac',   icon:'🇫🇷', color:'#7eb8d4', source:'stooq'},
+  {label:'ETF World', key:'wpea',  icon:'🌍',  color:'#5aab7a', source:'stooq'},
+  {label:'CLIM ETF',  key:'clim',  icon:'🌱',  color:'#7af04d', source:'stooq'},
+];
+
+let tickerData = {};
+
+function fmtTickerPrice(p, cur){
+  if(p===undefined||p===null||isNaN(p)) return '—';
+  const sym = cur==='USD'?'$':cur==='EUR'?'€':'';
+  if(p>10000) return new Intl.NumberFormat('fr-FR',{maximumFractionDigits:0}).format(p)+' '+sym;
+  return new Intl.NumberFormat('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(p)+' '+sym;
+}
+
+function renderTickerBand(){
+  const track = document.getElementById('tickerTrack');
+  if(!track) return;
+  const items = TICKER_DEFS.map(t => {
+    const d = tickerData[t.key];
+    const priceStr = d ? fmtTickerPrice(d.price, d.currency) : '…';
+    let chgHtml = '';
+    if(d && d.chg !== undefined){
+      const s = d.chg >= 0 ? '+' : '';
+      const cls = d.chg > 0.05 ? 'tkr-chg-pos' : d.chg < -0.05 ? 'tkr-chg-neg' : 'tkr-chg-flat';
+      chgHtml = `<span class="${cls}">${s}${d.chg.toFixed(2)}%</span>`;
+    }
+    return `<div class="tkr-item">
+      <span style="font-size:13px;">${t.icon}</span>
+      <span class="tkr-name" style="color:${t.color};">${t.label}</span>
+      <span class="tkr-price">${priceStr}</span>
+      ${chgHtml}
+    </div>`;
+  }).join('');
+  track.style.animation = 'none';
+  track.innerHTML = items + items;
+  void track.offsetWidth;
+  track.style.animation = 'tickerScroll 50s linear infinite';
+  const st = document.getElementById('tkrStatus');
+  if(st && Object.keys(tickerData).length){
+    st.textContent = new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    st.style.color = 'var(--green)';
+  }
+}
+
+// Proxies CORS à essayer dans l'ordre — DOIT être déclaré avant les fonctions qui l'utilisent
+// ── Helpers ──────────────────────────────────────────────────────────────
+
+async function safeFetch(url, timeout=7000){
+  const r = await fetch(url, {signal: AbortSignal.timeout(timeout)});
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r;
+}
+
+// ── BTC : CoinGecko (CORS ouvert) ────────────────────────────────────────
+async function fetchBTC(){
+  try {
+    const r = await safeFetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur&include_24hr_change=true');
+    const j = await r.json();
+    tickerData.btc = {price: j.bitcoin.eur, chg: j.bitcoin.eur_24h_change, currency:'EUR'};
+  } catch {
+    // fallback Coinbase
+    try {
+      const r2 = await safeFetch('https://api.coinbase.com/v2/exchange-rates?currency=BTC');
+      const j2 = await r2.json();
+      tickerData.btc = {price: parseFloat(j2.data.rates.EUR), chg:0, currency:'EUR'};
+    } catch(e){ console.warn('BTC error', e); }
+  }
+}
+
+// ── Taux EUR/USD cachés pour conversions ─────────────────────────────────
+let _eurUsd = null;
+async function getEurUsd(){
+  if(_eurUsd) return _eurUsd;
+  const r = await safeFetch('https://open.er-api.com/v6/latest/USD');
+  const j = await r.json();
+  _eurUsd = j.rates.EUR;
+  return _eurUsd;
+}
+
+// ── OR : open.er-api.com — contient XAU nativement (once troy) ──────────
+async function fetchGold(){
+  try {
+    // base XAU → rates.EUR = combien d'EUR pour 1 once d'or
+    const r = await safeFetch('https://open.er-api.com/v6/latest/XAU');
+    const j = await r.json();
+    if(!j.rates || !j.rates.EUR) throw new Error('XAU absent de la réponse');
+    tickerData.xau = {price: j.rates.EUR, chg: 0, currency:'EUR'};
+    console.log('Gold OK (er-api XAU):', j.rates.EUR, 'EUR/oz');
+  } catch(e){
+    console.warn('Gold primary error:', e.message);
+    try {
+      // Fallback: base USD → 1/rates.XAU = USD/oz → * rates.EUR = EUR/oz
+      const r2 = await safeFetch('https://open.er-api.com/v6/latest/USD');
+      const j2 = await r2.json();
+      const xauEUR = (1 / j2.rates.XAU) * j2.rates.EUR;
+      tickerData.xau = {price: xauEUR, chg: 0, currency:'EUR'};
+      console.log('Gold OK (er-api USD fallback):', xauEUR, 'EUR/oz');
+    } catch(e2){ console.warn('Gold fallback error:', e2.message); }
+  }
+}
+
+// ── Indices & ETFs via Stooq CSV ──────────────────────────────────────────
+async function fetchStooq(sym, key, currency){
+  try {
+    const url = `https://stooq.com/q/l/?s=${encodeURIComponent(sym)}&f=sd2t2ohlcv&h&e=csv`;
+    const r = await safeFetch(url);
+    const txt = await r.text();
+    const lines = txt.trim().split('\n');
+    if(lines.length < 2) throw new Error('CSV vide');
+    const cols = lines[1].split(',');
+    const close = parseFloat(cols[6]);
+    const open  = parseFloat(cols[3]);
+    if(isNaN(close) || close === 0) throw new Error('Cours invalide');
+    const chg = open > 0 ? ((close-open)/open)*100 : 0;
+    tickerData[key] = {price: close, chg, currency};
+    console.log('Stooq OK:', sym, '->', close, currency);
+  } catch(e){ console.warn('Stooq error for', sym, ':', e.message); }
+}
+
+async function fetchTickerBand(){
+  const st = document.getElementById('tkrStatus');
+  if(st){ st.textContent='…'; st.style.color='var(--gold)'; }
+  _eurUsd = null;
+  await Promise.allSettled([
+    fetchBTC(),
+    fetchGold(),
+    fetchStooq('^spx',   'sp500', 'USD'),
+    fetchStooq('^ndq',   'ndx',   'USD'),
+    fetchStooq('^cac',   'cac',   'EUR'),
+    fetchStooq('wpea.pa','wpea',  'EUR'),
+    fetchStooq('clim.pa','clim',  'EUR'),
+  ]);
+  renderTickerBand();
+}
+
+// ═══ INVESTISSEMENT ══════════════════════════════════════════════════════
+const YTICKERS={WPEA:'WPEA.PA',BTC:'BTC-EUR',XAU:'GC=F'};
+
+// Récupère le cours d'un ticker via Stooq (indices/ETFs) ou CoinGecko (crypto) ou gold-api (or)
+async function fetchOneTicker(a){
+  const t = a.ticker;
+  try {
+    if(t === 'BTC'){
+      // CoinGecko
+      const r = await safeFetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur&include_24hr_change=true');
+      const j = await r.json();
+      a.coursActuel = j.bitcoin.eur;
+      a.varJour = j.bitcoin.eur_24h_change || 0;
+      a.lastUpdate = new Date().toISOString();
+    } else if(t === 'XAU'){
+      // goldprice.org — même source que le ticker band
+      const rG = await safeFetch('https://open.er-api.com/v6/latest/XAU');
+      const jG = await rG.json();
+      a.coursActuel = jG.rates.EUR;
+      a.varJour = 0;
+      a.lastUpdate = new Date().toISOString();
+    } else {
+      // Stooq CSV — WPEA.PA, CLIM.PA, etc.
+      const sym = YTICKERS[t] || t;
+      const r = await safeFetch(`https://stooq.com/q/l/?s=${encodeURIComponent(sym)}&f=sd2t2ohlcv&h&e=csv`);
+      const txt = await r.text();
+      const cols = txt.trim().split('\n')[1]?.split(',');
+      if(!cols) return;
+      const close = parseFloat(cols[6]);
+      const open  = parseFloat(cols[3]);
+      if(isNaN(close) || close === 0) return;
+      a.coursActuel = close;
+      a.varJour = open > 0 ? ((close-open)/open)*100 : 0;
+      a.lastUpdate = new Date().toISOString();
+    }
+  } catch(e){ console.warn('fetchOneTicker error for', t, e.message); }
+}
+
+async function fetchPrices(){
+  const btn=el('refreshBtn');
+  btn.style.opacity='0.6';btn.disabled=true;
+  const icon=el('refreshIcon');if(icon)icon.style.animation='spin 1s linear infinite';
+  const all=[...DATA.investissements.pea,...DATA.investissements.cto,...DATA.investissements.revolut];
+  try{
+    await Promise.allSettled(all.map(a => fetchOneTicker(a)));
+    syncInvestToPatrimoine();
+    el('lastUpdate').textContent='● Mis à jour '+new Date().toLocaleTimeString('fr-FR');
+    el('lastUpdate').className='price-live';
+  }catch(e){
+    el('lastUpdate').textContent='✗ Erreur réseau — saisissez manuellement';
+    el('lastUpdate').className='price-stale';
+  }
+  btn.style.opacity='1';btn.disabled=false;
+  if(icon)icon.style.animation='';
+  renderInvestissement();
+  render();
+}
+
+function syncInvestToPatrimoine(){
+  // BTC → revolut[7]
+  const btc=DATA.investissements.revolut.find(a=>a.ticker==='BTC');
+  if(btc) DATA.revolut[7].val=btc.qte*(btc.coursActuel>0?btc.coursActuel:btc.pr);
+  // Or → revolut[3]
+  const xau=DATA.investissements.revolut.find(a=>a.ticker==='XAU');
+  if(xau) DATA.revolut[3].val=xau.qte*(xau.coursActuel>0?xau.coursActuel:xau.pr);
+  // PEA → fortuneo[7]
+  const peaVal=DATA.investissements.pea.reduce((s,a)=>s+(a.coursActuel>0?a.qte*a.coursActuel:a.qte*a.pr),0);
+  DATA.fortuneo[7].val=peaVal;
+  // CTO → fortuneo[5]
+  const ctoVal=DATA.investissements.cto.reduce((s,a)=>s+(a.coursActuel>0?a.qte*a.coursActuel:a.qte*a.pr),0);
+  DATA.fortuneo[5].val=ctoVal;
+  // AV Boursorama → boursorama[7]
+  const avBourso=(DATA.investissements.assurance_vie||[]).find(a=>a.assureur==='Boursorama');
+  if(avBourso) DATA.boursorama[7].val=avBourso.valeurActuelle;
+  // AV Fortuneo → fortuneo[3]
+  const avFortunneo=(DATA.investissements.assurance_vie||[]).find(a=>a.assureur==='Fortuneo');
+  if(avFortunneo) DATA.fortuneo[3].val=avFortunneo.valeurActuelle;
+  // Épargne entreprise (PEE) → natixis[0]
+  const eeVal=(DATA.investissements.epargne_entreprise||[]).reduce((s,a)=>s+a.valeurActuelle,0);
+  if(DATA.natixis[0]) DATA.natixis[0].val=eeVal;
+}
+
+function renderInvGroup(tbodyId,tfootId,assets){
+  const body=el(tbodyId),foot=el(tfootId);
+  if(!body)return{totVal:0,totPR:0,totDay:0};
+  let totVal=0,totPR=0,totDay=0;
+  body.innerHTML=assets.map((a,i)=>{
+    const cours=a.coursActuel>0?a.coursActuel:a.pr;
+    const valActuel=a.qte*cours,prTotal=a.qte*a.pr;
+    const gainE=valActuel-prTotal,gainP=prTotal>0?(gainE/prTotal)*100:0;
+    const varE=valActuel*(a.varJour/100);
+    totVal+=valActuel;totPR+=prTotal;totDay+=varE;
+    const dayCls=a.varJour>0.05?'day-up':a.varJour<-0.05?'day-down':'day-flat';
+    const ds=a.varJour>=0?'+':'';
+    const gCls=gainE>=0?'gain-pos':'gain-neg';
+    const gs=gainE>=0?'+':'';
+    const live=a.coursActuel>0&&a.lastUpdate;
+    const isManual=a.coursActuel>0&&!a.lastUpdate;
+    let liveTag;
+    if(live) liveTag='<span style="font-size:9px;color:var(--accent2);margin-top:2px;display:block;">&#9679; LIVE</span>';
+    else if(isManual) liveTag='<span style="font-size:9px;color:var(--gold);margin-top:2px;display:block;">&#9998; Manuel</span>';
+    else liveTag='<span style="font-size:9px;color:var(--muted);margin-top:2px;display:block;">cliquer pour saisir</span>';
+    return `<tr>
+      <td><div class="asset-name" title="Double-cliquer pour modifier" ondblclick="editInvRow('${tbodyId}',${i})" style="cursor:pointer;">${a.url?`<a href="${a.url}" target="_blank" style="color:inherit;text-decoration:none;transition:color .15s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">${a.nom} ↗</a>`:a.nom}&nbsp;<span class="cell-edit" onclick="editInvRow('${tbodyId}',${i})" style="font-size:9px;color:var(--muted);" title="Modifier cet actif">✎</span>&nbsp;<span class="cell-edit" onclick="editInvUrl('${tbodyId}',${i},this)" style="font-size:9px;color:var(--muted);opacity:0.6;" title="Éditer le lien">🔗</span></div><div class="asset-sub">${a.ticker}${a.isin?' · '+a.isin:''}</div></td>
+      <td><span class="cell-edit amount" onclick="editInv('${tbodyId}',${i},'qte',this)">${fmtN(a.qte,6).replace(/0+$/,'').replace(/\.$/,'')}</span></td>
+      <td><span class="cell-edit amount" onclick="editInv('${tbodyId}',${i},'pr',this)">${fmt(a.pr)}</span></td>
+      <td><span class="cell-edit amount" onclick="editInv('${tbodyId}',${i},'coursActuel',this)">${fmt(cours)}</span>${liveTag}</td>
+      <td><span class="cell-edit day-badge ${dayCls}" onclick="editInv('${tbodyId}',${i},'varJour',this)">${ds}${fmtN(a.varJour,2)}%</span><div style="font-size:10px;color:var(--muted);margin-top:2px;">${ds}${fmt(Math.abs(varE))}</div></td>
+      <td><strong class="amount">${fmt(valActuel)}</strong></td>
+      <td><span class="${gCls} amount">${gs}${fmt(gainE)}</span></td>
+      <td><span class="${gCls}" style="font-weight:700;font-size:14px;">${gs}${fmtN(gainP,2)}%</span></td>
+      <td><button class="inv-del-btn" onclick="deleteInv('${tbodyId}',${i})" title="Supprimer cette ligne">✕</button></td>
+    </tr>`;
+  }).join('');
+  if(foot){
+    const tg=totVal-totPR,tp=totPR>0?(tg/totPR)*100:0;
+    const gc=tg>=0?'gain-pos':'gain-neg',gs=tg>=0?'+':'';
+    const dc=totDay>=0?'gain-pos':'gain-neg',ds=totDay>=0?'+':'';
+    foot.innerHTML=`<tr>
+      <td colspan="4" style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);">TOTAL</td>
+      <td class="${dc} amount">${ds}${fmt(totDay)}</td>
+      <td class="amount" style="font-weight:700;">${fmt(totVal)}</td>
+      <td class="${gc} amount" style="font-weight:700;">${gs}${fmt(tg)}</td>
+      <td class="${gc}" style="font-weight:700;">${gs}${fmtN(tp,2)}%</td>
+    </tr>`;
+  }
+  return{totVal,totPR,totDay};
+}
+
+function getInvGroup(tbodyId){
+  if(tbodyId==='invPEA') return DATA.investissements.pea;
+  if(tbodyId==='invCTO') return DATA.investissements.cto;
+  if(tbodyId==='invRevolut') return DATA.investissements.revolut;
+  if(tbodyId==='invAV') return DATA.investissements.assurance_vie;
+  if(tbodyId==='invEB') return DATA.investissements.epargne_bloquee;
+  if(tbodyId==='invEE') return DATA.investissements.epargne_entreprise;
+  return null;
+}
+function editInv(tbodyId,idx,field,span){
+  if(masked)return;
+  const group=getInvGroup(tbodyId);
+  if(!group||idx<0||idx>=group.length)return;
+  const isQte=field==='qte';const isCours=field==='coursActuel';const isVar=field==='varJour';
+  const curVal=isCours&&group[idx][field]===0?group[idx].pr:group[idx][field];
+  const w=isQte?'90px':isVar?'80px':'110px';const step=isQte?'0.000001':isVar?'0.01':'0.01';
+  const inp=mkInput(curVal,w,step);span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){
+    const v=parseFloat(inp.value);
+    if(!isNaN(v)){
+      if(isVar){group[idx].varJour=v;}
+      else if(v>=0){group[idx][field]=v;if(isCours)group[idx].lastUpdate=null;}
+      syncInvestToPatrimoine();
+    }
+    syncInvestToPatrimoine();renderInvestissement();render();scheduleAutoSave();
+  }
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderInvestissement();});
+}
+
+// ═══ ASSURANCE VIE RENDER ════════════════════════════════════════════════
+function renderAvGroup(){
+  if(!DATA.investissements.assurance_vie) DATA.investissements.assurance_vie=[];
+  const body=el('invAV'),foot=el('invAVFoot');if(!body)return 0;
+  let totVers=0,totVal=0,totInterts=0;
+  body.innerHTML=DATA.investissements.assurance_vie.map((a,i)=>{
+    const gain=a.valeurActuelle-a.versements;
+    const gainP=a.versements>0?(gain/a.versements)*100:0;
+    const interetsAn=a.valeurActuelle*(a.tauxRendement/100);
+    totVers+=a.versements;totVal+=a.valeurActuelle;totInterts+=interetsAn;
+    const gc=gain>=0?'gain-pos':'gain-neg',gs=gain>=0?'+':'';
+    const nomAff=a.url?`<a href="${a.url}" target="_blank" style="color:inherit;text-decoration:none;transition:color .15s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">${a.nom} ↗</a>`:a.nom;
+    return `<tr>
+      <td><div class="asset-name" ondblclick="editAvRow(${i})" style="cursor:pointer;">${nomAff}&nbsp;<span class="cell-edit" onclick="editAvRow(${i})" style="font-size:9px;color:var(--muted);" title="Modifier">✎</span></div><div class="asset-sub">${a.assureur}${a.contrat?' · '+a.contrat:''}</div></td>
+      <td><span class="cell-edit" onclick="editAvInline(${i},'assureur',this)" style="color:var(--muted);cursor:pointer;border-bottom:1px dashed var(--muted);">${a.assureur||'—'}</span></td>
+      <td><span class="cell-edit amount" onclick="editAvInline(${i},'versements',this)">${fmt(a.versements)}</span></td>
+      <td><span class="cell-edit amount" onclick="editAvInline(${i},'valeurActuelle',this)">${fmt(a.valeurActuelle)}</span></td>
+      <td><span class="cell-edit" onclick="editAvInline(${i},'tauxRendement',this)" style="color:var(--accent2);cursor:pointer;border-bottom:1px dashed var(--muted);">${fmtN(a.tauxRendement,2)}%</span></td>
+      <td><span class="${gc} amount">${gs}${fmt(gain)}</span></td>
+      <td><span class="${gc}" style="font-weight:700;">${gs}${fmtN(gainP,2)}%</span></td>
+      <td><span style="color:var(--gold);">${interetsAn>0?fmt(interetsAn):'—'}</span></td>
+      <td><button class="inv-del-btn" onclick="deleteAv(${i})" title="Supprimer">✕</button></td>
+    </tr>`;
+  }).join('');
+  if(foot){
+    const tg=totVal-totVers,tp=totVers>0?(tg/totVers)*100:0;
+    const gc=tg>=0?'gain-pos':'gain-neg',gs=tg>=0?'+':'';
+    foot.innerHTML=`<tr><td colspan="3" style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);">TOTAL</td><td class="amount" style="font-weight:700;">${fmt(totVal)}</td><td></td><td class="${gc} amount" style="font-weight:700;">${gs}${fmt(tg)}</td><td class="${gc}" style="font-weight:700;">${gs}${fmtN(tp,2)}%</td><td style="color:var(--gold);font-weight:700;">${fmt(totInterts)}/an</td><td></td></tr>`;
+  }
+  return totVal;
+}
+
+function editAvInline(i,field,span){
+  if(masked)return;
+  const a=DATA.investissements.assurance_vie[i];
+  const isStr=field==='assureur';
+  let inp;
+  if(isStr){inp=document.createElement('input');inp.type='text';inp.value=a[field]||'';inp.style.cssText='background:#1a1f2e;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:3px 8px;font-family:"DM Mono",monospace;font-size:12px;width:120px;outline:none;';}
+  else{inp=mkInput(a[field],field==='tauxRendement'?'80px':'120px','0.01');}
+  span.replaceWith(inp);inp.focus();if(inp.select)inp.select();
+  function commit(){
+    if(isStr){a[field]=inp.value.trim();}
+    else{const v=parseFloat(inp.value);if(!isNaN(v)&&v>=0)a[field]=v;}
+    syncInvestToPatrimoine();renderInvestissement();render();scheduleAutoSave();
+  }
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderInvestissement();});
+}
+
+function editAvRow(i){openAvModal(i);}
+function deleteAv(i){
+  if(!confirm('Supprimer ce contrat ?'))return;
+  DATA.investissements.assurance_vie.splice(i,1);syncInvestToPatrimoine();renderInvestissement();render();scheduleAutoSave();
+}
+
+// ═══ ÉPARGNE BLOQUÉE RENDER ═══════════════════════════════════════════════
+function renderEbGroup(){
+  if(!DATA.investissements.epargne_bloquee) DATA.investissements.epargne_bloquee=[];
+  const body=el('invEB'),foot=el('invEBFoot');if(!body)return 0;
+  let totMontant=0,totInterets=0;
+  body.innerHTML=DATA.investissements.epargne_bloquee.map((a,i)=>{
+    const interetsAn=a.montant*(a.tauxAnnuel/100);
+    totMontant+=a.montant;totInterets+=interetsAn;
+    const nomAff=a.url?`<a href="${a.url}" target="_blank" style="color:inherit;text-decoration:none;transition:color .15s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">${a.nom} ↗</a>`:a.nom;
+    return `<tr>
+      <td><div class="asset-name" ondblclick="editEbRow(${i})" style="cursor:pointer;">${nomAff}&nbsp;<span class="cell-edit" onclick="editEbRow(${i})" style="font-size:9px;color:var(--muted);" title="Modifier">✎</span></div><div class="asset-sub">${a.type||''}</div></td>
+      <td><span class="cell-edit" onclick="editEbInline(${i},'banque',this)" style="color:var(--muted);cursor:pointer;border-bottom:1px dashed var(--muted);">${a.banque||'—'}</span></td>
+      <td><span class="cell-edit" onclick="editEbInline(${i},'type',this)" style="color:var(--muted);cursor:pointer;border-bottom:1px dashed var(--muted);">${a.type||'—'}</span></td>
+      <td><span class="cell-edit amount" onclick="editEbInline(${i},'montant',this)">${fmt(a.montant)}</span></td>
+      <td><span class="cell-edit" onclick="editEbInline(${i},'tauxAnnuel',this)" style="color:var(--accent2);cursor:pointer;border-bottom:1px dashed var(--muted);">${fmtN(a.tauxAnnuel,2)}%</span></td>
+      <td><span style="color:var(--gold);">${interetsAn>0?fmt(interetsAn):'—'}</span></td>
+      <td><span class="cell-edit" onclick="editEbInline(${i},'url',this)" style="font-size:10px;color:var(--muted);cursor:pointer;">${a.url?'🔗 Lien':'+ URL'}</span></td>
+      <td><button class="inv-del-btn" onclick="deleteEb(${i})" title="Supprimer">✕</button></td>
+    </tr>`;
+  }).join('');
+  if(foot){
+    foot.innerHTML=`<tr><td colspan="3" style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);">TOTAL</td><td class="amount" style="font-weight:700;">${fmt(totMontant)}</td><td></td><td style="color:var(--gold);font-weight:700;">${fmt(totInterets)}/an</td><td colspan="2"></td></tr>`;
+  }
+  return totMontant;
+}
+
+function editEbInline(i,field,span){
+  if(masked)return;
+  const a=DATA.investissements.epargne_bloquee[i];
+  const isStr=['banque','type','url'].includes(field);
+  let inp;
+  if(isStr){inp=document.createElement('input');inp.type=field==='url'?'url':'text';inp.value=a[field]||'';inp.placeholder=field==='url'?'https://…':'';inp.style.cssText='background:#1a1f2e;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:3px 8px;font-family:"DM Mono",monospace;font-size:12px;width:'+(field==='url'?'200px':'120px')+';outline:none;';}
+  else{inp=mkInput(a[field]||0,field==='tauxAnnuel'?'80px':'120px','0.01');}
+  span.replaceWith(inp);inp.focus();if(inp.select)inp.select();
+  function commit(){
+    if(isStr){a[field]=inp.value.trim();}
+    else{const v=parseFloat(inp.value);if(!isNaN(v)&&v>=0)a[field]=v;}
+    syncInvestToPatrimoine();renderInvestissement();render();scheduleAutoSave();
+  }
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderInvestissement();});
+}
+
+function editEbRow(i){openEbModal(i);}
+function deleteEb(i){
+  if(!confirm('Supprimer ce produit ?'))return;
+  DATA.investissements.epargne_bloquee.splice(i,1);syncInvestToPatrimoine();renderInvestissement();render();scheduleAutoSave();
+}
+
+// ═══ ÉPARGNE ENTREPRISE (PEE/PERCO) RENDER ════════════════════════════════
+function renderEeGroup(){
+  if(!DATA.investissements.epargne_entreprise) DATA.investissements.epargne_entreprise=[];
+  const body=el('invEE'),foot=el('invEEFoot');if(!body)return 0;
+  let totInv=0,totVal=0,totInterts=0;
+  body.innerHTML=DATA.investissements.epargne_entreprise.map((a,i)=>{
+    const capitalInvesti=a.parts*a.pr;
+    const gain=a.valeurActuelle-capitalInvesti;
+    const gainP=capitalInvesti>0?(gain/capitalInvesti)*100:0;
+    const interetsAn=a.valeurActuelle*(a.tauxRendement/100);
+    totInv+=capitalInvesti;totVal+=a.valeurActuelle;totInterts+=interetsAn;
+    const gc=gain>=0?'gain-pos':'gain-neg',gs=gain>=0?'+':'';
+    const nomAff=a.url?`<a href="${a.url}" target="_blank" style="color:inherit;text-decoration:none;transition:color .15s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">${a.nom} ↗</a>`:a.nom;
+    return `<tr>
+      <td><div class="asset-name" ondblclick="editEeRow(${i})" style="cursor:pointer;">${nomAff}&nbsp;<span class="cell-edit" onclick="editEeRow(${i})" style="font-size:9px;color:var(--muted);" title="Modifier">✎</span></div><div class="asset-sub">${a.fonds||''}</div></td>
+      <td><span class="cell-edit" onclick="editEeInline(${i},'parts',this)">${fmtN(a.parts,4).replace(/\.?0+$/,'')}</span></td>
+      <td><span class="cell-edit amount" onclick="editEeInline(${i},'pr',this)">${fmt(a.pr)}</span></td>
+      <td><span class="cell-edit amount" onclick="editEeInline(${i},'valeurActuelle',this)">${fmt(a.valeurActuelle)}</span></td>
+      <td><span class="cell-edit" onclick="editEeInline(${i},'tauxRendement',this)" style="color:var(--accent2);cursor:pointer;border-bottom:1px dashed var(--muted);">${fmtN(a.tauxRendement,2)}%</span></td>
+      <td><span class="amount">${fmt(capitalInvesti)}</span></td>
+      <td><span class="${gc} amount">${gs}${fmt(gain)}</span></td>
+      <td><span class="${gc}" style="font-weight:700;">${gs}${fmtN(gainP,2)}%</span></td>
+      <td><button class="inv-del-btn" onclick="deleteEe(${i})" title="Supprimer">✕</button></td>
+    </tr>`;
+  }).join('');
+  if(foot){
+    const tg=totVal-totInv,tp=totInv>0?(tg/totInv)*100:0;
+    const gc=tg>=0?'gain-pos':'gain-neg',gs=tg>=0?'+':'';
+    foot.innerHTML=`<tr><td colspan="3" style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);">TOTAL</td><td class="amount" style="font-weight:700;">${fmt(totVal)}</td><td></td><td class="amount" style="font-weight:700;">${fmt(totInv)}</td><td class="${gc} amount" style="font-weight:700;">${gs}${fmt(tg)}</td><td class="${gc}" style="font-weight:700;">${gs}${fmtN(tp,2)}%</td></tr>`;
+  }
+  return totVal;
+}
+
+function editEeInline(i,field,span){
+  if(masked)return;
+  const a=DATA.investissements.epargne_entreprise[i];
+  const step=field==='parts'?'0.0001':'0.01';
+  const w=field==='tauxRendement'?'80px':field==='parts'?'90px':'120px';
+  const inp=mkInput(a[field]||0,w,step);
+  span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){const v=parseFloat(inp.value);if(!isNaN(v)&&v>=0)a[field]=v;syncInvestToPatrimoine();renderInvestissement();render();scheduleAutoSave();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderInvestissement();});
+}
+
+function editEeRow(i){openEeModal(i);}
+function deleteEe(i){
+  if(!confirm('Supprimer ce fonds ?'))return;
+  DATA.investissements.epargne_entreprise.splice(i,1);syncInvestToPatrimoine();renderInvestissement();render();scheduleAutoSave();
+}
+
+// ═══ MODAL ÉPARGNE ENTREPRISE ═════════════════════════════════════════════
+let _eeEditIdx=null;
+function openEeModal(editIdx=null){
+  const overlay=el('eeModalOverlay');
+  _eeEditIdx=editIdx;
+  el('eeFormError').style.display='none';
+  if(editIdx!==null){
+    const a=DATA.investissements.epargne_entreprise[editIdx];
+    el('eeFormNom').value=a.nom;el('eeFormFonds').value=a.fonds||'';
+    el('eeFormParts').value=a.parts;el('eeFormPr').value=a.pr;
+    el('eeFormValeur').value=a.valeurActuelle;el('eeFormTaux').value=a.tauxRendement||0;
+    el('eeFormUrl').value=a.url||'';
+    el('eeModalTitle').textContent='Modifier le fonds';el('eeModalConfirmLabel').textContent='✔ Enregistrer';
+  } else {
+    el('eeFormNom').value='';el('eeFormFonds').value='';
+    el('eeFormParts').value='';el('eeFormPr').value='';
+    el('eeFormValeur').value='';el('eeFormTaux').value='0';
+    el('eeFormUrl').value='';
+    el('eeModalTitle').textContent='Ajouter un fonds entreprise';el('eeModalConfirmLabel').textContent='➕ Ajouter';
+  }
+  overlay.style.display='flex';setTimeout(()=>el('eeFormNom').focus(),80);
+}
+function closeEeModal(){el('eeModalOverlay').style.display='none';_eeEditIdx=null;}
+function confirmEeModal(){
+  const errEl=el('eeFormError');errEl.style.display='none';
+  const nom=el('eeFormNom').value.trim();const fonds=el('eeFormFonds').value.trim();
+  const parts=parseFloat(el('eeFormParts').value);const pr=parseFloat(el('eeFormPr').value);
+  const valeurActuelle=parseFloat(el('eeFormValeur').value)||parts*pr;
+  const tauxRendement=parseFloat(el('eeFormTaux').value)||0;
+  const url=el('eeFormUrl').value.trim();
+  if(!nom){errEl.textContent='Le nom est requis.';errEl.style.display='block';return;}
+  if(isNaN(parts)||parts<0){errEl.textContent='Le nombre de parts est requis.';errEl.style.display='block';return;}
+  if(isNaN(pr)||pr<=0){errEl.textContent='Le PRU est requis.';errEl.style.display='block';return;}
+  const asset={nom,fonds,parts,pr,valeurActuelle,tauxRendement,url};
+  if(_eeEditIdx!==null){DATA.investissements.epargne_entreprise[_eeEditIdx]=asset;}
+  else{DATA.investissements.epargne_entreprise.push(asset);}
+  closeEeModal();syncInvestToPatrimoine();renderInvestissement();render();scheduleAutoSave();
+}
+
+// ═══ MODALS AV & EB ═══════════════════════════════════════════════════════
+let _avEditIdx=null;
+function openAvModal(editIdx=null){
+  const overlay=el('avModalOverlay');
+  _avEditIdx=editIdx;
+  el('avFormError').style.display='none';
+  if(editIdx!==null){
+    const a=DATA.investissements.assurance_vie[editIdx];
+    el('avFormNom').value=a.nom;el('avFormAssureur').value=a.assureur;el('avFormContrat').value=a.contrat||'';
+    el('avFormVersement').value=a.versements;el('avFormValeur').value=a.valeurActuelle;
+    el('avFormTaux').value=a.tauxRendement;el('avFormUrl').value=a.url||'';
+    el('avModalTitle').textContent='Modifier le contrat';el('avModalConfirmLabel').textContent='✔ Enregistrer';
+  } else {
+    el('avFormNom').value='';el('avFormAssureur').value='';el('avFormContrat').value='';
+    el('avFormVersement').value='';el('avFormValeur').value='';el('avFormTaux').value='2.00';
+    el('avFormUrl').value='';
+    el('avModalTitle').textContent='Ajouter une Assurance Vie';el('avModalConfirmLabel').textContent='➕ Ajouter';
+  }
+  overlay.style.display='flex';setTimeout(()=>el('avFormNom').focus(),80);
+}
+function closeAvModal(){el('avModalOverlay').style.display='none';_avEditIdx=null;}
+function confirmAvModal(){
+  const errEl=el('avFormError');errEl.style.display='none';
+  const nom=el('avFormNom').value.trim();const assureur=el('avFormAssureur').value.trim();
+  const contrat=el('avFormContrat').value.trim();const versements=parseFloat(el('avFormVersement').value);
+  const valeurActuelle=parseFloat(el('avFormValeur').value)||versements;
+  const tauxRendement=parseFloat(el('avFormTaux').value)||0;
+  const url=el('avFormUrl').value.trim();
+  if(!nom){errEl.textContent='Le nom est requis.';errEl.style.display='block';return;}
+  if(!assureur){errEl.textContent="L'assureur est requis.";errEl.style.display='block';return;}
+  if(isNaN(versements)||versements<0){errEl.textContent='Le montant versé est requis.';errEl.style.display='block';return;}
+  const asset={nom,assureur,contrat,versements,valeurActuelle,tauxRendement,url};
+  if(_avEditIdx!==null){DATA.investissements.assurance_vie[_avEditIdx]=asset;}
+  else{DATA.investissements.assurance_vie.push(asset);}
+  closeAvModal();syncInvestToPatrimoine();renderInvestissement();render();scheduleAutoSave();
+}
+
+let _ebEditIdx=null;
+function openEbModal(editIdx=null){
+  const overlay=el('ebModalOverlay');
+  _ebEditIdx=editIdx;
+  el('ebFormError').style.display='none';
+  if(editIdx!==null){
+    const a=DATA.investissements.epargne_bloquee[editIdx];
+    el('ebFormNom').value=a.nom;el('ebFormBanque').value=a.banque||'';el('ebFormType').value=a.type||'';
+    el('ebFormMontant').value=a.montant;el('ebFormTaux').value=a.tauxAnnuel;
+    el('ebFormDate').value=a.dateOuverture||'';el('ebFormUrl').value=a.url||'';
+    el('ebModalTitle').textContent='Modifier le produit';el('ebModalConfirmLabel').textContent='✔ Enregistrer';
+  } else {
+    el('ebFormNom').value='';el('ebFormBanque').value='';el('ebFormType').value='';
+    el('ebFormMontant').value='';el('ebFormTaux').value='3.00';
+    el('ebFormDate').value='';el('ebFormUrl').value='';
+    el('ebModalTitle').textContent='Ajouter une Épargne';el('ebModalConfirmLabel').textContent='➕ Ajouter';
+  }
+  overlay.style.display='flex';setTimeout(()=>el('ebFormNom').focus(),80);
+}
+function closeEbModal(){el('ebModalOverlay').style.display='none';_ebEditIdx=null;}
+function confirmEbModal(){
+  const errEl=el('ebFormError');errEl.style.display='none';
+  const nom=el('ebFormNom').value.trim();const banque=el('ebFormBanque').value.trim();
+  const type=el('ebFormType').value.trim();
+  const montant=parseFloat(el('ebFormMontant').value);
+  const tauxAnnuel=parseFloat(el('ebFormTaux').value)||0;
+  const dateOuverture=el('ebFormDate').value;const url=el('ebFormUrl').value.trim();
+  if(!nom){errEl.textContent='Le nom du produit est requis.';errEl.style.display='block';return;}
+  if(isNaN(montant)||montant<0){errEl.textContent='Le montant est requis.';errEl.style.display='block';return;}
+  const asset={nom,banque,type,montant,tauxAnnuel,dateOuverture,url};
+  if(_ebEditIdx!==null){DATA.investissements.epargne_bloquee[_ebEditIdx]=asset;}
+  else{DATA.investissements.epargne_bloquee.push(asset);}
+  closeEbModal();syncInvestToPatrimoine();renderInvestissement();render();scheduleAutoSave();
+}
+
+function computeGroupTotals(assets){let totVal=0,totPR=0;(assets||[]).forEach(a=>{const c=a.coursActuel>0?a.coursActuel:a.pr;totVal+=a.qte*c;totPR+=a.qte*a.pr;});return{totVal,totPR};}
+function calcCurrentTotGain(){const r1=computeGroupTotals(DATA.investissements.pea),r2=computeGroupTotals(DATA.investissements.cto),r3=computeGroupTotals(DATA.investissements.revolut);return(r1.totVal-r1.totPR)+(r2.totVal-r2.totPR)+(r3.totVal-r3.totPR);}
+function checkAndResetDailySnapshot(){const today=new Date().toISOString().split('T')[0];if(!DATA._dailySnapshot||DATA._dailySnapshot.date!==today){DATA._dailySnapshot={date:today,gain:calcCurrentTotGain()};scheduleAutoSave();}}
+
+function renderInvestissement(){_renderInvCore();scheduleAutoSave();}
+function _renderInvCore(){
+  if(!DATA.investissements.assurance_vie)DATA.investissements.assurance_vie=[];
+  if(!DATA.investissements.epargne_bloquee)DATA.investissements.epargne_bloquee=[];
+  if(!DATA.investissements.epargne_entreprise)DATA.investissements.epargne_entreprise=[];
+  const r1=renderInvGroup('invPEA','invPEAFoot',DATA.investissements.pea);
+  const r2=renderInvGroup('invCTO','invCTOFoot',DATA.investissements.cto);
+  const r3=renderInvGroup('invRevolut','invRevolutFoot',DATA.investissements.revolut);
+  const avTot=renderAvGroup();
+  const ebTot=renderEbGroup();
+  const eeTot=renderEeGroup();
+  const totVal=r1.totVal+r2.totVal+r3.totVal;
+  const totPR=r1.totPR+r2.totPR+r3.totPR;
+  const totDay=r1.totDay+r2.totDay+r3.totDay;
+  const totGain=totVal-totPR,totGainPct=totPR>0?(totGain/totPR)*100:0;
+  if(!el('invKpiTotal'))return;
+  const allLines=DATA.investissements.pea.length+DATA.investissements.cto.length+DATA.investissements.revolut.length+(DATA.investissements.assurance_vie||[]).length+(DATA.investissements.epargne_bloquee||[]).length+(DATA.investissements.epargne_entreprise||[]).length;
+  el('invKpiTotal').textContent=fmt(totVal+avTot+ebTot+eeTot);
+  el('invKpiTotalSub').textContent=`${allLines} lignes actives`;
+  const gc=totGain>=0?'gain-pos':'gain-neg',gs=totGain>=0?'+':'';
+  el('invKpiGain').className='kpi-value amount '+gc;el('invKpiGain').textContent=gs+fmt(totGain);
+  el('invKpiGainPct').textContent='Gain / Perte latent(e) global(e)';
+  el('invKpiInvested').textContent=fmt(totPR+avTot+ebTot+eeTot);
+  // Variation du Jour : delta Gain/Perte Global vs snapshot ouverture
+  checkAndResetDailySnapshot();
+  const snapGain=DATA._dailySnapshot?DATA._dailySnapshot.gain:null;
+  const dayDelta=snapGain!==null?totGain-snapGain:null;
+  const allA=[...DATA.investissements.pea,...DATA.investissements.cto,...DATA.investissements.revolut];
+  if(dayDelta!==null){
+    const dc=dayDelta>=0?'gain-pos':'gain-neg',ds=dayDelta>=0?'+':'';
+    el('invKpiDay').className='kpi-value amount '+dc;el('invKpiDay').textContent=ds+fmt(dayDelta);
+    el('invKpiDaySub').textContent='vs ouverture · '+DATA._dailySnapshot.date;
+  } else {
+    const dc=totDay>=0?'gain-pos':'gain-neg',ds=totDay>=0?'+':'';
+    el('invKpiDay').className='kpi-value amount '+dc;el('invKpiDay').textContent=ds+fmt(totDay);
+    el('invKpiDaySub').textContent='Snapshot non disponible';
+  }
+  let best=null,bestG=-Infinity;
+  allA.forEach(a=>{const c=a.coursActuel>0?a.coursActuel:a.pr;const g=(c-a.pr)/a.pr*100;if(g>bestG){bestG=g;best=a;}});
+  if(best){el('invKpiBest').className='kpi-value '+(bestG>=0?'gain-pos':'gain-neg');el('invKpiBest').textContent=(bestG>=0?'+':'')+fmtN(bestG,2)+'%';el('invKpiBestName').textContent=best.nom;}
+  const iCls={};
+  const colorMap={PEA:'#7eb8d4',CTO:'#7eb8d4',BTC:'#c87070','Or':'#c8a96e','AV':'#d4875a','ÉB':'#7eb8d4','PEE':'#a090d8'};
+  [{label:'PEA',group:DATA.investissements.pea},{label:'CTO',group:DATA.investissements.cto},
+   {label:'BTC',group:DATA.investissements.revolut.filter(a=>a.ticker==='BTC')},
+   {label:'Or',group:DATA.investissements.revolut.filter(a=>a.ticker==='XAU')}
+  ].forEach(({label,group})=>{
+    const v=group.reduce((s,a)=>s+(a.coursActuel>0?a.qte*a.coursActuel:a.qte*a.pr),0);
+    if(v>0)iCls[label]={val:v,color:colorMap[label]||'#888'};
+  });
+  if(avTot>0)iCls['AV']={val:avTot,color:colorMap['AV']};
+  if(ebTot>0)iCls['ÉB']={val:ebTot,color:colorMap['ÉB']};
+  if(eeTot>0)iCls['PEE']={val:eeTot,color:colorMap['PEE']};
+  const iTotal=Object.values(iCls).reduce((s,v)=>s+v.val,0);
+  if(iTotal>0){
+    drawDonut('invDonut',Object.entries(iCls),iTotal);
+    el('invDonutLegend').innerHTML=Object.entries(iCls).map(([n,v])=>`
+      <div class="legend-item"><div class="legend-dot" style="background:${v.color}"></div>
+      <span class="legend-label">${n}</span><span class="legend-val amount">${fmt(v.val)}</span>
+      <span class="legend-pct">${pct(v.val,iTotal)}</span></div>`).join('');
+  }
+  const classes=classifyAssets();const patriTotal=Object.values(classes).reduce((s,v)=>s+v.val,0);
+  const allInvTotal=totVal+avTot+ebTot+eeTot;
+  const invShare=patriTotal>0?(allInvTotal/patriTotal)*100:0;
+  el('patrimoineLink').innerHTML=`
+    <div class="table-row"><span class="row-label">Patrimoine total</span><div class="row-right"><span class="amount row-val">${fmt(patriTotal)}</span></div></div>
+    <div class="table-row"><span class="row-label">Portefeuille investi</span><div class="row-right"><span class="amount row-val" style="color:var(--accent2)">${fmt(allInvTotal)}</span><span class="row-pct">${fmtN(invShare,1)}%</span></div></div>
+    <div class="table-row"><span class="row-label">dont ETF / Crypto / Or</span><div class="row-right"><span class="amount row-val">${fmt(totVal)}</span></div></div>
+    <div class="table-row"><span class="row-label">dont Assurances Vie</span><div class="row-right"><span class="amount row-val" style="color:#d4875a">${fmt(avTot)}</span></div></div>
+    <div class="table-row"><span class="row-label">dont Épargne réglementée</span><div class="row-right"><span class="amount row-val" style="color:#7eb8d4">${fmt(ebTot)}</span></div></div>
+    <div class="table-row"><span class="row-label">dont Épargne entreprise</span><div class="row-right"><span class="amount row-val" style="color:#a090d8">${fmt(eeTot)}</span></div></div>
+    <div class="table-row"><span class="row-label">Gain latent (ETF/Crypto/Or)</span><div class="row-right"><span class="row-val ${gc}">${gs}${fmt(totGain)}</span><span class="row-pct ${gc}">${gs}${fmtN(totGainPct,2)}%</span></div></div>
+    <div style="margin-top:14px;padding:10px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);">
+      <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:7px;">Part investie dans le patrimoine</div>
+      <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;"><div style="height:100%;width:${Math.min(invShare,100).toFixed(1)}%;background:var(--accent);border-radius:4px;transition:width .6s"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px;"><span>Investi ${fmtN(invShare,1)}%</span><span>Reste ${fmtN(100-invShare,1)}%</span></div>
+    </div>
+    <button class="btn" onclick="switchTab('patrimoine')" style="width:100%;justify-content:center;margin-top:10px;">← Retour Patrimoine</button>`;
+  renderDcaCard();
+  applyMask();
+}
+
+function convertBtc(from){
+  const eur=el('btcEurInput'),usd=el('btcUsdInput'),btc=el('btcBtcInput');
+  if(!eur||!usd||!btc)return;
+  const rateEur=window._btcEurRate||0;
+  const rateUsd=rateEur>0?rateEur/window._usdEurRate:0;
+  if(rateEur<=0){return;}
+  if(from==='btc'){const v=parseFloat(btc.value);if(isNaN(v))return;eur.value=fmtN(v*rateEur,2).replace(/\s/g,'');usd.value=fmtN(v*rateUsd,2).replace(/\s/g,'');}
+  else if(from==='eur'){const v=parseFloat(eur.value);if(isNaN(v))return;btc.value=fmtN(v/rateEur,8).replace(/\s/g,'');usd.value=fmtN(v/window._usdEurRate,2).replace(/\s/g,'');}
+  else if(from==='usd'){const v=parseFloat(usd.value);if(isNaN(v))return;const eurVal=v*window._usdEurRate;eur.value=fmtN(eurVal,2).replace(/\s/g,'');btc.value=fmtN(eurVal/rateEur,8).replace(/\s/g,'');}
+}
+function editUsdEur(span){
+  const inp=mkInput(window._usdEurRate||0.92,'70px','0.001');
+  span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){const v=parseFloat(inp.value);if(!isNaN(v)&&v>0)window._usdEurRate=v;renderInvestissement();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderInvestissement();});
+}
+
+// ═══ SUIVI DCA ════════════════════════════════════════════════════════════
+function initDca(){if(!DATA.dca)DATA.dca=[];}
+
+function renderDcaCard(){
+  initDca();
+  const box=el('dcaContent');if(!box)return;
+  const rows=DATA.dca;
+
+  // Calculs cumulés
+  let totInvesti=0,totParts=0;
+  const enriched=rows.map(r=>{
+    const parts=r.cours>0?r.montant/r.cours:0;
+    totInvesti+=r.montant;totParts+=parts;
+    const pru=totParts>0?totInvesti/totParts:0;
+    return{...r,parts,totInvesti,totParts,pru};
+  });
+
+  // PRU global & valeur actuelle (cours live si dispo)
+  const dernier=enriched[enriched.length-1];
+  const pruGlobal=dernier?dernier.pru:0;
+
+  // Cours de référence : dernier cours live du ticker DCA si renseigné
+  let coursRef=dernier?dernier.cours:0;
+  if(DATA.dca.length>0&&DATA.dca[0].ticker){
+    const ticker=DATA.dca[0].ticker;
+    const found=[...DATA.investissements.pea,...DATA.investissements.cto,...DATA.investissements.revolut].find(a=>a.ticker===ticker);
+    if(found&&found.coursActuel>0)coursRef=found.coursActuel;
+  }
+  const valActuelle=totParts*coursRef;
+  const gainE=valActuelle-totInvesti,gainPct=totInvesti>0?(gainE/totInvesti)*100:0;
+  const gc=gainE>=0?'gain-pos':'gain-neg',gs=gainE>=0?'+':'';
+
+  // Résumé KPI
+  let kpiHtml=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+    <div style="background:var(--surface2);border-radius:7px;padding:8px 10px;">
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Capital investi</div>
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;" class="amount">${fmt(totInvesti)}</div>
+      <div style="font-size:10px;color:var(--muted);">${rows.length} versement${rows.length>1?'s':''}</div>
+    </div>
+    <div style="background:var(--surface2);border-radius:7px;padding:8px 10px;">
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Parts totales</div>
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;">${fmtN(totParts,6).replace(/0+$/,'').replace(/\.$/,'')}</div>
+      <div style="font-size:10px;color:var(--muted);">PRU ${fmt(pruGlobal)}</div>
+    </div>
+    <div style="background:var(--surface2);border-radius:7px;padding:8px 10px;">
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Valorisation</div>
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--accent2);" class="amount">${coursRef>0?fmt(valActuelle):'—'}</div>
+      <div style="font-size:10px;color:var(--muted);">${coursRef>0?'cours '+fmt(coursRef):'saisir le cours'}</div>
+    </div>
+    <div style="background:var(--surface2);border-radius:7px;padding:8px 10px;">
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px;">Gain / Perte</div>
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;" class="${gc} amount">${coursRef>0?gs+fmt(gainE):'—'}</div>
+      <div style="font-size:10px;" class="${gc}">${coursRef>0?gs+fmtN(gainPct,2)+'%':'—'}</div>
+    </div>
+  </div>`;
+
+  // Tableau
+  let tableHtml='';
+  if(rows.length===0){
+    tableHtml=`<div style="color:var(--muted);font-size:11px;padding:10px 0;text-align:center;">Aucun versement — cliquez sur ＋ Versement</div>`;
+  } else {
+    tableHtml=`<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:11px;">
+      <thead><tr style="border-bottom:1px solid var(--border);">
+        <th style="text-align:left;padding:6px 7px;color:var(--muted);font-weight:400;white-space:nowrap;">Date</th>
+        <th style="text-align:left;padding:6px 7px;color:var(--muted);font-weight:400;">Actif</th>
+        <th style="text-align:right;padding:6px 7px;color:var(--muted);font-weight:400;">Montant</th>
+        <th style="text-align:right;padding:6px 7px;color:var(--muted);font-weight:400;">Cours</th>
+        <th style="text-align:right;padding:6px 7px;color:var(--muted);font-weight:400;">Parts</th>
+        <th style="text-align:right;padding:6px 7px;color:var(--muted);font-weight:400;">PRU cum.</th>
+        <th style="text-align:right;padding:6px 7px;color:var(--muted);font-weight:400;">Parts cum.</th>
+        <th style="padding:4px;"></th>
+      </tr></thead><tbody>`;
+    enriched.forEach((r,i)=>{
+      tableHtml+=`<tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:6px 7px;white-space:nowrap;"><span class="cell-edit" onclick="editDcaField(${i},'date',this)">${fmtDate(r.date)}</span></td>
+        <td style="padding:6px 7px;"><span class="cell-edit" onclick="editDcaField(${i},'ticker',this)" style="color:var(--accent2);">${r.ticker||'—'}</span></td>
+        <td style="padding:6px 7px;text-align:right;"><span class="cell-edit amount" onclick="editDcaField(${i},'montant',this)">${fmt(r.montant)}</span></td>
+        <td style="padding:6px 7px;text-align:right;"><span class="cell-edit amount" onclick="editDcaField(${i},'cours',this)">${fmt(r.cours)}</span></td>
+        <td style="padding:6px 7px;text-align:right;color:var(--text);">${fmtN(r.parts,6).replace(/0+$/,'').replace(/\.$/,'')}</td>
+        <td style="padding:6px 7px;text-align:right;color:var(--gold);">${fmt(r.pru)}</td>
+        <td style="padding:6px 7px;text-align:right;color:var(--accent2);">${fmtN(r.totParts,4).replace(/0+$/,'').replace(/\.$/,'')}</td>
+        <td style="padding:4px;text-align:right;"><button class="inv-del-btn" onclick="deleteDcaEntry(${i})" title="Supprimer">✕</button></td>
+      </tr>`;
+    });
+    // Footer
+    tableHtml+=`<tr style="border-top:1px solid var(--border);background:var(--surface2);font-weight:700;">
+      <td colspan="2" style="padding:6px 7px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">TOTAL</td>
+      <td style="padding:6px 7px;text-align:right;" class="amount">${fmt(totInvesti)}</td>
+      <td style="padding:6px 7px;text-align:right;color:var(--gold);">PRU ${fmt(pruGlobal)}</td>
+      <td style="padding:6px 7px;text-align:right;">${fmtN(totParts,4).replace(/0+$/,'').replace(/\.$/,'')}</td>
+      <td colspan="3"></td>
+    </tr></tbody></table></div>`;
+  }
+
+  // Graphique (canvas placeholder, dessiné après innerHTML)
+  const chartHtml = rows.length >= 2 ? `<div style="position:relative;width:100%;height:140px;margin-bottom:10px;"><canvas id="dcaChartCanvas"></canvas></div>` : '';
+
+  box.innerHTML = kpiHtml + chartHtml + tableHtml;
+
+  // Dessiner le graphique si assez de données
+  if(rows.length >= 2){
+    drawDcaChart(enriched, coursRef);
+  }
+
+  applyMask();
+}
+
+let _dcaChartInst = null;
+
+function drawDcaChart(enriched, coursRef){
+  const canvas = el('dcaChartCanvas'); if(!canvas) return;
+  if(_dcaChartInst){ _dcaChartInst.destroy(); _dcaChartInst = null; }
+
+  const labels = enriched.map(r => {
+    const d = new Date(r.date);
+    return d.toLocaleDateString('fr-FR',{month:'short',year:'2-digit'});
+  });
+  const dataInvesti  = enriched.map(r => +r.totInvesti.toFixed(2));
+  const dataValeur   = enriched.map(r => coursRef > 0 ? +(r.totParts * coursRef).toFixed(2) : null);
+  const dataPru      = enriched.map(r => +r.pru.toFixed(4));
+  const dataCours    = enriched.map(r => +r.cours.toFixed(4));
+
+  const datasets = [
+    {
+      label:'Investi',
+      data: dataInvesti,
+      borderColor:'#5aab7a',
+      backgroundColor:'rgba(90,171,122,0.10)',
+      fill: true,
+      borderWidth: 2,
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      tension: 0.3,
+      yAxisID:'y',
+    },
+  ];
+  if(coursRef > 0){
+    datasets.push({
+      label:'Valorisation',
+      data: dataValeur,
+      borderColor:'#7eb8d4',
+      backgroundColor:'rgba(126,184,212,0.07)',
+      fill: false,
+      borderWidth: 2,
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      tension: 0.3,
+      yAxisID:'y',
+    });
+  }
+  datasets.push(
+    {
+      label:'PRU',
+      data: dataPru,
+      borderColor:'#c8a96e',
+      borderWidth: 1.5,
+      borderDash:[4,3],
+      fill: false,
+      pointRadius: 0,
+      tension: 0.3,
+      yAxisID:'y2',
+    },
+    {
+      label:'Cours',
+      data: dataCours,
+      borderColor:'rgba(192,90,90,0.75)',
+      borderWidth: 1.5,
+      borderDash:[2,2],
+      fill: false,
+      pointRadius: 3,
+      pointHoverRadius: 5,
+      tension: 0.3,
+      yAxisID:'y2',
+    }
+  );
+
+  _dcaChartInst = new Chart(canvas, {
+    type:'line',
+    data:{ labels, datasets },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction:{ mode:'index', intersect:false },
+      plugins:{
+        legend:{ display:false },
+        tooltip:{
+          backgroundColor:'#262b33',
+          borderColor:'#3a4150',
+          borderWidth:1,
+          titleColor:'#c8cdd8',
+          bodyColor:'#c8cdd8',
+          callbacks:{
+            label: ctx => ` ${ctx.dataset.label} : ${fmtN(ctx.parsed.y,2)} €`
+          }
+        }
+      },
+      scales:{
+        x:{
+          ticks:{ color:'#6b7585', font:{size:10}, maxTicksLimit:8, autoSkip:true },
+          grid:{ color:'rgba(58,65,80,0.4)' },
+        },
+        y:{
+          position:'left',
+          ticks:{ color:'#6b7585', font:{size:10}, callback: v => fmtN(v,0)+' €' },
+          grid:{ color:'rgba(58,65,80,0.4)' },
+        },
+        y2:{
+          position:'right',
+          ticks:{ color:'#6b7585', font:{size:10}, callback: v => fmtN(v,0)+' €' },
+          grid:{ display:false },
+        },
+      }
+    }
+  });
+}
+
+function addDcaEntry(){
+  initDca();
+  const today=new Date().toISOString().split('T')[0];
+  // Pré-remplir ticker et cours depuis le premier actif du portefeuille
+  const allInv=[...DATA.investissements.pea,...DATA.investissements.cto,...DATA.investissements.revolut];
+  const first=allInv[0];
+  const ticker=DATA.dca.length>0?DATA.dca[DATA.dca.length-1].ticker:(first?first.ticker:'');
+  const cours=first&&first.coursActuel>0?first.coursActuel:(first?first.pr:0);
+  DATA.dca.push({date:today,ticker,montant:200,cours:+cours.toFixed(2)});
+  DATA.dca.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  renderDcaCard();scheduleAutoSave();
+}
+
+function deleteDcaEntry(i){
+  if(!confirm('Supprimer ce versement ?'))return;
+  DATA.dca.splice(i,1);renderDcaCard();scheduleAutoSave();
+}
+
+function editDcaField(i,field,span){
+  if(masked)return;
+  const r=DATA.dca[i];
+  let inp;
+  if(field==='date'){
+    inp=document.createElement('input');inp.type='date';inp.value=r.date;
+    inp.style.cssText='background:#1a1f2e;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:2px 4px;font-family:"DM Mono",monospace;font-size:11px;width:120px;outline:none;';
+  } else if(field==='ticker'){
+    inp=document.createElement('input');inp.type='text';inp.value=r.ticker||'';inp.placeholder='WPEA…';
+    inp.style.cssText='background:#1a1f2e;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:2px 6px;font-family:"DM Mono",monospace;font-size:11px;width:70px;outline:none;text-transform:uppercase;';
+  } else {
+    inp=mkInput(r[field],'90px','0.01');
+  }
+  span.replaceWith(inp);inp.focus();if(inp.select)inp.select();
+  function commit(){
+    if(field==='date'){r.date=inp.value||r.date;}
+    else if(field==='ticker'){r.ticker=inp.value.trim().toUpperCase();}
+    else{const v=parseFloat(inp.value);if(!isNaN(v)&&v>=0)r[field]=v;}
+    DATA.dca.sort((a,b)=>new Date(a.date)-new Date(b.date));
+    renderDcaCard();scheduleAutoSave();
+  }
+  inp.addEventListener('blur',commit);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderDcaCard();});
+}
+
+// ═══ ATH HISTORIQUE ══════════════════════════════════════════════════════
+function renderAthHist(){
+  const cont=el('athHistContent');if(!cont)return;
+  if(!Array.isArray(DATA.ath)||DATA.ath.length===0){cont.innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px 0;">Aucun enregistrement ATH.</div>';return;}
+  const sorted=[...DATA.ath].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const maxVal=Math.max(...sorted.map(e=>e.val));
+  cont.innerHTML=`
+    <div style="margin-bottom:14px;">
+      ${sorted.map((e,i)=>{
+        const isMax=Math.abs(e.val-maxVal)<0.01;
+        const w=maxVal>0?(e.val/maxVal*100).toFixed(1):0;
+        const prev=sorted[i+1];
+        const delta=prev?e.val-prev.val:null;
+        const ds=delta!==null?(delta>=0?'<span style="color:var(--accent);font-size:10px;">▲ +'+fmt(delta)+'</span>':'<span style="color:var(--red);font-size:10px;">▼ '+fmt(delta)+'</span>'):'';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)${isMax?';background:rgba(240,200,77,0.05);border-radius:6px;padding:7px 8px;':''}" >
+          <span style="font-size:10px;color:var(--muted);min-width:90px;font-family:'DM Mono',monospace;">${e.date}</span>
+          <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+            <div style="height:100%;width:${w}%;background:${isMax?'#c8a96e':'var(--accent)'};border-radius:3px;transition:width .4s;"></div>
+          </div>
+          <span class="amount" style="min-width:110px;text-align:right;font-weight:${isMax?700:400};color:${isMax?'#c8a96e':'var(--text)'};">${fmt(e.val)}</span>
+          <span style="min-width:90px;text-align:right;">${isMax?'<span style="font-size:11px;color:#c8a96e;">🏆 ATH</span>':ds}</span>
+          <button onclick="deleteAthEntry(${DATA.ath.indexOf(e)})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;opacity:0.5;padding:2px 4px;" title="Supprimer">✕</button>
+        </div>`}).join('')}
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+      <button class="btn" onclick="addAthManual()" style="font-size:11px;padding:5px 12px;">+ Ajouter une entrée</button>
+      <span style="font-size:10px;color:var(--muted);">${DATA.ath.length} enregistrement${DATA.ath.length>1?'s':''} · mis à jour automatiquement à chaque ouverture</span>
+    </div>`;
+}
+function toggleAthHist(){
+  const c=el('athHistContent'),btn=el('athHistToggle');
+  if(!c)return;
+  const open=c.style.display!=='none';
+  c.style.display=open?'none':'';
+  btn.textContent=open?'▾ Voir':'▴ Masquer';
+  if(!open)renderAthHist();
+}
+function deleteAthEntry(idx){
+  if(!confirm('Supprimer cette entrée ATH ?'))return;
+  DATA.ath.splice(idx,1);render();
+}
+function addAthManual(){
+  const d=prompt('Date (YYYY-MM-DD) :',new Date().toISOString().split('T')[0]);
+  if(!d)return;
+  const v=parseFloat(prompt('Valeur patrimoine (€) :'));
+  if(isNaN(v)||v<=0)return;
+  DATA.ath.push({date:d,val:v});
+  DATA.ath.sort((a,b)=>new Date(a.date)-new Date(b.date));
+  render();
+  const c=el('athHistContent');if(c)c.style.display='';
+  const btn=el('athHistToggle');if(btn)btn.textContent='▴ Masquer';
+}
+
+// ═══ MASK ════════════════════════════════════════════════════════════════
+function applyMask(){
+  document.querySelectorAll('.amount').forEach(e=>e.classList.toggle('masked',masked));
+  el('maskLabel').textContent=masked?'Révéler':'Masquer';
+  el('eyeIcon').textContent=masked?'🙈':'👁';
+}
+function toggleMask(){
+  masked=!masked;applyMask();
+  const c=classifyAssets(),t=Object.values(c).reduce((s,v)=>s+v.val,0);
+  drawDonut('donutCanvas',Object.entries(c).filter(([,v])=>v.val>0),t);
+  const iCls={};
+  [{label:'PEA',group:DATA.investissements.pea},{label:'CTO',group:DATA.investissements.cto},
+   {label:'BTC',group:DATA.investissements.revolut.filter(a=>a.ticker==='BTC')},
+   {label:'Or',group:DATA.investissements.revolut.filter(a=>a.ticker==='XAU')}
+  ].forEach(({label,group})=>{
+    const colors={PEA:'#7eb8d4',CTO:'#7eb8d4',BTC:'#c87070','Or':'#c8a96e'};
+    const v=group.reduce((s,a)=>s+(a.coursActuel>0?a.qte*a.coursActuel:a.qte*a.pr),0);
+    if(v>0)iCls[label]={val:v,color:colors[label]};
+  });
+  const avTotal=(DATA.investissements.assurance_vie||[]).reduce((s,a)=>s+a.valeurActuelle,0);
+  const ebTotal=(DATA.investissements.epargne_bloquee||[]).reduce((s,a)=>s+a.montant,0);
+  const eeTotal=(DATA.investissements.epargne_entreprise||[]).reduce((s,a)=>s+a.valeurActuelle,0);
+  if(avTotal>0)iCls['AV']={val:avTotal,color:'#d4875a'};
+  if(ebTotal>0)iCls['ÉB']={val:ebTotal,color:'#7eb8d4'};
+  if(eeTotal>0)iCls['PEE']={val:eeTotal,color:'#a090d8'};
+  const it=Object.values(iCls).reduce((s,v)=>s+v.val,0);
+  if(it>0)drawDonut('invDonut',Object.entries(iCls),it);
+}
+
+// ═══ DEPENSES ════════════════════════════════════════════════════════════
+function depTotal(){return DATA.depenses.categories.reduce((s,c)=>s+c.items.reduce((ss,it)=>ss+it.mensuel,0),0);}
+function depCatTotal(cat){return cat.items.reduce((s,it)=>s+it.mensuel,0);}
+
+function renderDepenses(){_renderDepCore();scheduleAutoSave();}
+function _renderDepCore(){
+  if(!el('depKpiMois'))return;
+  const total=depTotal();const totalAn=total*12;
+  const catTotals=DATA.depenses.categories.map(c=>({nom:c.nom,icon:c.icon,color:c.color,val:depCatTotal(c)}));
+  const logement=catTotals.find(c=>c.nom==='Logement & Énergie')?.val||0;
+  const impots=catTotals.find(c=>c.nom==='Impôts & Taxes')?.val||0;
+  const assurance=catTotals.find(c=>c.nom==='Assurances & Santé')?.val||0;
+  const telecom=catTotals.find(c=>c.nom==='Télécom')?.val||0;
+  const vie=catTotals.find(c=>c.nom==='Vie Courante')?.val||0;
+  el('depKpiMois').textContent=fmt(total);el('depKpiAn').textContent=fmt(totalAn);
+  el('depKpiLogement').textContent=fmt(logement+impots);el('depKpiLogementPct').textContent=total>0?pct(logement+impots,total)+' des dépenses':'—';
+  el('depKpiAssurance').textContent=fmt(assurance);el('depKpiAssurancePct').textContent=total>0?pct(assurance,total)+' des dépenses':'—';
+  el('depKpiVie').textContent=fmt(vie+telecom);el('depKpiViePct').textContent=total>0?pct(vie+telecom,total)+' des dépenses':'—';
+  const bar=el('depBar'),barLabels=el('depBarLabels');
+  if(bar&&total>0){
+    bar.innerHTML=catTotals.filter(c=>c.val>0).map(c=>`<div class="liq-seg" style="width:${pct(c.val,total)};background:${c.color}"></div>`).join('');
+    barLabels.innerHTML=catTotals.filter(c=>c.val>0).map(c=>`<div class="liq-lbl"><div class="liq-dot" style="background:${c.color}"></div>${c.icon} ${c.nom.split(' ')[0]} ${fmtN(c.val/total*100,1)}%</div>`).join('');
+  }
+  const depEntries=catTotals.filter(c=>c.val>0).map(c=>[c.nom,{val:c.val,color:c.color}]);
+  if(depEntries.length>0){
+    drawDonut('depDonut',depEntries,total);
+    el('depDonutLegend').innerHTML=depEntries.map(([n,v])=>`<div class="legend-item"><div class="legend-dot" style="background:${v.color}"></div><span class="legend-label" style="font-size:11px;">${n}</span><span class="legend-val amount" style="font-size:11px;">${fmt(v.val)}</span><span class="legend-pct">${pct(v.val,total)}</span></div>`).join('');
+  }
+  const rev=DATA.revenuMensuelNet||0;const tauxEl=el('depTauxEffort');
+  if(tauxEl){
+    const restant=rev-total;const taux=rev>0?(total/rev)*100:0;const txCls=taux>80?'gain-neg':taux>60?'':'gain-pos';
+    tauxEl.innerHTML=`<div class="taux-row"><span style="color:var(--muted);font-size:11px;">Revenu net mensuel</span><span class="cell-edit amount" onclick="editRevenu(this)">${fmt(rev)}</span></div>
+      <div class="taux-row"><span style="color:var(--muted);font-size:11px;">Total dépenses</span><span class="amount" style="color:var(--red)">${fmt(total)}</span></div>
+      <div class="taux-row" style="border-top:2px solid var(--border);margin-top:4px;"><span style="color:var(--muted);font-size:11px;">Reste à vivre / épargner</span><span class="amount ${restant>=0?'gain-pos':'gain-neg'}" style="font-weight:700;">${fmt(restant)}</span></div>
+      <div style="margin-top:12px;"><div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Taux d'effort</div>
+      <div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden;"><div style="height:100%;width:${Math.min(taux,100).toFixed(1)}%;background:${taux>80?'var(--red)':taux>60?'var(--gold)':'var(--green)'};border-radius:5px;"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:4px;"><span class="${txCls}" style="font-weight:700;">${fmtN(taux,1)}% de charges</span><span style="color:var(--muted);">idéal &lt; 60%</span></div></div>`;
+  }
+  const catsEl=el('depensesCats');if(!catsEl)return;
+  catsEl.innerHTML=DATA.depenses.categories.map((cat,ci)=>{
+    const catTot=depCatTotal(cat);
+    const rows=cat.items.map((item,ii)=>`<tr><td><div style="font-weight:500;">${item.label}</div>${item.url?`<a href="${item.url}" target="_blank" class="dep-link">🔗 Accès compte →</a>`:''}&nbsp;<span class="cell-edit" onclick="editDepUrl(${ci},${ii},this)" style="font-size:9px;color:var(--muted);" title="Éditer le lien">✎ lien</span></td><td><span class="cell-edit amount" onclick="editDep(${ci},${ii},'mensuel',this)">${fmt(item.mensuel)}</span><div class="dep-pct-bar" style="width:${total>0?Math.max(2,item.mensuel/total*100).toFixed(1)+'%':'0'};background:${cat.color};opacity:0.6;"></div></td><td class="dep-annuel amount">${fmt(item.mensuel*12)}</td><td style="color:var(--muted);font-size:11px;">${total>0?pct(item.mensuel,total):'—'}</td></tr>`).join('');
+    return `<div class="dep-category"><div class="dep-cat-header"><div class="dep-cat-title"><span style="font-size:16px;">${cat.icon}</span>${cat.nom}</div><div class="dep-cat-total amount" style="color:${cat.color}">${fmt(catTot)}<span style="color:var(--muted);font-size:10px;font-weight:400;margin-left:6px;">/ mois</span></div></div><table class="dep-table"><thead><tr><th>Poste</th><th>Mensuel ✎</th><th>Annuel</th><th>%</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }).join('');
+  applyMask();
+}
+
+function editDep(ci,ii,field,span){
+  if(masked)return;
+  const inp=mkInput(DATA.depenses.categories[ci].items[ii][field]);span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){const v=parseFloat(inp.value);if(!isNaN(v)&&v>=0){DATA.depenses.categories[ci].items[ii].mensuel=v;DATA.depenses.categories[ci].items[ii].annuel=v*12;}renderDepenses();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderDepenses();});
+}
+function editRevenu(span){
+  if(masked)return;
+  const inp=mkInput(DATA.revenuMensuelNet||0);span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){const v=parseFloat(inp.value);if(!isNaN(v)&&v>=0)DATA.revenuMensuelNet=v;renderDepenses();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderDepenses();});
+}
+
+// ═══ SAVE/LOAD ═══════════════════════════════════════════════════════════
+const LS_KEY='patrimoine_autosave';
+
+function setJsonDateLabel(date){
+  const lbl=document.getElementById('jsonDateLbl');
+  const val=document.getElementById('jsonDateVal');
+  if(!lbl||!val)return;
+  const d=date instanceof Date?date:new Date(date);
+  const dateStr=d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const timeStr=d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  val.textContent=dateStr+' '+timeStr;
+  lbl.style.display='';
+}
+let _autoSaveTimer=null;
+let _lastAutoSave=null;
+
+// ── Crypto helpers (AES-GCM 256) ─────────────────────────────────────────
+async function _deriveKey(password, salt){
+  const enc = new TextEncoder();
+  const raw = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    {name:'PBKDF2', salt, iterations:200000, hash:'SHA-256'},
+    raw, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']
+  );
+}
+async function _encrypt(plaintext, password){
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv   = crypto.getRandomValues(new Uint8Array(12));
+  const key  = await _deriveKey(password, salt);
+  const enc  = new TextEncoder();
+  const ct   = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, enc.encode(plaintext));
+  // Format : magic(8) + salt(16) + iv(12) + ciphertext
+  const out  = new Uint8Array(8 + 16 + 12 + ct.byteLength);
+  out.set([0x50,0x41,0x54,0x52,0x45,0x4E,0x43,0x01]); // PATREN\x01
+  out.set(salt, 8); out.set(iv, 24); out.set(new Uint8Array(ct), 36);
+  return btoa(String.fromCharCode(...out));
+}
+async function _decrypt(b64, password){
+  const bytes = Uint8Array.from(atob(b64), c=>c.charCodeAt(0));
+  const magic = [0x50,0x41,0x54,0x52,0x45,0x4E,0x43,0x01];
+  if(!magic.every((v,i)=>bytes[i]===v)) throw new Error('not_encrypted');
+  const salt = bytes.slice(8,24), iv = bytes.slice(24,36), ct = bytes.slice(36);
+  const key  = await _deriveKey(password, salt);
+  const pt   = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, ct);
+  return new TextDecoder().decode(pt);
+}
+
+async function saveData(){
+  const now=new Date();
+  DATA.exportedAt=now.toISOString();
+  const json=JSON.stringify(DATA,null,2);
+  const pw=window._sessionPw;
+  let content, ext, mime;
+  if(pw){
+    content = await _encrypt(json, pw);
+    ext='.patrenenc'; mime='application/octet-stream';
+  } else {
+    content=json; ext='.json'; mime='application/json';
+  }
+  const blob=new Blob([content],{type:mime});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='patrimoine_'+now.toISOString().split('T')[0]+ext;a.click();
+  el('saveStatus').classList.add('show');setTimeout(()=>el('saveStatus').classList.remove('show'),2500);
+  setJsonDateLabel(now);
+}
+
+function autoSave(){
+  try{localStorage.setItem(LS_KEY,JSON.stringify(DATA));_lastAutoSave=new Date();updateAutoSaveIndicator('ok');}
+  catch(e){updateAutoSaveIndicator('err');}
+}
+
+function scheduleAutoSave(){
+  clearTimeout(_autoSaveTimer);
+  updateAutoSaveIndicator('pending');
+  _autoSaveTimer=setTimeout(()=>autoSave(),2000);
+}
+
+function updateAutoSaveIndicator(state){
+  const dot=el('autoSaveDot'),lbl=el('autoSaveLabel');
+  if(!dot||!lbl)return;
+  if(state==='ok'){
+    dot.style.background='var(--green)';lbl.style.color='var(--green)';lbl.textContent='Auto · maintenant';
+    clearInterval(window._autoSaveRelTimer);
+    window._autoSaveRelTimer=setInterval(()=>{
+      if(!_lastAutoSave)return;
+      const s=Math.round((new Date()-_lastAutoSave)/1000);
+      if(s<5)lbl.textContent='Auto · maintenant';
+      else if(s<60)lbl.textContent=`Auto · il y a ${s}s`;
+      else if(s<3600)lbl.textContent=`Auto · il y a ${Math.floor(s/60)}min`;
+      else lbl.textContent=`Auto · il y a ${Math.floor(s/3600)}h`;
+    },5000);
+  } else if(state==='pending'){dot.style.background='var(--gold)';lbl.style.color='var(--gold)';lbl.textContent='Auto · en attente…';}
+  else if(state==='err'){dot.style.background='var(--red)';lbl.style.color='var(--red)';lbl.textContent='Auto · échec localStorage';}
+  else if(state==='none'){dot.style.background='var(--muted)';lbl.style.color='var(--muted)';lbl.textContent='Aucune sauvegarde auto';}
+}
+
+function loadAutoSave(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(!raw)return false;
+    DATA=JSON.parse(raw);
+    _lastAutoSave=new Date();
+    updateAutoSaveIndicator('ok');
+    return true;
+  }catch(e){return false;}
+}
+
+function clearAutoSave(){
+  if(!confirm('Effacer la sauvegarde automatique du navigateur ?\n(Le fichier JSON téléchargé reste intact.)'))return;
+  localStorage.removeItem(LS_KEY);
+  _lastAutoSave=null;
+  updateAutoSaveIndicator('none');
+}
+
+function loadFile(){el('fileInput').click();}
+function loadData(event){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    let raw=e.target.result.trim();
+    // Tenter déchiffrement si le contenu n'est pas du JSON
+    if(!raw.startsWith('{')){
+      const pw = window._sessionPw || prompt('Mot de passe pour déchiffrer ce fichier :');
+      if(!pw){alert('Mot de passe requis.');event.target.value='';return;}
+      try{ raw = await _decrypt(raw, pw); }
+      catch(err){
+        if(err.message==='not_encrypted') alert('Format de fichier non reconnu.');
+        else alert('Déchiffrement échoué — mot de passe incorrect ?');
+        event.target.value=''; return;
+      }
+    }
+    try{
+      DATA=JSON.parse(raw);
+      render();if(activeTab==='investissement')renderInvestissement();if(activeTab==='depenses')renderDepenses();if(activeTab==='mobilite')renderMobilite();
+      const src=DATA.exportedAt?new Date(DATA.exportedAt):new Date(file.lastModified);
+      setJsonDateLabel(src);
+    }catch{alert('JSON invalide après déchiffrement.');}
+  };
+  reader.readAsText(file);event.target.value='';
+}
+
+// ═══ TABLEAU ENTRETIEN YARIS ══════════════════════════════════════════════
+function renderEntretienTable(){
+  const tbody=el('entretienBody'), tfoot=el('entretienFoot');
+  if(!tbody)return;
+  if(!DATA.mobilite.auto.entretien)DATA.mobilite.auto.entretien=[];
+  const rows=DATA.mobilite.auto.entretien;
+  let totRev=0,totPneu=0,totCt=0;
+  const anneeActuelle=new Date().getFullYear();
+  function isCtPrevu(annee){return annee>=2025 && (annee-2025)%2===0;}
+  tbody.innerHTML=rows.map((row,i)=>{
+    const isCurrent=row.annee===anneeActuelle;
+    totRev+=row.revision||0;totPneu+=row.pneusAV||0;totCt+=row.ct||0;
+    let revCell;
+    if(row.revision>0){const isRev=row.revType==='toyota';revCell=`<span class="${isRev?'cell-rev-toyota':'cell-rev-empty'}" onclick="editEntretienCell(${i},'revision',this)" style="cursor:pointer;">${fmt(row.revision)}</span>`;}
+    else{revCell=`<span style="color:var(--muted);cursor:pointer;font-size:11px;" onclick="editEntretienCell(${i},'revision',this)">—</span>`;}
+    let pneuCell;
+    if(row.pneusAV>0){pneuCell=`<span style="color:var(--text);cursor:pointer;font-weight:600;" onclick="editEntretienCell(${i},'pneusAV',this)">${fmt(row.pneusAV)}</span>`;}
+    else{pneuCell=`<span style="color:var(--muted);cursor:pointer;font-size:11px;" onclick="editEntretienCell(${i},'pneusAV',this)">—</span>`;}
+    let ctCell;
+    if(row.ct>0){ctCell=`<span class="cell-ct" onclick="editEntretienCell(${i},'ct',this)" style="cursor:pointer;">${fmt(row.ct)}</span>`;}
+    else if(isCtPrevu(row.annee)){ctCell=`<span class="cell-ct-planned" onclick="editEntretienCell(${i},'ct',this)" style="cursor:pointer;display:inline-block;min-width:50px;min-height:18px;border-radius:4px;">&nbsp;</span>`;}
+    else{ctCell=`<span style="color:var(--muted);cursor:pointer;font-size:11px;" onclick="editEntretienCell(${i},'ct',this)">—</span>`;}
+    const kmCell=row.km?`<span style="color:var(--accent2);cursor:pointer;font-weight:600;" onclick="editEntretienCell(${i},'km',this)">${fmtN(row.km,0)} km</span>`:`<span style="color:var(--muted);cursor:pointer;font-size:11px;" onclick="editEntretienCell(${i},'km',this)">—</span>`;
+    const commCell=`<span class="cell-edit" onclick="editEntretienComment(${i},this)" style="color:${row.commentaire?'var(--text)':'var(--muted)'};font-size:11px;min-width:80px;display:inline-block;">${row.commentaire||'—'}</span>`;
+    const rowStyle=isCurrent?'background:rgba(200,240,77,0.06);border-left:2px solid var(--accent);':'';
+    const revTypeBtn=row.revision>0?`<button onclick="toggleRevType(${i})" title="Basculer type révision" style="background:none;border:none;cursor:pointer;font-size:10px;color:var(--muted);padding:0 3px;">🔄</button>`:'';
+    return `<tr style="${rowStyle}">
+      <td style="font-weight:700;color:${isCurrent?'var(--accent)':'var(--text)'};">${row.annee}${isCurrent?' ◀':''}</td>
+      <td>${revCell}${revTypeBtn}</td>
+      <td>${pneuCell}</td>
+      <td>${ctCell}</td>
+      <td>${kmCell}</td>
+      <td style="text-align:left;">${commCell}</td>
+      <td><button class="mob-delete-btn" onclick="deleteEntretienRow(${i})" title="Supprimer">✕</button></td>
+    </tr>`;
+  }).join('');
+  const totTotal=totRev+totPneu+totCt;
+  const parAn=totTotal/Math.max(rows.length,1);
+  const parMois=parAn/12;
+  tfoot.innerHTML=`
+    <tr>
+      <td style="text-align:left;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px;">TOTAL</td>
+      <td style="color:#ff6b6b;">${totRev>0?fmt(totRev):'—'}</td>
+      <td style="color:var(--text);">${totPneu>0?fmt(totPneu):'—'}</td>
+      <td style="color:#7eb8d4;">${totCt>0?fmt(totCt):'—'}</td>
+      <td></td>
+      <td style="text-align:right;"><strong class="amount" style="color:var(--accent);">${fmt(totTotal)}</strong></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td colspan="5" style="text-align:right;font-size:11px;color:var(--muted);">Moyenne / an :</td>
+      <td><strong class="amount" style="color:var(--gold);">${fmt(parAn)}</strong> <span style="color:var(--muted);font-size:10px;">/an</span></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td colspan="5" style="text-align:right;font-size:11px;color:var(--muted);">Moyenne / mois :</td>
+      <td><strong class="amount" style="color:var(--gold);">${fmt(parMois)}</strong> <span style="color:var(--muted);font-size:10px;">/mois</span></td>
+      <td></td>
+    </tr>`;
+}
+
+function editEntretienCell(i,field,span){
+  const row=DATA.mobilite.auto.entretien[i];
+  const isKm=field==='km';
+  const curVal=row[field]||0;
+  const inp=mkInput(curVal,isKm?'100px':'90px',isKm?'1':'0.01');
+  span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){const v=parseFloat(inp.value);if(!isNaN(v)&&v>=0) row[field]=v===0?0:v;else if(isNaN(v)) row[field]=null;renderMobilite();scheduleAutoSave();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderMobilite();});
+}
+
+function editEntretienComment(i,span){
+  const row=DATA.mobilite.auto.entretien[i];
+  const inp=document.createElement('input');
+  inp.type='text';inp.value=row.commentaire||'';inp.placeholder='commentaire…';
+  inp.style.cssText='background:#1a1f2e;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:2px 6px;font-family:"DM Mono",monospace;font-size:11px;width:160px;outline:none;';
+  span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){row.commentaire=inp.value.trim();renderMobilite();scheduleAutoSave();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderMobilite();});
+}
+
+function toggleRevType(i){
+  const row=DATA.mobilite.auto.entretien[i];
+  row.revType=row.revType==='toyota'?'':'toyota';
+  renderMobilite();scheduleAutoSave();
+}
+
+function addEntretienRow(){
+  const rows=DATA.mobilite.auto.entretien;
+  const lastAnnee=rows.length>0?rows[rows.length-1].annee:new Date().getFullYear();
+  rows.push({annee:lastAnnee+1,revision:0,pneusAV:0,ct:0,km:null,commentaire:"",revType:""});
+  renderMobilite();scheduleAutoSave();
+}
+
+function deleteEntretienRow(i){
+  if(!confirm('Supprimer cette ligne ?'))return;
+  DATA.mobilite.auto.entretien.splice(i,1);
+  renderMobilite();scheduleAutoSave();
+}
+
+// ═══ RAPPORT IA ═══════════════════════════════════════════════════════════
+function buildRapportIA(){
+  const all=[...DATA.investissements.pea,...DATA.investissements.cto,...DATA.investissements.revolut];
+  const totVal=all.reduce((s,a)=>s+(a.coursActuel>0?a.qte*a.coursActuel:a.qte*a.pr),0);
+  const totPR=all.reduce((s,a)=>s+a.qte*a.pr,0);
+  const totGain=totVal-totPR;
+  const totGainPct=totPR>0?(totGain/totPR)*100:0;
+  const today=new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  function buildGroup(label, assets){
+    if(!assets.length)return'';
+    let s=`\n## ${label}\n`;
+    assets.forEach(a=>{
+      const cours=a.coursActuel>0?a.coursActuel:a.pr;
+      const val=a.qte*cours;const pr=a.qte*a.pr;const g=val-pr;const gp=pr>0?(g/pr)*100:0;
+      const liveTag=a.coursActuel>0&&a.lastUpdate?' [LIVE]':a.coursActuel>0?' [Manuel]':'[P.R. estimé]';
+      s+=`- ${a.nom} (${a.ticker}${a.isin?' — '+a.isin:''})\n  Quantité : ${fmtN(a.qte,6).replace(/0+$/,'').replace(/\.$/,'')}\n  P.R. unitaire : ${fmt(a.pr)}\n  Cours actuel : ${fmt(cours)} ${liveTag}\n  Valorisation : ${fmt(val)}\n  Gain/Perte : ${g>=0?'+':''}${fmt(g)} (${g>=0?'+':''}${fmtN(gp,2)}%)\n`;
+    });
+    return s;
+  }
+  const avList=DATA.investissements.assurance_vie||[];
+  const ebList=DATA.investissements.epargne_bloquee||[];
+  const eeList=DATA.investissements.epargne_entreprise||[];
+  const avTotal=avList.reduce((s,a)=>s+a.valeurActuelle,0);
+  const ebTotal=ebList.reduce((s,a)=>s+a.montant,0);
+  const eeTotal=eeList.reduce((s,a)=>s+a.valeurActuelle,0);
+  const classes=classifyAssets();
+  const patriTotal=Object.values(classes).reduce((s,v)=>s+v.val,0);
+  const invTotal=totVal+avTotal+ebTotal+eeTotal;
+  const invShare=patriTotal>0?(invTotal/patriTotal)*100:0;
+  const athVal=DATA.ath&&DATA.ath.length>0?Math.max(...DATA.ath.map(e=>e.val)):0;
+  const drawdown=athVal>patriTotal&&athVal>0?((athVal-patriTotal)/athVal)*100:0;
+  return `Tu es un conseiller financier expert. Analyse en détail mon portefeuille d'investissements ci-dessous et donne-moi :\n1. Une synthèse de la performance globale\n2. Une analyse de la diversification et des risques\n3. Les points forts et les points d'amélioration\n4. Des recommandations concrètes adaptées à mon profil\n5. Une perspective sur la gestion long terme\n\n---\nDATE DU RAPPORT : ${today}\n\n## SYNTHÈSE GLOBALE\n\n- Valorisation totale (ETF/Crypto/Or) : ${fmt(totVal)}\n- Capital investi P.R. : ${fmt(totPR)}\n- Gain/Perte latent(e) : ${totGain>=0?'+':''}${fmt(totGain)} (${totGain>=0?'+':''}${fmtN(totGainPct,2)}%)\n- Assurances Vie : ${fmt(avTotal)} | Épargne réglementée : ${fmt(ebTotal)} | Épargne entreprise : ${fmt(eeTotal)}\n- Total placements : ${fmt(invTotal)} (${fmtN(invShare,1)}% du patrimoine : ${fmt(patriTotal)})\n${athVal>0?`- All-Time High : ${fmt(athVal)}${drawdown>0?' → drawdown : -'+fmtN(drawdown,1)+'%':''}`:''}\
+${buildGroup('PEA — Fortuneo',DATA.investissements.pea)}\
+${buildGroup('CTO — Fortuneo',DATA.investissements.cto)}\
+${buildGroup('Revolut (BTC & Or)',DATA.investissements.revolut)}\
+\n## ASSURANCES VIE\n\n${avList.map(a=>`- ${a.nom} (${a.assureur}${a.contrat?' — '+a.contrat:''})\n  Versements : ${fmt(a.versements)} | Valeur actuelle : ${fmt(a.valeurActuelle)} | Taux : ${fmtN(a.tauxRendement,2)}%\n  Gain : ${a.valeurActuelle-a.versements>=0?'+':''}${fmt(a.valeurActuelle-a.versements)}\n`).join('')||'  Aucun contrat renseigné\n'}\
+\n## ÉPARGNE RÉGLEMENTÉE\n\n${ebList.map(a=>`- ${a.nom} (${a.banque||'—'}) — ${a.type||'—'}\n  Montant : ${fmt(a.montant)} | Taux : ${fmtN(a.tauxAnnuel,2)}% | Intérêts/an : ${fmt(a.montant*(a.tauxAnnuel/100))}\n`).join('')||'  Aucun produit renseigné\n'}\
+\n## ÉPARGNE ENTREPRISE (PEE/PERCO — Natixis)\n\n${eeList.map(a=>`- ${a.nom}${a.fonds?' — '+a.fonds:''}\n  Parts : ${fmtN(a.parts,4).replace(/\.?0+$/,'')} | PRU : ${fmt(a.pr)} | Capital investi : ${fmt(a.parts*a.pr)}\n  Valeur actuelle : ${fmt(a.valeurActuelle)} | Gain : ${a.valeurActuelle-a.parts*a.pr>=0?'+':''}${fmt(a.valeurActuelle-a.parts*a.pr)}\n`).join('')||'  Aucun fonds renseigné\n'}\
+\n## ACTIFS HORS PORTEFEUILLE\n\n- SCPI (total) : ${fmt(DATA.scpi.reduce((s,x)=>s+x.totalActuel,0))}\n- Or Revolut : ${fmt(DATA.revolut[3].val)}\n- Crypto Revolut : ${fmt(DATA.revolut[7].val)}\n- Immobilier (résidence principale) : ${fmt(DATA.maison)}\n\n---\nMerci d'être précis, factuel et d'adapter tes recommandations à un investisseur particulier français.`;
+}
+
+function buildSnapshotHTML(){
+  const all=[...DATA.investissements.pea,...DATA.investissements.cto,...DATA.investissements.revolut];
+  const totVal=all.reduce((s,a)=>s+(a.coursActuel>0?a.qte*a.coursActuel:a.qte*a.pr),0);
+  const totPR=all.reduce((s,a)=>s+a.qte*a.pr,0);
+  const totGain=totVal-totPR;const totGainPct=totPR>0?(totGain/totPR)*100:0;
+  const gc=totGain>=0?'ia-tag-pos':'ia-tag-neg';const gs=totGain>=0?'+':'';
+  const lines=all.map(a=>{
+    const cours=a.coursActuel>0?a.coursActuel:a.pr;const val=a.qte*cours;const pr=a.qte*a.pr;const g=val-pr;const gp=pr>0?(g/pr)*100:0;
+    const gc2=g>=0?'ia-tag-pos':'ia-tag-neg';
+    const liveColor=a.coursActuel>0&&a.lastUpdate?'var(--accent2)':a.coursActuel>0?'var(--gold)':'var(--muted)';
+    const liveLabel=a.coursActuel>0&&a.lastUpdate?'LIVE':a.coursActuel>0?'Manuel':'P.R.';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px;">
+      <span style="color:var(--muted);flex:2;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${a.nom}">${a.ticker} <span style="font-size:9px;color:var(--muted);opacity:.7;">${a.nom.substring(0,28)}…</span></span>
+      <span style="flex:1;text-align:right;" class="amount">${fmt(val)}</span>
+      <span class="ia-tag ${gc2}" style="margin-left:8px;">${g>=0?'+':''}${fmtN(gp,1)}%</span>
+      <span style="font-size:9px;color:${liveColor};margin-left:8px;min-width:36px;text-align:right;">${liveLabel}</span>
+    </div>`;
+  }).join('');
+  return `<div style="margin-bottom:10px;">${lines}</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:2px solid var(--border);font-size:12px;">
+      <strong>Total portefeuille</strong>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="amount" style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;">${fmt(totVal)}</span>
+        <span class="ia-tag ${gc}">${gs}${fmt(totGain)} (${gs}${fmtN(totGainPct,2)}%)</span>
+      </div>
+    </div>`;
+}
+
+function openRapportIA(){
+  const overlay=el('iaModalOverlay');
+  const promptBox=el('iaPromptBox');
+  const snapBox=el('iaSnapshotBox');
+  if(!promptBox||!overlay)return;
+  promptBox.textContent=buildRapportIA();
+  snapBox.innerHTML=buildSnapshotHTML();
+  overlay.style.display='flex';
+}
+
+function closeRapportIA(){el('iaModalOverlay').style.display='none';}
+
+function copyRapport(){
+  const txt=el('iaPromptBox').textContent;
+  const btn=el('iaCopyBtn');
+  navigator.clipboard.writeText(txt).then(()=>{
+    if(btn){btn.classList.add('copied');btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copié !';}
+    setTimeout(()=>{if(btn){btn.classList.remove('copied');btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copier le rapport';}},2500);
+  }).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    if(btn){btn.classList.add('copied');btn.textContent='✓ Copié !';}
+    setTimeout(()=>{if(btn){btn.classList.remove('copied');btn.textContent='Copier le rapport';}},2500);
+  });
+}
+
+function openChatGPT(){copyRapport();setTimeout(()=>window.open('https://chat.openai.com/','_blank'),300);}
+function openClaude(){copyRapport();setTimeout(()=>window.open('https://claude.ai/new','_blank'),300);}
+
+// ═══ MODAL AJOUT / GESTION INVESTISSEMENTS ════════════════════════════════
+let _invModalEditMode=null;
+
+function openInvModal(groupKey,editIdx=null){
+  const overlay=el('invModalOverlay');
+  el('invFormGroupe').value=groupKey||'pea';
+  el('invFormNom').value='';el('invFormTicker').value='';el('invFormIsin').value='';
+  el('invFormQte').value='';el('invFormPr').value='';el('invFormCours').value='';
+  el('invFormVar').value='0';el('invFormUrl').value='';
+  el('invFormError').style.display='none';
+  if(editIdx!==null){
+    _invModalEditMode={groupKey,idx:editIdx};
+    const a=DATA.investissements[groupKey][editIdx];
+    el('invFormGroupe').value=groupKey;el('invFormGroupe').disabled=true;
+    el('invFormNom').value=a.nom;el('invFormTicker').value=a.ticker;el('invFormIsin').value=a.isin||'';
+    el('invFormQte').value=a.qte;el('invFormPr').value=a.pr;el('invFormCours').value=a.coursActuel||'';
+    el('invFormVar').value=a.varJour||0;el('invFormUrl').value=a.url||'';
+    el('invModalTitle').textContent="Modifier l'investissement";el('invModalIcon').textContent='✏️';el('invModalConfirmLabel').textContent='✔ Enregistrer';
+  } else {
+    _invModalEditMode=null;el('invFormGroupe').disabled=false;
+    el('invModalTitle').textContent='Ajouter un investissement';el('invModalIcon').textContent='➕';el('invModalConfirmLabel').textContent='➕ Ajouter';
+  }
+  overlay.style.display='flex';
+  setTimeout(()=>el('invFormNom').focus(),80);
+}
+
+function closeInvModal(){el('invModalOverlay').style.display='none';_invModalEditMode=null;el('invFormGroupe').disabled=false;}
+
+function confirmInvModal(){
+  const errEl=el('invFormError');errEl.style.display='none';
+  const groupKey=el('invFormGroupe').value;
+  const nom=el('invFormNom').value.trim();const ticker=el('invFormTicker').value.trim().toUpperCase();
+  const isin=el('invFormIsin').value.trim();const qte=parseFloat(el('invFormQte').value);
+  const pr=parseFloat(el('invFormPr').value);const cours=parseFloat(el('invFormCours').value)||0;
+  const varJ=parseFloat(el('invFormVar').value)||0;const url=el('invFormUrl').value.trim();
+  if(!nom){showInvErr("Le nom de l'actif est requis.");return;}
+  if(!ticker){showInvErr("Le ticker est requis.");return;}
+  if(isNaN(qte)||qte<=0){showInvErr("La quantité doit être supérieure à 0.");return;}
+  if(isNaN(pr)||pr<=0){showInvErr("Le prix de revient doit être supérieur à 0.");return;}
+  const asset={nom,ticker,isin,qte,pr,coursActuel:cours>0?cours:0,varJour:varJ,lastUpdate:null,url};
+  const group=DATA.investissements[groupKey];
+  if(_invModalEditMode!==null){group[_invModalEditMode.idx]=asset;}else{group.push(asset);}
+  syncInvestToPatrimoine();closeInvModal();syncInvestToPatrimoine();renderInvestissement();render();scheduleAutoSave();
+}
+
+function showInvErr(msg){const e=el('invFormError');e.textContent=msg;e.style.display='block';}
+
+function deleteInv(tbodyId,idx){
+  const group=getInvGroup(tbodyId);if(!group||idx<0||idx>=group.length)return;
+  if(!confirm(`Supprimer "${group[idx].nom}" du portefeuille ?`))return;
+  group.splice(idx,1);syncInvestToPatrimoine();syncInvestToPatrimoine();renderInvestissement();render();scheduleAutoSave();
+}
+
+function editInvRow(tbodyId,idx){
+  const groupKey=tbodyId==='invPEA'?'pea':tbodyId==='invCTO'?'cto':'revolut';
+  openInvModal(groupKey,idx);
+}
+
+// ═══ LIENS ═══════════════════════════════════════════════════════════════
+function mkUrlInput(val,w='320px'){
+  const inp=document.createElement('input');inp.type='url';inp.value=val||'';inp.placeholder='https://...';
+  inp.style.cssText=`background:#1a1f2e;color:var(--accent2);border:1px solid var(--accent2);border-radius:4px;padding:3px 8px;font-family:'DM Mono',monospace;font-size:11px;width:${w};outline:none;`;
+  return inp;
+}
+
+function renderBankTitle(elId, nom, key, badge){
+  const e=el(elId);if(!e)return;
+  if(!DATA.liens)DATA.liens={};
+  const url=DATA.liens[key]||'#';
+  e.innerHTML=`<a href="${url}" target="_blank" style="color:inherit;text-decoration:none;transition:color .15s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='inherit'">${nom} ↗</a>
+    <span class="bank-badge" style="margin-left:4px;">${badge}</span>
+    <span class="cell-edit" onclick="editLien('${key}',this)" style="font-size:9px;color:var(--muted);margin-left:6px;" title="Éditer le lien">✎</span>`;
+}
+
+function editLien(key, span){
+  if(!DATA.liens)DATA.liens={};
+  const inp=mkUrlInput(DATA.liens[key]||'');
+  span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){
+    const v=inp.value.trim();DATA.liens[key]=v;
+    if(key==='carburant'){const a=el('lienCarburant');if(a)a.href=v||'#';}
+    render();scheduleAutoSave();
+  }
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')render();});
+}
+
+function editDepUrl(ci,ii,span){
+  const inp=mkUrlInput(DATA.depenses.categories[ci].items[ii].url||'');
+  span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){DATA.depenses.categories[ci].items[ii].url=inp.value.trim();renderDepenses();scheduleAutoSave();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderDepenses();});
+}
+
+function editScpiUrl(si,span){
+  const inp=mkUrlInput(DATA.scpi[si].url||'');
+  span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){DATA.scpi[si].url=inp.value.trim();render();scheduleAutoSave();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')render();});
+}
+
+function editInvUrl(tbodyId,idx,span){
+  const group=getInvGroup(tbodyId);if(!group||idx<0||idx>=group.length)return;
+  const inp=mkUrlInput(group[idx].url||'');
+  span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){group[idx].url=inp.value.trim();renderInvestissement();scheduleAutoSave();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderInvestissement();});
+}
+
+function openLien(key){if(!DATA.liens)return;const u=DATA.liens[key];if(u&&u.startsWith('http'))window.open(u,'_blank');}
+
+// ═══ INIT ════════════════════════════════════════════════════════════════
+window._usdEurRate=0.92;
+const hadSave=loadAutoSave();
+syncInvestToPatrimoine();
+(function initDailySnapshot(){
+  const today=new Date().toISOString().split('T')[0];
+  if(!DATA._dailySnapshot||DATA._dailySnapshot.date!==today)DATA._dailySnapshot={date:today,gain:calcCurrentTotGain()};
+  const now=new Date(),msToMidnight=(new Date(now.getFullYear(),now.getMonth(),now.getDate()+1)-now)+1000;
+  setTimeout(function resetAtMidnight(){DATA._dailySnapshot={date:new Date().toISOString().split('T')[0],gain:calcCurrentTotGain()};scheduleAutoSave();if(activeTab==='investissement')renderInvestissement();setTimeout(resetAtMidnight,86400000);},msToMidnight);
+})();
+_renderCore();
+if(!hadSave)updateAutoSaveIndicator('none');
+// Init ticker band with placeholder then fetch
+renderTickerBand();
+fetchTickerBand().then(()=>{});
+// Refresh ticker band every 60s
+setInterval(fetchTickerBand, 60000);
+</script>
+
+<!-- ═══ MODAL AJOUT INVESTISSEMENT ═══ -->
+<div id="invModalOverlay" class="inv-modal-overlay" style="display:none;" onclick="if(event.target===this)closeInvModal()">
+  <div class="inv-modal">
+    <button class="inv-modal-close" onclick="closeInvModal()">✕</button>
+    <div class="inv-modal-title"><span id="invModalIcon">➕</span> <span id="invModalTitle">Ajouter un investissement</span></div>
+    <div class="inv-form-grid">
+      <div class="inv-form-field full">
+        <label class="inv-form-label">Compte / Portefeuille</label>
+        <select id="invFormGroupe" class="inv-form-select">
+          <option value="pea">🏦 Fortuneo — PEA</option>
+          <option value="cto">🏦 Fortuneo — CTO</option>
+          <option value="revolut">💳 Revolut — BTC & Or</option>
+        </select>
+      </div>
+      <div class="inv-form-field full">
+        <label class="inv-form-label">Nom de l'actif</label>
+        <input id="invFormNom" class="inv-form-input" type="text" placeholder="ex: iShares MSCI World…">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">Ticker</label>
+        <input id="invFormTicker" class="inv-form-input" type="text" placeholder="ex: WPEA, BTC…">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">ISIN (optionnel)</label>
+        <input id="invFormIsin" class="inv-form-input" type="text" placeholder="ex: IE000…">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">Quantité</label>
+        <input id="invFormQte" class="inv-form-input" type="number" step="0.000001" placeholder="0.00" min="0">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">Prix de revient unitaire (€)</label>
+        <input id="invFormPr" class="inv-form-input" type="number" step="0.01" placeholder="0.00" min="0">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">Cours actuel (€) — optionnel</label>
+        <input id="invFormCours" class="inv-form-input" type="number" step="0.01" placeholder="laisser 0 = P.R." min="0">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">Var. Jour % — optionnel</label>
+        <input id="invFormVar" class="inv-form-input" type="number" step="0.01" placeholder="0.00">
+      </div>
+      <div class="inv-form-field full">
+        <label class="inv-form-label">URL de suivi (optionnel)</label>
+        <input id="invFormUrl" class="inv-form-input" type="url" placeholder="https://…">
+      </div>
+    </div>
+    <div id="invFormError" style="color:var(--red);font-size:11px;display:none;margin-top:-8px;margin-bottom:8px;"></div>
+    <div class="inv-form-actions">
+      <button class="btn" onclick="closeInvModal()">Annuler</button>
+      <button class="btn btn-accent" onclick="confirmInvModal()"><span id="invModalConfirmLabel">➕ Ajouter</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL RAPPORT IA ═══ -->
+<div id="iaModalOverlay" class="ia-modal-overlay" style="display:none;" onclick="if(event.target===this)closeRapportIA()">
+  <div class="ia-modal">
+    <div class="ia-modal-header">
+      <div class="ia-modal-header-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+        Rapport détaillé pour IA — Portefeuille Investissements
+      </div>
+      <button class="ia-modal-close" onclick="closeRapportIA()">✕</button>
+    </div>
+    <div class="ia-modal-body">
+      <div class="ia-section">
+        <div class="ia-section-label">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Prompt prêt à coller dans ChatGPT / Claude / Gemini
+        </div>
+        <div class="ia-prompt-box" id="iaPromptBox" onclick="copyRapport(this)"></div>
+        <div class="ia-report-actions">
+          <button class="ia-copy-btn" id="iaCopyBtn" onclick="copyRapport()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copier le rapport
+          </button>
+          <button class="ia-copy-btn" onclick="openChatGPT()" style="border-color:#10a37f;color:#10a37f;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+            Ouvrir ChatGPT
+          </button>
+          <button class="ia-copy-btn" onclick="openClaude()" style="border-color:#d97757;color:#d97757;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+            Ouvrir Claude
+          </button>
+          <span style="font-size:10px;color:var(--muted);margin-left:auto;">Cliquer sur le texte pour copier</span>
+        </div>
+      </div>
+      <div class="ia-divider"></div>
+      <div class="ia-section">
+        <div class="ia-section-label">📊 Aperçu synthétique</div>
+        <div id="iaSnapshotBox"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL ÉPARGNE ENTREPRISE ═══ -->
+<div id="eeModalOverlay" class="inv-modal-overlay" style="display:none;" onclick="if(event.target===this)closeEeModal()">
+  <div class="inv-modal">
+    <button class="inv-modal-close" onclick="closeEeModal()">✕</button>
+    <div class="inv-modal-title">🏢 <span id="eeModalTitle">Ajouter un fonds entreprise</span></div>
+    <div class="inv-form-grid">
+      <div class="inv-form-field full">
+        <label class="inv-form-label">Nom du produit</label>
+        <input id="eeFormNom" class="inv-form-input" type="text" placeholder="ex: PEE — Natixis">
+      </div>
+      <div class="inv-form-field full">
+        <label class="inv-form-label">Fonds / Support</label>
+        <input id="eeFormFonds" class="inv-form-input" type="text" placeholder="ex: Fonds diversifié, FCPE Actions…">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">Nombre de parts</label>
+        <input id="eeFormParts" class="inv-form-input" type="number" step="0.0001" placeholder="0.0000" min="0">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">PRU — Prix de Revient Unitaire (€)</label>
+        <input id="eeFormPr" class="inv-form-input" type="number" step="0.01" placeholder="0.00" min="0">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">Valeur actuelle totale (€)</label>
+        <input id="eeFormValeur" class="inv-form-input" type="number" step="0.01" placeholder="0.00 (= parts × PRU si vide)" min="0">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">Taux rendement annuel (%)</label>
+        <input id="eeFormTaux" class="inv-form-input" type="number" step="0.01" placeholder="0.00" min="0">
+      </div>
+      <div class="inv-form-field full">
+        <label class="inv-form-label">URL de suivi (optionnel)</label>
+        <input id="eeFormUrl" class="inv-form-input" type="url" placeholder="https://…">
+      </div>
+    </div>
+    <div id="eeFormError" style="color:var(--red);font-size:11px;display:none;margin-top:-8px;margin-bottom:8px;"></div>
+    <div class="inv-form-actions">
+      <button class="btn" onclick="closeEeModal()">Annuler</button>
+      <button class="btn btn-accent" onclick="confirmEeModal()"><span id="eeModalConfirmLabel">➕ Ajouter</span></button>
+    </div>
+  </div>
+</div>
+
+<div id="avModalOverlay" class="inv-modal-overlay" style="display:none;" onclick="if(event.target===this)closeAvModal()">
+  <div class="inv-modal">
+    <button class="inv-modal-close" onclick="closeAvModal()">✕</button>
+    <div class="inv-modal-title">🛡️ <span id="avModalTitle">Ajouter une Assurance Vie</span></div>
+    <div class="inv-form-grid">
+      <div class="inv-form-field full">
+        <label class="inv-form-label">Nom du contrat</label>
+        <input id="avFormNom" class="inv-form-input" type="text" placeholder="ex: Assurance Vie Boursorama">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">Assureur</label>
+        <input id="avFormAssureur" class="inv-form-input" type="text" placeholder="ex: Boursorama, Fortuneo…">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">N° Contrat (optionnel)</label>
+        <input id="avFormContrat" class="inv-form-input" type="text" placeholder="ex: AV-12345">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">Versements totaux (€)</label>
+        <input id="avFormVersement" class="inv-form-input" type="number" step="0.01" placeholder="0.00" min="0">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">Valeur actuelle (€)</label>
+        <input id="avFormValeur" class="inv-form-input" type="number" step="0.01" placeholder="0.00 (= versements si vide)" min="0">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">Taux rendement annuel (%)</label>
+        <input id="avFormTaux" class="inv-form-input" type="number" step="0.01" placeholder="2.00" min="0">
+      </div>
+      <div class="inv-form-field full">
+        <label class="inv-form-label">URL de suivi (optionnel)</label>
+        <input id="avFormUrl" class="inv-form-input" type="url" placeholder="https://…">
+      </div>
+    </div>
+    <div id="avFormError" style="color:var(--red);font-size:11px;display:none;margin-top:-8px;margin-bottom:8px;"></div>
+    <div class="inv-form-actions">
+      <button class="btn" onclick="closeAvModal()">Annuler</button>
+      <button class="btn btn-accent" onclick="confirmAvModal()"><span id="avModalConfirmLabel">➕ Ajouter</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL ÉPARGNE BLOQUÉE ═══ -->
+<div id="ebModalOverlay" class="inv-modal-overlay" style="display:none;" onclick="if(event.target===this)closeEbModal()">
+  <div class="inv-modal">
+    <button class="inv-modal-close" onclick="closeEbModal()">✕</button>
+    <div class="inv-modal-title">🔒 <span id="ebModalTitle">Ajouter une Épargne</span></div>
+    <div class="inv-form-grid">
+      <div class="inv-form-field full">
+        <label class="inv-form-label">Nom du produit</label>
+        <input id="ebFormNom" class="inv-form-input" type="text" placeholder="ex: Livret A — Boursorama">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">Banque</label>
+        <input id="ebFormBanque" class="inv-form-input" type="text" placeholder="ex: Boursorama, Fortuneo…">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">Type de produit</label>
+        <input id="ebFormType" class="inv-form-input" type="text" placeholder="ex: Livret A, LDDS, PEL, CEL…">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">Montant (€)</label>
+        <input id="ebFormMontant" class="inv-form-input" type="number" step="0.01" placeholder="0.00" min="0">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">Taux annuel (%)</label>
+        <input id="ebFormTaux" class="inv-form-input" type="number" step="0.01" placeholder="3.00" min="0">
+      </div>
+      <div class="inv-form-field">
+        <label class="inv-form-label">Date d'ouverture (optionnel)</label>
+        <input id="ebFormDate" class="inv-form-input" type="date">
+      </div>
+      <div class="inv-form-field full">
+        <label class="inv-form-label">URL de suivi (optionnel)</label>
+        <input id="ebFormUrl" class="inv-form-input" type="url" placeholder="https://…">
+      </div>
+    </div>
+    <div id="ebFormError" style="color:var(--red);font-size:11px;display:none;margin-top:-8px;margin-bottom:8px;"></div>
+    <div class="inv-form-actions">
+      <button class="btn" onclick="closeEbModal()">Annuler</button>
+      <button class="btn btn-accent" onclick="confirmEbModal()"><span id="ebModalConfirmLabel">➕ Ajouter</span></button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══ LOCK SCREEN LOGIC ═══
+(function(){
+  const STORAGE_KEY = 'patrimoine_pw_hash';
+  const DEFAULT_PW = 'patrimoine'; // mot de passe par défaut si aucun n'est défini
+
+  async function sha256(str){
+    const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+
+  async function checkPassword(){
+    const input = document.getElementById('lockInput');
+    const val = input.value;
+    if(!val) return;
+    const hash = await sha256(val);
+    let stored = localStorage.getItem(STORAGE_KEY);
+    if(!stored){
+      // Premier lancement : hash du mot de passe par défaut
+      stored = await sha256(DEFAULT_PW);
+      localStorage.setItem(STORAGE_KEY, stored);
+    }
+    if(hash === stored){
+      window._sessionPw = val; // mémorisé en RAM pour chiffrement export
+      document.getElementById('lockScreen').style.display = 'none';
+      input.value = '';
+    } else {
+      const err = document.getElementById('lockError');
+      err.textContent = 'Mot de passe incorrect';
+      err.style.opacity = 1;
+      input.classList.add('shake');
+      input.value = '';
+      setTimeout(()=>{ input.classList.remove('shake'); input.focus(); }, 400);
+    }
+  }
+
+  async function changePassword(){
+    const current = prompt('Mot de passe actuel :');
+    if(current === null) return;
+    const currentHash = await sha256(current);
+    let stored = localStorage.getItem(STORAGE_KEY) || await sha256(DEFAULT_PW);
+    if(currentHash !== stored){
+      alert('Mot de passe actuel incorrect.');
+      return;
+    }
+    const newPw = prompt('Nouveau mot de passe :');
+    if(!newPw){ alert('Le mot de passe ne peut pas être vide.'); return; }
+    const confirm = prompt('Confirmer le nouveau mot de passe :');
+    if(newPw !== confirm){ alert('Les mots de passe ne correspondent pas.'); return; }
+    localStorage.setItem(STORAGE_KEY, await sha256(newPw));
+    alert('✓ Mot de passe mis à jour.');
+  }
+
+  // Exposer les fonctions globalement
+  window.checkPassword = checkPassword;
+  window.changePassword = changePassword;
+
+  // Focus auto sur le champ
+  window.addEventListener('load', ()=>{
+    document.getElementById('lockInput').focus();
+  });
+})();
+</script>
+
+</body>
+</html>
