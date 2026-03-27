@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chauffage Bois</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪵</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root{--brun:#5a3010;--bc:#8B4513;--org:#D2691E;--or:#C8860A;--cr:#FDF6EC;--be:#F5E6CE;--gr:#888;--wh:#fff;--sh:0 4px 24px rgba(90,48,16,0.12);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--cr);font-family:'Lato',sans-serif;color:var(--brun);min-height:100vh;}
+
+header{background:linear-gradient(135deg,var(--brun) 0%,var(--bc) 60%,var(--org) 100%);padding:22px 32px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 4px 20px rgba(90,48,16,0.28);flex-wrap:wrap;}
+.hl{display:flex;align-items:center;gap:16px;}
+header .ico{font-size:2.6rem;}
+header h1{font-family:'Playfair Display',serif;color:var(--cr);font-size:1.85rem;letter-spacing:1px;}
+header .sub{color:rgba(253,246,236,0.72);font-size:0.82rem;margin-top:2px;font-weight:300;}
+.hr{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.bjson{display:flex;align-items:center;gap:5px;border:2px solid rgba(245,201,138,0.45);background:rgba(255,255,255,0.1);color:var(--cr);padding:7px 14px;border-radius:9px;font-size:0.8rem;font-family:'Lato',sans-serif;font-weight:700;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+.bjson:hover{background:rgba(255,255,255,0.2);border-color:#f5c98a;}
+.bjson.red{border-color:rgba(239,83,80,0.55);}
+.bjson.red:hover{background:rgba(239,83,80,0.18);}
+.sind{font-size:0.7rem;color:rgba(245,201,138,0.65);font-style:italic;}
+#finput{display:none;}
+
+.elec-pill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.12);border:2px solid rgba(245,201,138,0.45);border-radius:9px;padding:6px 14px;}
+.elec-pill label{color:#f5c98a;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.7px;white-space:nowrap;margin:0;}
+.elec-pill input{background:transparent;border:none;border-bottom:1px dashed rgba(245,201,138,0.6);color:var(--cr);font-size:0.92rem;font-family:'Lato',sans-serif;font-weight:700;width:62px;text-align:center;padding:0 2px;}
+.elec-pill input:focus{outline:none;border-bottom-color:#f5c98a;}
+.elec-pill span{color:rgba(253,246,236,0.65);font-size:0.82rem;}
+
+.container{max-width:1200px;margin:0 auto;padding:28px 22px;}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:32px;}
+.kpi{background:var(--wh);border-radius:14px;padding:18px 16px;box-shadow:var(--sh);border-left:5px solid var(--org);transition:transform 0.18s;}
+.kpi:hover{transform:translateY(-3px);}
+.kpi .em{font-size:1.5rem;margin-bottom:7px;display:block;}
+.kpi .val{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--brun);}
+.kpi .lbl{font-size:0.71rem;color:var(--gr);text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
+.kpi.green{border-left-color:#4caf50;}.kpi.blue{border-left-color:#2196f3;}.kpi.gold{border-left-color:var(--or);}
+
+.stitle{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--bc);margin-bottom:13px;display:flex;align-items:center;gap:8px;}
+.card{background:var(--wh);border-radius:16px;box-shadow:var(--sh);padding:22px;margin-bottom:26px;overflow-x:auto;}
+
+table{width:100%;border-collapse:collapse;font-size:0.87rem;}
+thead tr{background:linear-gradient(90deg,var(--brun) 0%,var(--bc) 100%);color:var(--cr);}
+th{padding:9px 11px;font-weight:700;text-transform:uppercase;font-size:0.72rem;letter-spacing:0.8px;text-align:center;}
+th:first-child{text-align:left;border-radius:8px 0 0 0;}th:last-child{border-radius:0 8px 0 0;}
+td{padding:8px 11px;text-align:center;border-bottom:1px solid var(--be);vertical-align:middle;}
+td:first-child{text-align:left;font-weight:600;color:var(--bc);}
+tr:last-child td{border-bottom:none;}
+tr:nth-child(even) td{background:#fdf3e7;}
+.hv{font-weight:700;color:var(--brun);}
+.tot-row td{background:var(--be)!important;font-weight:700;color:var(--brun);font-family:'Playfair Display',serif;font-size:0.93rem;border-top:2px solid var(--org);}
+.bdel{background:none;border:none;cursor:pointer;color:#ccc;font-size:0.95rem;padding:3px 7px;border-radius:5px;transition:color 0.15s,background 0.15s;}
+.bdel:hover{color:#e53935;background:rgba(229,57,53,0.09);}
+
+.charts2{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:26px;}
+@media(max-width:680px){.charts2{grid-template-columns:1fr;}}
+.ccrd{background:var(--wh);border-radius:16px;box-shadow:var(--sh);padding:20px;}
+.cwrap{position:relative;height:195px;margin-top:8px;}
+canvas{width:100%!important;}
+
+.cbar-bg{background:#f5e6ce;border-radius:5px;height:8px;overflow:hidden;min-width:60px;}
+.cbar-fill{height:8px;border-radius:5px;background:linear-gradient(90deg,var(--bc),var(--org));transition:width 0.4s;}
+
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:13px;margin-bottom:16px;}
+label{display:block;font-size:0.76rem;font-weight:700;color:var(--bc);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:4px;}
+input,select{width:100%;padding:8px 11px;border:2px solid var(--be);border-radius:8px;font-size:0.88rem;font-family:'Lato',sans-serif;color:var(--brun);background:var(--cr);transition:border-color 0.2s;}
+input:focus,select:focus{outline:none;border-color:var(--org);}
+.btn{background:linear-gradient(135deg,var(--bc),var(--org));color:var(--cr);border:none;padding:10px 26px;border-radius:9px;font-size:0.92rem;font-family:'Lato',sans-serif;font-weight:700;cursor:pointer;transition:opacity 0.2s,transform 0.15s;}
+.btn:hover{opacity:0.87;transform:translateY(-1px);}
+
+.ci{border:1px solid var(--be)!important;border-radius:5px!important;padding:4px 6px!important;font-size:0.82rem!important;font-family:'Lato',sans-serif!important;color:var(--brun)!important;background:var(--cr)!important;text-align:center;}
+.ci:focus{outline:none;border-color:var(--org)!important;}
+.cn{border:1px solid var(--be)!important;border-radius:5px!important;padding:4px 7px!important;font-size:0.84rem!important;font-family:'Lato',sans-serif!important;color:var(--brun)!important;background:var(--cr)!important;width:128px;}
+.cn:focus{outline:none;border-color:var(--org)!important;}
+.bbest{background:#4caf50;color:#fff;border-radius:20px;padding:2px 9px;font-size:0.68rem;font-weight:700;white-space:nowrap;}
+.bworst{background:#ef5350;color:#fff;border-radius:20px;padding:2px 9px;font-size:0.68rem;font-weight:700;}
+.cbw{background:var(--be);border-radius:6px;height:9px;overflow:hidden;display:inline-block;vertical-align:middle;width:88px;}
+.cbf{height:9px;border-radius:6px;background:linear-gradient(90deg,var(--bc),var(--org));transition:width 0.4s;}
+.badd{background:rgba(139,69,19,0.07);color:var(--bc);border:2px dashed var(--be);padding:7px 18px;border-radius:8px;font-size:0.8rem;font-family:'Lato',sans-serif;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:11px;}
+.badd:hover{background:rgba(139,69,19,0.13);border-color:var(--org);}
+
+.calcb{background:linear-gradient(135deg,#3e2005 0%,var(--brun) 60%,var(--bc) 100%);border-radius:16px;padding:26px 26px 22px;margin-bottom:26px;box-shadow:0 6px 28px rgba(90,48,16,0.2);color:var(--cr);}
+.calcb .stitle{color:#f5c98a;margin-bottom:18px;}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:13px;margin-bottom:18px;}
+.cf label{color:#f5c98a;font-size:0.73rem;letter-spacing:0.8px;}
+.cf input,.cf select{background:rgba(255,255,255,0.11);border:2px solid rgba(245,201,138,0.32);color:var(--cr);border-radius:8px;padding:8px 11px;font-size:0.88rem;width:100%;transition:border-color 0.2s;}
+.cf input::placeholder{color:rgba(253,246,236,0.38);}
+.cf input:focus,.cf select:focus{outline:none;border-color:#f5c98a;background:rgba(255,255,255,0.17);}
+.cf select option{background:var(--brun);color:var(--cr);}
+.cres{display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:11px;margin-top:6px;}
+.rb{background:rgba(255,255,255,0.09);border:1px solid rgba(245,201,138,0.22);border-radius:11px;padding:13px 15px;text-align:center;transition:background 0.2s;}
+.rb:hover{background:rgba(255,255,255,0.16);}
+.rb .rv{font-family:'Playfair Display',serif;font-size:1.4rem;color:#f5c98a;display:block;}
+.rb .rl{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.9px;color:rgba(253,246,236,0.62);margin-top:4px;display:block;}
+.notec{margin-top:14px;font-size:0.76rem;color:rgba(253,246,236,0.48);border-top:1px solid rgba(245,201,138,0.18);padding-top:11px;line-height:1.6;}
+.sep{height:1px;background:rgba(245,201,138,0.18);margin:16px 0;}
+
+.eco{background:linear-gradient(135deg,#4caf50,#2e7d32);color:#fff;border-radius:14px;padding:18px 24px;display:flex;align-items:center;gap:16px;font-size:1rem;box-shadow:0 4px 16px rgba(76,175,80,0.23);margin-bottom:26px;}
+.eco .big{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:700;}
+
+#toast{position:fixed;bottom:26px;right:26px;background:var(--brun);color:var(--cr);padding:11px 20px;border-radius:11px;font-size:0.85rem;font-weight:700;box-shadow:0 4px 18px rgba(90,48,16,0.32);opacity:0;transform:translateY(12px);transition:all 0.28s;pointer-events:none;z-index:9999;}
+#toast.show{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hl">
+    <span class="ico">🪵</span>
+    <div>
+      <h1>Chauffage Bois</h1>
+      <div class="sub">Suivi annuel — achats, consommation &amp; économies</div>
+    </div>
+  </div>
+  <div class="hr">
+    <div class="elec-pill">
+      <label for="prix-elec">⚡ Élec</label>
+      <input type="number" id="prix-elec" value="0.2516" step="0.0001" min="0.01"
+        title="Prix du kWh électrique en €" oninput="onElecChange()">
+      <span>€/kWh</span>
+    </div>
+    <span class="sind" id="sind">Non sauvegardé</span>
+    <button class="bjson" onclick="exportJSON()">💾 Exporter</button>
+    <button class="bjson" onclick="document.getElementById('finput').click()">📂 Importer</button>
+    <button class="bjson red" onclick="resetAll()">🗑 Reset</button>
+    <input type="file" id="finput" accept=".json" onchange="importJSON(event)">
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi gold"><span class="em">💶</span><div class="val" id="k-tot">—</div><div class="lbl">Total factures</div></div>
+    <div class="kpi">      <span class="em">🪵</span><div class="val" id="k-kg">—</div> <div class="lbl">Bois consommé</div></div>
+    <div class="kpi blue"> <span class="em">⚡</span><div class="val" id="k-kwh">—</div><div class="lbl">Énergie produite</div></div>
+    <div class="kpi green"><span class="em">💰</span><div class="val" id="k-eco">—</div><div class="lbl">Économisé vs élec</div></div>
+    <div class="kpi">      <span class="em">📦</span><div class="val" id="k-pxk">—</div><div class="lbl">Prix moyen bois</div></div>
+    <div class="kpi blue"> <span class="em">🔌</span><div class="val" id="k-elec">—</div><div class="lbl">Ref. prix élec/kWh</div></div>
+  </div>
+
+  <!-- Saisie facture -->
+  <div class="card">
+    <div class="stitle">➕ Ajouter une facture</div>
+    <div class="fgrid">
+      <div>
+        <label>Mois</label>
+        <select id="f-mois">
+          <option value="0">Janvier</option><option value="1">Février</option><option value="2">Mars</option>
+          <option value="3">Avril</option><option value="4">Mai</option><option value="5">Juin</option>
+          <option value="6">Juillet</option><option value="7">Août</option><option value="8">Septembre</option>
+          <option value="9">Octobre</option><option value="10">Novembre</option><option value="11">Décembre</option>
+        </select>
+      </div>
+      <div><label>Montant (€)</label><input type="number" id="f-mont" placeholder="55.93" step="0.01" min="0"></div>
+      <div><label>Quantité (kg)</label><input type="number" id="f-kg" placeholder="84" step="1" min="0" oninput="updatePreview()"></div>
+      <div>
+        <label>Type de bois</label>
+        <select id="f-type" onchange="onTypeChange()">
+          <option value="3.8">Bûche lg20 (3,8)</option>
+          <option value="3.8">Bûche lg33 (3,8)</option>
+          <option value="4.1">Chêne sec (4,1)</option>
+          <option value="4.3">Hêtre sec (4,3)</option>
+          <option value="4.5">Charme sec (4,5)</option>
+          <option value="3.4">Bois humide (3,4)</option>
+          <option value="5.0">Granulés (5,0)</option>
+          <option value="5.2">Briquettes (5,2)</option>
+          <option value="custom">Autre…</option>
+        </select>
+      </div>
+      <div>
+        <label>PCI — kWh/kg <span style="font-weight:400;color:var(--gr);font-size:0.7rem">(éditable)</span></label>
+        <input type="number" id="f-pci" value="3.8" step="0.1" min="0.5" max="8"
+          style="border-color:var(--or)"
+          title="Pouvoir calorifique inférieur du bois saisi"
+          oninput="updatePreview()">
+      </div>
+    </div>
+    <div style="margin-bottom:14px;padding:10px 14px;background:#fdf3e7;border-radius:8px;border-left:3px solid var(--or);font-size:0.8rem;color:var(--bc)">
+      💡 <strong>kWh estimés :</strong> <span id="f-preview">— saisissez une quantité</span>
+    </div>
+    <button class="btn" onclick="ajouterFacture()">Ajouter la facture</button>
+  </div>
+
+  <!-- Tableau mensuel -->
+  <div class="card">
+    <div class="stitle">📋 Récapitulatif mensuel</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Mois</th><th>Facture 1</th><th>Facture 2</th><th>Facture 3</th>
+          <th>Total €</th><th>kg</th><th>Coût/kWh</th><th>Éco vs élec</th><th title="Effacer">🗑</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+      <tfoot>
+        <tr class="tot-row">
+          <td>TOTAL</td><td id="tf1">—</td><td id="tf2">—</td><td id="tf3">—</td>
+          <td id="tf-tot">—</td><td id="tf-kg">—</td><td id="tf-ckwh">—</td><td id="tf-eco">—</td><td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <!-- Graphiques -->
+  <div class="charts2">
+    <div class="ccrd">
+      <div class="stitle">📈 Dépenses mensuelles (€)</div>
+      <div class="cwrap"><canvas id="chart-dep"></canvas></div>
+    </div>
+    <div class="ccrd">
+      <div class="stitle">🔥 Coût mensuel vs électricité</div>
+      <div class="cwrap"><canvas id="chart-cout"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Coût mensuel détaillé -->
+  <div class="card">
+    <div class="stitle">📊 Coût mensuel détaillé — bois vs électricité</div>
+    <p style="font-size:0.8rem;color:var(--gr);margin-bottom:14px;">Coût au kWh produit chaque mois, comparé au tarif électricité renseigné.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Mois</th><th>Dépense bois</th><th>kg</th><th>PCI utilisé</th><th>kWh produits</th>
+          <th>Coût bois/kWh</th><th>Coût élec/kWh</th><th>Économie</th><th>Barre comparée</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-cout"></tbody>
+    </table>
+  </div>
+
+  <!-- Comparaison types de bois -->
+  <div class="card">
+    <div class="stitle">🌳 Comparaison des bois — PCI &amp; rendement éditables</div>
+    <p style="font-size:0.8rem;color:var(--gr);margin-bottom:14px;">Modifiez nom, PCI, prix et rendement. Le classement se recalcule instantanément.</p>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left;border-radius:8px 0 0 0">Type</th>
+            <th>PCI<br><small style="opacity:.6;font-weight:400">(kWh/kg)</small></th>
+            <th>Prix<br><small style="opacity:.6;font-weight:400">(€/kg)</small></th>
+            <th>Rendement<br><small style="opacity:.6;font-weight:400">(%)</small></th>
+            <th>kWh utile/kg</th><th>Coût/kWh</th><th>vs Élec</th>
+            <th style="min-width:130px">Efficacité</th>
+            <th style="border-radius:0 8px 0 0"></th>
+          </tr>
+        </thead>
+        <tbody id="comp-tbody"></tbody>
+      </table>
+    </div>
+    <button class="badd" onclick="ajouterBois()">+ Ajouter un type de bois</button>
+  </div>
+
+  <!-- Calculateur bûche -->
+  <div class="calcb">
+    <div class="stitle">🔥 Calculateur — Prix &amp; Puissance par bûche</div>
+    <div class="cgrid">
+      <div class="cf"><label>Poids bûche (kg)</label><input type="number" id="c-poids" value="2.5" step="0.1" min="0.1" oninput="calcBuche()"></div>
+      <div class="cf"><label>Prix au kg (€/kg)</label><input type="number" id="c-pxk" value="0.6658" step="0.0001" min="0" oninput="calcBuche()"></div>
+      <div class="cf">
+        <label>Pouvoir calorifique (kWh/kg)</label>
+        <select id="c-pci" oninput="calcBuche()">
+          <option value="4.1">Chêne sec — 4,1</option>
+          <option value="4.3">Hêtre sec — 4,3</option>
+          <option value="3.8" selected>Bois mi-sec — 3,8</option>
+          <option value="3.4">Bois humide — 3,4</option>
+          <option value="5.0">Granulés — 5,0</option>
+          <option value="custom">Personnalisé…</option>
+        </select>
+      </div>
+      <div class="cf" id="pci-cust-wrap" style="display:none">
+        <label>PCI personnalisé</label>
+        <input type="number" id="c-pci-c" value="4.0" step="0.1" min="0.1" oninput="calcBuche()">
+      </div>
+      <div class="cf"><label>Rendement poêle (%)</label><input type="number" id="c-rdt" value="75" step="1" min="1" max="100" oninput="calcBuche()"></div>
+      <div class="cf"><label>Durée combustion (h)</label><input type="number" id="c-dur" value="2" step="0.5" min="0.1" oninput="calcBuche()"></div>
+    </div>
+    <div class="sep"></div>
+    <div class="cres">
+      <div class="rb"><span class="rv" id="r-px">—</span><span class="rl">Prix / bûche</span></div>
+      <div class="rb"><span class="rv" id="r-kwb">—</span><span class="rl">Énergie brute</span></div>
+      <div class="rb"><span class="rv" id="r-kwn">—</span><span class="rl">Énergie utile</span></div>
+      <div class="rb"><span class="rv" id="r-pw">—</span><span class="rl">Puissance (W)</span></div>
+      <div class="rb"><span class="rv" id="r-ck">—</span><span class="rl">Coût/kWh utile</span></div>
+      <div class="rb"><span class="rv" id="r-vs">—</span><span class="rl">vs Électricité</span></div>
+    </div>
+    <div class="notec">
+      💡 Prix/bûche = poids × prix/kg &nbsp;|&nbsp; Énergie brute = poids × PCI &nbsp;|&nbsp;
+      Énergie utile = brute × rendement &nbsp;|&nbsp; Puissance = utile(Wh) ÷ durée &nbsp;|&nbsp;
+      Coût/kWh = prix bûche ÷ utile
+    </div>
+  </div>
+
+  <!-- Économies -->
+  <div class="eco">
+    <span style="font-size:2.2rem">🌿</span>
+    <div>
+      <div>Économies réalisées vs chauffage électrique</div>
+      <div class="big" id="eco-val">—</div>
+      <div style="font-size:0.8rem;opacity:0.85;margin-top:3px">
+        Équiv. électrique : <span id="eco-elec">—</span> &nbsp;—&nbsp; Bois : <span id="eco-bois">—</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+const MOIS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+
+// ── État global ───────────────────────────────────────────────────
+let prixElec = 0.2516;
+let data = MOIS.map(() => ({ factures: [], kg: 0, pci: 3.8 }));
+let boisList = [
+  { nom: 'Chêne sec',   pci: 4.1, prix: 0.72, rdt: 77 },
+  { nom: 'Hêtre sec',   pci: 4.3, prix: 0.75, rdt: 77 },
+  { nom: 'Charme sec',  pci: 4.5, prix: 0.78, rdt: 77 },
+  { nom: 'Bois mi-sec', pci: 3.8, prix: 0.67, rdt: 72 },
+  { nom: 'Bois humide', pci: 3.4, prix: 0.55, rdt: 65 },
+  { nom: 'Granulés',    pci: 5.0, prix: 0.42, rdt: 90 },
+  { nom: 'Briquettes',  pci: 5.2, prix: 0.38, rdt: 80 },
+];
+
+// Données initiales (uniquement si aucune sauvegarde locale)
+function applyDefaultData() {
+  [
+    { m: 0,  fac: [55.93, 55.93],       kg: 168, pci: 3.8 },
+    { m: 1,  fac: [55.93],              kg: 84,  pci: 3.8 },
+    { m: 6,  fac: [14.95],              kg: 22,  pci: 3.8 },
+    { m: 10, fac: [29.94, 29.94, 39.9], kg: 150, pci: 3.8 },
+    { m: 11, fac: [23.94, 39.9, 55.86], kg: 180, pci: 3.8 },
+  ].forEach(({ m, fac, kg, pci }) => {
+    data[m].factures = fac;
+    data[m].kg  = kg;
+    data[m].pci = pci;
+  });
+}
+
+let chartDep = null, chartCout = null;
+const f2   = v => (+v).toFixed(2).replace('.', ',');
+const f4   = v => (+v).toFixed(4).replace('.', ',');
+const fmtE = v => v ? f2(v) + ' €' : '<span style="color:#ccc">—</span>';
+
+// ── Prix électricité ──────────────────────────────────────────────
+function onElecChange() {
+  const v = parseFloat(document.getElementById('prix-elec').value);
+  if (v > 0) { prixElec = v; refreshAll(); }
+}
+
+// ── Rendu complet ─────────────────────────────────────────────────
+function refreshAll() { render(); renderCoutMensuel(); renderComp(); syncPrixCalc(); }
+
+function render() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  let tot = 0, totKg = 0, c1 = 0, c2 = 0, c3 = 0;
+
+  data.forEach((row, i) => {
+    const [a = 0, b = 0, c = 0] = row.factures;
+    const mTot = row.factures.reduce((x, y) => x + y, 0);
+    tot += mTot; totKg += row.kg; c1 += a; c2 += b; c3 += c;
+
+    const kwh      = row.kg * (row.pci || 3.8);
+    const ckwh     = (kwh > 0 && mTot > 0) ? mTot / kwh : null;
+    const ecoM     = kwh > 0 ? kwh * prixElec - mTot : null;
+    const hasData  = mTot > 0 || row.kg > 0;
+    const ecoColor = ecoM > 0 ? '#2e7d32' : '#c62828';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${MOIS[i]}</td>
+      <td>${fmtE(a)}</td><td>${fmtE(b)}</td><td>${fmtE(c)}</td>
+      <td class="${mTot ? 'hv' : ''}">${mTot ? f2(mTot) + ' €' : '<span style="color:#ccc">—</span>'}</td>
+      <td class="${row.kg ? 'hv' : ''}">${row.kg || '<span style="color:#ccc">0</span>'}</td>
+      <td style="font-weight:600">${ckwh ? f2(ckwh) + ' €' : '<span style="color:#ccc">—</span>'}</td>
+      <td style="color:${ecoColor};font-weight:700;font-size:0.82rem">${ecoM !== null ? (ecoM >= 0 ? '+' : '') + f2(ecoM) + ' €' : '—'}</td>
+      <td style="text-align:center">${hasData ? `<button class="bdel" onclick="delLigne(${i})" title="Effacer ${MOIS[i]}">✕</button>` : ''}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('tf1').innerHTML = fmtE(c1);
+  document.getElementById('tf2').innerHTML = fmtE(c2);
+  document.getElementById('tf3').innerHTML = fmtE(c3);
+  document.getElementById('tf-tot').textContent = f2(tot) + ' €';
+  document.getElementById('tf-kg').textContent  = totKg + ' kg';
+
+  const totKwh   = data.reduce((s, r) => s + r.kg * (r.pci || 3.8), 0);
+  document.getElementById('tf-ckwh').textContent = totKwh > 0 ? f2(tot / totKwh) + ' €' : '—';
+
+  const ecoTot   = totKwh * prixElec - tot;
+  const ecoColor = ecoTot >= 0 ? '#2e7d32' : '#c62828';
+  document.getElementById('tf-eco').innerHTML = `<span style="color:${ecoColor};font-weight:700">${(ecoTot >= 0 ? '+' : '') + f2(ecoTot) + ' €'}</span>`;
+
+  // KPIs
+  const pxk = totKg ? tot / totKg : 0;
+  document.getElementById('k-tot').textContent  = f2(tot) + ' €';
+  document.getElementById('k-kg').textContent   = totKg + ' kg';
+  document.getElementById('k-kwh').textContent  = Math.round(totKwh).toLocaleString('fr') + ' kWh';
+  document.getElementById('k-eco').textContent  = Math.max(0, ecoTot).toFixed(0) + ' €';
+  document.getElementById('k-pxk').textContent  = f4(pxk) + ' €/kg';
+  document.getElementById('k-elec').textContent = f4(prixElec) + ' €';
+
+  document.getElementById('eco-val').textContent  = Math.max(0, ecoTot).toFixed(2).replace('.', ',') + ' €';
+  document.getElementById('eco-elec').textContent = f2(totKwh * prixElec) + ' €';
+  document.getElementById('eco-bois').textContent = f2(tot) + ' €';
+
+  // Graphique dépenses
+  const totals = data.map(r => r.factures.reduce((a, b) => a + b, 0));
+  if (chartDep) chartDep.destroy();
+  chartDep = new Chart(document.getElementById('chart-dep'), {
+    type: 'bar',
+    data: {
+      labels: MOIS.map(m => m.substring(0, 3)),
+      datasets: [{
+        data: totals,
+        backgroundColor: totals.map(v => v > 0 ? 'rgba(139,69,19,0.72)' : 'rgba(200,134,10,0.08)'),
+        borderColor: 'rgba(139,69,19,0.9)', borderWidth: 2, borderRadius: 5
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.parsed.y.toFixed(2).replace('.', ',') + ' €' } } },
+      scales: { y: { beginAtZero: true, ticks: { callback: v => v + ' €' }, grid: { color: '#f5e6ce' } }, x: { grid: { display: false } } }
+    }
+  });
+
+  // Graphique coût comparé
+  const boisCout = data.map(r => {
+    const kg = r.kg, mTot = r.factures.reduce((a, b) => a + b, 0);
+    const kwh = kg * (r.pci || 3.8);
+    return (kwh > 0 && mTot > 0) ? +(mTot / kwh).toFixed(4) : null;
+  });
+  const elecLine = boisCout.map(v => v !== null ? prixElec : null);
+  if (chartCout) chartCout.destroy();
+  chartCout = new Chart(document.getElementById('chart-cout'), {
+    type: 'line',
+    data: {
+      labels: MOIS.map(m => m.substring(0, 3)),
+      datasets: [
+        {
+          label: 'Coût bois €/kWh', data: boisCout,
+          borderColor: '#8B4513', backgroundColor: 'rgba(139,69,19,0.12)',
+          borderWidth: 2.5, pointRadius: 5, pointBackgroundColor: '#8B4513', tension: 0.3, spanGaps: true
+        },
+        {
+          label: 'Élec ' + f2(prixElec) + ' €/kWh', data: elecLine,
+          borderColor: '#2196f3', backgroundColor: 'transparent',
+          borderWidth: 2, borderDash: [6, 4], pointRadius: 0, spanGaps: true
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, boxWidth: 14 } } },
+      scales: { y: { beginAtZero: true, ticks: { callback: v => v.toFixed(3) + ' €' }, grid: { color: '#f5e6ce' } }, x: { grid: { display: false } } }
+    }
+  });
+}
+
+// ── Coût mensuel détaillé ─────────────────────────────────────────
+function renderCoutMensuel() {
+  const tbody = document.getElementById('tbody-cout');
+  tbody.innerHTML = '';
+  const mois_avec_data = data.filter(r => r.kg > 0 && r.factures.length > 0);
+  if (!mois_avec_data.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="color:var(--gr);text-align:center;padding:18px">Aucune donnée</td></tr>';
+    return;
+  }
+
+  const couts = data.map(r => {
+    const kg = r.kg, tot = r.factures.reduce((a, b) => a + b, 0), kwh = kg * (r.pci || 3.8);
+    return (kwh > 0 && tot > 0) ? tot / kwh : null;
+  });
+  const validCouts = couts.filter(v => v !== null);
+  const maxC = validCouts.length ? Math.max(...validCouts) : 1;
+
+  data.forEach((row, i) => {
+    if (!row.kg && !row.factures.length) return;
+    const tot  = row.factures.reduce((a, b) => a + b, 0);
+    const kwh  = row.kg * (row.pci || 3.8);
+    const ckwh = kwh > 0 && tot > 0 ? tot / kwh : null;
+    const eco  = ckwh !== null ? prixElec - ckwh : null;
+    const barPct   = ckwh ? Math.min(100, Math.round((ckwh / maxC) * 100)) : 0;
+    const ecoColor = eco > 0 ? '#2e7d32' : '#c62828';
+
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${MOIS[i]}</td>
+      <td class="hv">${tot ? f2(tot) + ' €' : '—'}</td>
+      <td>${row.kg || '—'}</td>
+      <td style="color:var(--bc);font-weight:600">${row.pci || 3.8} kWh/kg</td>
+      <td>${kwh > 0 ? Math.round(kwh) + ' kWh' : '—'}</td>
+      <td style="font-weight:700">${ckwh ? f2(ckwh) + ' €' : '—'}</td>
+      <td style="color:#2196f3;font-weight:600">${f2(prixElec)} €</td>
+      <td style="color:${ecoColor};font-weight:700">${eco !== null ? (eco >= 0 ? '+' : '') + f2(eco) + ' €' : '—'}</td>
+      <td style="min-width:100px"><div class="cbar-bg"><div class="cbar-fill" style="width:${barPct}%"></div></div></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── Actions tableau mensuel ───────────────────────────────────────
+function delLigne(i) {
+  if (!confirm('Effacer toutes les données de ' + MOIS[i] + ' ?')) return;
+  data[i] = { factures: [], kg: 0, pci: 3.8 };
+  refreshAll(); markUnsaved(); saveLocal();
+}
+
+function onTypeChange() {
+  const sel    = document.getElementById('f-type');
+  const pciInp = document.getElementById('f-pci');
+  if (sel.value !== 'custom') pciInp.value = sel.value;
+  updatePreview();
+}
+
+function updatePreview() {
+  const kg   = parseFloat(document.getElementById('f-kg').value)  || 0;
+  const pci  = parseFloat(document.getElementById('f-pci').value) || 3.8;
+  const prev = document.getElementById('f-preview');
+  if (kg > 0) prev.textContent = kg + ' kg × ' + pci + ' kWh/kg = ' + (kg * pci).toFixed(1) + ' kWh bruts';
+  else         prev.textContent = '— saisissez une quantité';
+}
+
+function ajouterFacture() {
+  const m    = parseInt(document.getElementById('f-mois').value);
+  const mont = parseFloat(document.getElementById('f-mont').value);
+  const kg   = parseInt(document.getElementById('f-kg').value)   || 0;
+  const pci  = parseFloat(document.getElementById('f-pci').value) || 3.8;
+  if (!mont || mont <= 0) { alert('Montant invalide.'); return; }
+  data[m].factures.push(mont);
+  data[m].kg  += kg;
+  data[m].pci  = pci;
+  document.getElementById('f-mont').value    = '';
+  document.getElementById('f-kg').value      = '';
+  document.getElementById('f-preview').textContent = '— saisissez une quantité';
+  refreshAll(); markUnsaved(); saveLocal();
+  toast('✅ Facture ajoutée — ' + MOIS[m] + ' (PCI ' + pci + ' kWh/kg)');
+}
+
+// ── Comparaison bois ──────────────────────────────────────────────
+function renderComp() {
+  const scored = boisList.map((b, i) => {
+    const kwhNet = b.pci * (b.rdt / 100);
+    const cout   = kwhNet > 0 ? b.prix / kwhNet : 999;
+    return { ...b, idx: i, kwhNet, cout };
+  });
+  const couts  = scored.map(s => s.cout);
+  const minC   = Math.min(...couts), maxC = Math.max(...couts);
+  const bestI  = couts.indexOf(minC), worstI = couts.indexOf(maxC);
+
+  const tbody = document.getElementById('comp-tbody');
+  tbody.innerHTML = '';
+  scored.forEach((s, rank) => {
+    const eco    = prixElec - s.cout;
+    const ecoPct = Math.abs(eco / prixElec * 100);
+    const barPct = maxC > minC ? Math.round((1 - (s.cout - minC) / (maxC - minC)) * 100) : 100;
+    const badge  = rank === bestI  ? '<span class="bbest">⭐ Meilleur</span>'
+                 : rank === worstI ? '<span class="bworst">▲+cher</span>' : '';
+    const ec = eco > 0 ? '#2e7d32' : '#c62828';
+    const es = eco > 0 ? '−' + Math.round(ecoPct) + '%' : '+' + Math.round(ecoPct) + '%';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><input class="cn" type="text"   value="${s.nom}"  onchange="boisList[${s.idx}].nom=this.value;renderComp();markUnsaved();saveLocal()"></td>
+      <td><input class="ci" type="number" value="${s.pci}"  step="0.1"  min="0.1"        style="width:65px" onchange="boisList[${s.idx}].pci=parseFloat(this.value)||3.8;renderComp();markUnsaved();saveLocal()"></td>
+      <td><input class="ci" type="number" value="${s.prix}" step="0.01" min="0"           style="width:65px" onchange="boisList[${s.idx}].prix=parseFloat(this.value)||0;renderComp();markUnsaved();saveLocal()"></td>
+      <td><input class="ci" type="number" value="${s.rdt}"  step="1"    min="1" max="100" style="width:55px" onchange="boisList[${s.idx}].rdt=parseInt(this.value)||75;renderComp();markUnsaved();saveLocal()"></td>
+      <td class="hv">${f2(s.kwhNet)} kWh</td>
+      <td class="hv">${f2(s.cout)} €</td>
+      <td style="color:${ec};font-weight:700;font-size:0.83rem">${es} vs élec</td>
+      <td><div style="display:flex;align-items:center;gap:7px"><div class="cbw"><div class="cbf" style="width:${barPct}%"></div></div>${badge}</div></td>
+      <td style="text-align:center"><button class="bdel" onclick="delBois(${s.idx})" title="Supprimer">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function delBois(idx) {
+  if (boisList.length <= 1) { alert('Il faut au moins un type.'); return; }
+  boisList.splice(idx, 1); renderComp(); markUnsaved(); saveLocal();
+}
+
+function ajouterBois() {
+  boisList.push({ nom: 'Nouveau bois', pci: 4.0, prix: 0.65, rdt: 75 });
+  renderComp(); markUnsaved(); saveLocal();
+  const last = document.getElementById('comp-tbody').lastElementChild;
+  if (last) {
+    last.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => { last.querySelector('input.cn')?.select(); }, 200);
+  }
+}
+
+// ── Calculateur bûche ─────────────────────────────────────────────
+function calcBuche() {
+  const poids  = parseFloat(document.getElementById('c-poids').value) || 0;
+  const pxk    = parseFloat(document.getElementById('c-pxk').value)   || 0;
+  const pciSel = document.getElementById('c-pci').value;
+  const rdt    = (parseFloat(document.getElementById('c-rdt').value) || 75) / 100;
+  const dur    = parseFloat(document.getElementById('c-dur').value)   || 1;
+  const isCust = pciSel === 'custom';
+  document.getElementById('pci-cust-wrap').style.display = isCust ? 'block' : 'none';
+  const pci = isCust ? (parseFloat(document.getElementById('c-pci-c').value) || 4.0) : parseFloat(pciSel);
+  if (!poids || !pxk || !pci) return;
+
+  const pxb = poids * pxk, kwb = poids * pci, kwn = kwb * rdt, pw = (kwn * 1000) / dur, ck = pxb / kwn;
+  const diff = prixElec - ck, diffPct = (diff / prixElec) * 100;
+
+  document.getElementById('r-px').textContent  = f2(pxb) + ' €';
+  document.getElementById('r-kwb').textContent = f2(kwb) + ' kWh';
+  document.getElementById('r-kwn').textContent = f2(kwn) + ' kWh';
+  document.getElementById('r-pw').textContent  = Math.round(pw).toLocaleString('fr') + ' W';
+  document.getElementById('r-ck').textContent  = f2(ck) + ' €/kWh';
+
+  const vs = document.getElementById('r-vs');
+  vs.textContent = diff > 0
+    ? '−' + Math.round(diffPct) + '% moins cher'
+    : '+' + Math.round(Math.abs(diffPct)) + '% plus cher';
+  vs.style.color = diff > 0 ? '#7ef07e' : '#ff8a80';
+}
+
+function syncPrixCalc() {
+  let tot = 0, totKg = 0;
+  data.forEach(r => { tot += r.factures.reduce((a, b) => a + b, 0); totKg += r.kg; });
+  if (totKg) document.getElementById('c-pxk').value = (tot / totKg).toFixed(4);
+  calcBuche();
+}
+
+// ── JSON export / import / reset ──────────────────────────────────
+function exportJSON() {
+  const payload = {
+    version: 3,
+    exportedAt: new Date().toISOString(),
+    prixElec,
+    // ✅ pci inclus pour chaque mois
+    data: data.map(r => ({ factures: [...r.factures], kg: r.kg, pci: r.pci })),
+    boisList: boisList.map(b => ({ ...b }))
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'chauffage_bois_' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  markSaved(); saveLocal(); toast('💾 Fichier JSON exporté !');
+}
+
+function importJSON(evt) {
+  const file = evt.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const d = JSON.parse(e.target.result);
+      if (d.data && Array.isArray(d.data) && d.data.length === 12) {
+        data = d.data.map(r => ({
+          factures: r.factures || [],
+          kg:       r.kg       || 0,
+          pci:      r.pci      || 3.8   // ✅ pci restauré
+        }));
+      }
+      if (d.boisList && Array.isArray(d.boisList)) boisList = d.boisList;
+      if (d.prixElec && d.prixElec > 0) {
+        prixElec = d.prixElec;
+        document.getElementById('prix-elec').value = prixElec.toFixed(4);
+      }
+      refreshAll(); saveLocal();
+      toast('📂 Données importées avec succès !');
+    } catch (err) { alert('Fichier JSON invalide : ' + err.message); }
+  };
+  reader.readAsText(file);
+  evt.target.value = '';
+}
+
+function resetAll() {
+  if (!confirm('Remettre toutes les données à zéro ?')) return;
+  data = MOIS.map(() => ({ factures: [], kg: 0, pci: 3.8 }));
+  prixElec = 0.2516;
+  document.getElementById('prix-elec').value = '0.2516';
+  boisList = [
+    { nom: 'Chêne sec',   pci: 4.1, prix: 0.72, rdt: 77 },
+    { nom: 'Hêtre sec',   pci: 4.3, prix: 0.75, rdt: 77 },
+    { nom: 'Charme sec',  pci: 4.5, prix: 0.78, rdt: 77 },
+    { nom: 'Bois mi-sec', pci: 3.8, prix: 0.67, rdt: 72 },
+    { nom: 'Bois humide', pci: 3.4, prix: 0.55, rdt: 65 },
+    { nom: 'Granulés',    pci: 5.0, prix: 0.42, rdt: 90 },
+    { nom: 'Briquettes',  pci: 5.2, prix: 0.38, rdt: 80 },
+  ];
+  refreshAll(); saveLocal(); toast('🗑 Données réinitialisées');
+}
+
+// ── Sauvegarde locale (localStorage) ─────────────────────────────
+const LS_KEY = 'chauffage_bois_v3';
+let _saveTimer = null;
+
+function saveLocal() {
+  try {
+    const payload = {
+      version: 3,
+      savedAt: new Date().toISOString(),
+      prixElec: prixElec,
+      data: data.map(function(r) { return { factures: r.factures.slice(), kg: r.kg, pci: r.pci }; }),
+      boisList: boisList.map(function(b) { return { nom: b.nom, pci: b.pci, prix: b.prix, rdt: b.rdt }; })
+    };
+    const json = JSON.stringify(payload);
+    localStorage.setItem(LS_KEY, json);
+    console.log('[CB] Sauvegarde OK - ' + json.length + ' octets');
+    markSaved();
+  } catch(e) {
+    console.error('[CB] Sauvegarde echouee :', e);
+  }
+}
+
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    console.log('[CB] localStorage :', raw ? raw.length + ' octets' : 'vide');
+    if (!raw) return false;
+    const d = JSON.parse(raw);
+    if (d.data && Array.isArray(d.data) && d.data.length === 12) {
+      data = d.data.map(function(r) {
+        return { factures: r.factures || [], kg: r.kg || 0, pci: r.pci || 3.8 };
+      });
+    }
+    if (d.boisList && Array.isArray(d.boisList)) boisList = d.boisList;
+    if (d.prixElec && d.prixElec > 0) {
+      prixElec = d.prixElec;
+      document.getElementById('prix-elec').value = prixElec.toFixed(4);
+    }
+    console.log('[CB] Restauration OK');
+    return true;
+  } catch(e) {
+    console.error('[CB] Chargement echoue :', e);
+    return false;
+  }
+}
+
+// ── Indicateur sauvegarde ─────────────────────────────────────────
+function markUnsaved() {
+  document.getElementById('sind').textContent = '\u25cf Non sauvegard\u00e9';
+  document.getElementById('sind').style.color = 'rgba(255,160,80,0.9)';
+}
+function markSaved() {
+  document.getElementById('sind').textContent = '\u2713 Sauvegard\u00e9';
+  document.getElementById('sind').style.color = 'rgba(144,238,144,0.85)';
+}
+
+// ── Toast ─────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+const hadLocal = loadLocal();
+if (!hadLocal) applyDefaultData();
+refreshAll();
+if (hadLocal) {
+  markSaved();
+  toast('💾 Données restaurées depuis la sauvegarde locale');
+}
+</script>
+</body>
+</html>
