@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>💸 Dépenses — Tableau de Bord Patrimonial</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💸</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0c10;--surface:#111318;--surface2:#181c24;--border:#232838;--accent:#c8f04d;--accent2:#4df0c8;--text:#e8eaf0;--muted:#6b7280;--gold:#f0c84d;--green:#4df07a;--red:#f04d4d;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;min-height:100vh;}
+header{padding:18px 40px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--bg);z-index:100;backdrop-filter:blur(8px);}
+.logo{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;letter-spacing:-1px;color:var(--accent);}
+.logo span{color:var(--text);}
+.header-right{display:flex;gap:10px;align-items:center;}
+.btn{padding:7px 14px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-family:'DM Mono',monospace;font-size:12px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.btn:hover{border-color:var(--accent);color:var(--accent);}
+.btn-accent{background:var(--accent);color:#0a0c10;border-color:var(--accent);font-weight:500;}
+.btn-accent:hover{background:#b8e040;color:#0a0c10;}
+.masked{filter:blur(8px);user-select:none;transition:filter .3s;}
+.status{font-size:11px;color:var(--green);opacity:0;transition:opacity .5s;}
+.status.show{opacity:1;}
+.editable-val{cursor:pointer;border-bottom:1px dashed var(--muted);transition:color .15s,border-color .15s;}
+.editable-val:hover{color:var(--accent);border-bottom-color:var(--accent);}
+main{padding:26px 40px;max-width:1400px;margin:0 auto;}
+.section-title{font-family:'Syne',sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.section-title::after{content:'';flex:1;height:1px;background:var(--border);}
+.kpi-row-5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:14px;}
+.kpi-row-3{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:26px;}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;position:relative;overflow:hidden;transition:border-color .2s,background .2s,transform .15s,box-shadow .2s;cursor:default;}
+.kpi:hover{background:var(--surface2);transform:translateY(-2px);}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;transition:height .2s;}
+.kpi:hover::before{height:3px;}
+.kpi.green::before{background:var(--green);}.kpi.gold::before{background:var(--gold);}
+.kpi.blue::before{background:var(--accent2);}.kpi.red::before{background:var(--red);}
+.kpi.purple::before{background:#c84df0;}.kpi.accent::before{background:var(--accent);}
+.kpi.green:hover{border-color:var(--green);box-shadow:0 4px 20px rgba(77,240,122,.12);}
+.kpi.gold:hover{border-color:var(--gold);box-shadow:0 4px 20px rgba(240,200,77,.12);}
+.kpi.blue:hover{border-color:var(--accent2);box-shadow:0 4px 20px rgba(77,240,200,.12);}
+.kpi.red:hover{border-color:var(--red);box-shadow:0 4px 20px rgba(240,77,77,.12);}
+.kpi.purple:hover{border-color:#c84df0;box-shadow:0 4px 20px rgba(200,77,240,.12);}
+.kpi.accent:hover{border-color:var(--accent);box-shadow:0 4px 20px rgba(200,240,77,.12);}
+.kpi-label{color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;}
+.kpi-value{font-family:'Syne',sans-serif;font-size:21px;font-weight:700;line-height:1;}
+.kpi-sub{color:var(--muted);font-size:10px;margin-top:4px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;}
+.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:13px;display:flex;align-items:center;gap:8px;}
+.liq-bar{height:26px;border-radius:8px;overflow:hidden;display:flex;margin-bottom:8px;}
+.liq-seg{height:100%;transition:width .5s;position:relative;}
+.liq-labels{display:flex;gap:12px;flex-wrap:wrap;}
+.liq-lbl{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);}
+.liq-dot{width:9px;height:9px;border-radius:3px;}
+.donut-wrap{display:flex;gap:18px;align-items:center;}
+.donut-legend{flex:1;}
+.legend-item{display:flex;align-items:center;gap:7px;padding:4px 0;font-size:11px;}
+.legend-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.legend-label{color:var(--muted);flex:1;}
+.legend-val{font-weight:500;}
+.legend-pct{color:var(--muted);font-size:10px;min-width:36px;text-align:right;}
+.cell-edit{cursor:pointer;border-bottom:1px dashed var(--muted);transition:color .15s;}
+.cell-edit:hover{color:var(--accent);border-bottom-color:var(--accent);}
+.dep-category{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:14px;overflow:hidden;}
+.dep-cat-header{padding:11px 18px;background:var(--surface2);display:flex;align-items:center;justify-content:space-between;}
+.dep-cat-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px;}
+.dep-cat-total{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;}
+.dep-table{width:100%;border-collapse:collapse;}
+.dep-table th{text-align:left;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:7px 16px;border-bottom:1px solid var(--border);}
+.dep-table td{padding:9px 16px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.dep-table tr:last-child td{border-bottom:none;}
+.dep-table tbody tr:hover{background:var(--surface2);}
+.dep-link{color:var(--accent2);text-decoration:none;font-size:11px;opacity:0.7;transition:opacity .2s;}
+.dep-link:hover{opacity:1;}
+.dep-annuel{color:var(--muted);font-size:11px;}
+.dep-pct-bar{height:4px;border-radius:2px;margin-top:3px;transition:width .4s;}
+.taux-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);}
+.taux-row:last-child{border-bottom:none;}
+.gain-pos{color:var(--green);}
+.gain-neg{color:var(--red);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.card,.kpi{animation:fadeUp .35s ease both;}
+.kpi:nth-child(1){animation-delay:.04s}.kpi:nth-child(2){animation-delay:.08s}
+.kpi:nth-child(3){animation-delay:.12s}.kpi:nth-child(4){animation-delay:.16s}.kpi:nth-child(5){animation-delay:.20s}
+#depKpiRow2 .kpi:nth-child(1){animation-delay:.24s}#depKpiRow2 .kpi:nth-child(2){animation-delay:.28s}
+#depKpiRow2 .kpi:nth-child(3){animation-delay:.32s}#depKpiRow2 .kpi:nth-child(4){animation-delay:.36s}#depKpiRow2 .kpi:nth-child(5){animation-delay:.40s}
+::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+@media(max-width:900px){main{padding:12px;}header{padding:12px;}.kpi-row-5{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">PATRI<span>MOINE</span> <span style="font-size:13px;color:var(--muted);font-weight:400;letter-spacing:0;">— 💸 Dépenses</span></div>
+  <div class="header-right">
+    <span class="status" id="saveStatus">✓ Sauvegardé</span>
+    <span id="autoSaveIndicator" style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px;">
+      <span id="autoSaveDot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--muted);"></span>
+      <span id="autoSaveLabel">—</span>
+    </span>
+    <button class="btn" onclick="toggleMask()"><span id="eyeIcon">👁</span> <span id="maskLabel">Masquer</span></button>
+    <button class="btn btn-accent" onclick="saveData()">💾 JSON</button>
+    <button class="btn" onclick="loadFile()">📂 Charger</button>
+    <button class="btn" onclick="clearAutoSave()" title="Effacer la sauvegarde automatique" style="color:var(--muted);">🗑 Auto</button>
+    <input type="file" id="fileInput" accept=".json" style="display:none" onchange="loadData(event)">
+  </div>
+</header>
+
+<main>
+  <div class="kpi-row-5" id="depKpiRow">
+    <div class="kpi red"><div class="kpi-label">Total Mensuel</div><div class="kpi-value amount" id="depKpiMois">—</div><div class="kpi-sub">toutes charges</div></div>
+    <div class="kpi gold"><div class="kpi-label">Total Annuel</div><div class="kpi-value amount" id="depKpiAn">—</div><div class="kpi-sub">projection 12 mois</div></div>
+    <div class="kpi blue"><div class="kpi-label">Logement & Énergie</div><div class="kpi-value amount" id="depKpiLogement">—</div><div class="kpi-sub" id="depKpiLogementPct">—</div></div>
+    <div class="kpi purple"><div class="kpi-label">Assurances</div><div class="kpi-value amount" id="depKpiAssurance">—</div><div class="kpi-sub" id="depKpiAssurancePct">—</div></div>
+    <div class="kpi green"><div class="kpi-label">Vie Courante</div><div class="kpi-value amount" id="depKpiVie">—</div><div class="kpi-sub" id="depKpiViePct">—</div></div>
+  </div>
+  <div class="kpi-row-3" id="depKpiRow2">
+    <div class="kpi green"><div class="kpi-label">Reste à Vivre</div><div class="kpi-value amount" id="depKpiRestant">—</div><div class="kpi-sub" id="depKpiRestantSub">après charges</div></div>
+    <div class="kpi accent"><div class="kpi-label">Taux d'Épargne</div><div class="kpi-value" id="depKpiEpargne">—</div><div class="kpi-sub" id="depKpiEpargneSub">du revenu net</div></div>
+    <div class="kpi blue"><div class="kpi-label">Coût Journalier</div><div class="kpi-value amount" id="depKpiJour">—</div><div class="kpi-sub">moyenne / jour</div></div>
+    <div class="kpi gold"><div class="kpi-label">Taux d'Effort</div><div class="kpi-value" id="depKpiTaux">—</div><div class="kpi-sub" id="depKpiTauxSub">idéal &lt; 60%</div></div>
+    <div class="kpi purple"><div class="kpi-label">Charges Fixes</div><div class="kpi-value amount" id="depKpiFixes">—</div><div class="kpi-sub" id="depKpiFixesPct">incompressibles</div></div>
+  </div>
+  <div class="card" style="margin-bottom:18px;padding:18px 22px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="font-family:'Syne',sans-serif;font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;">💰 Épargne maximale théorique — projection annuelle</div>
+      <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);">Objectif annuel :&nbsp;<span id="epargneObjEdit" class="cell-edit amount" style="font-size:12px;color:var(--accent);font-weight:600;" title="Cliquer pour modifier"></span></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px;">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+        <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Épargne / mois</div>
+        <div class="amount" id="epargneKpiMois" style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--green);">—</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px;">si 0 dépense imprévue</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+        <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Épargne / an</div>
+        <div class="amount" id="epargneKpiAn" style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--accent);">—</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px;">projection 12 mois</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+        <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Revenu annuel net</div>
+        <div class="amount" id="epargneKpiRevAn" style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;">—</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px;">base de calcul</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
+        <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Atteinte objectif</div>
+        <div id="epargneKpiPct" style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;">—</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px;" id="epargneKpiPctSub">vs objectif annuel</div>
+      </div>
+    </div>
+    <div style="margin-bottom:6px;display:flex;justify-content:space-between;font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;">
+      <span>Progression vers l'objectif</span><span id="epargneBarLabel">—</span>
+    </div>
+    <div style="height:12px;background:var(--border);border-radius:6px;overflow:hidden;">
+      <div id="epargneBar" style="height:100%;width:0%;border-radius:6px;transition:width .6s ease;background:var(--green);"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:5px;">
+      <span>0 €</span><span class="amount" id="epargneBarMax">—</span>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:18px;">
+    <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Répartition des dépenses</div>
+    <div class="liq-bar" id="depBar" style="height:20px;"></div>
+    <div class="liq-labels" id="depBarLabels" style="margin-top:8px;"></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 340px;gap:18px;margin-bottom:26px;">
+    <div><div id="depensesCats"></div></div>
+    <div style="display:flex;flex-direction:column;gap:16px;">
+      <div class="card">
+        <div class="card-title">📊 Répartition</div>
+        <div class="donut-wrap" style="flex-direction:column;align-items:flex-start;gap:12px;">
+          <canvas id="depDonut" width="130" height="130" style="align-self:center;"></canvas>
+          <div id="depDonutLegend" class="donut-legend" style="width:100%;"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📅 Taux d'effort</div>
+        <div id="depTauxEffort"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+// ═══ DATA ════════════════════════════════════════════════════════════════
+let DATA = {
+  revenuMensuelNet: 2500.00,
+  epargneObjectifAn: 5000.00,
+  depenses:{
+    categories:[
+      {
+        nom:"Impôts & Taxes", icon:"🏛️", color:"#ef4444",
+        items:[
+          {label:"Impôt sur le revenu", mensuel:0.00, annuel:0.00, url:"https://cfspart-idp.impots.gouv.fr/oauth2/authorize?authType=sso&response_type=code&scope=openid+profile+authChoice+otpEscape&redirect_uri=https%3A%2F%2Fcfspart.impots.gouv.fr%2F%3Fopenidconnectcallback%3D1", note:"mensuel"},
+          {label:"Taxe foncière", mensuel:92.00, annuel:1104.00, url:"https://cfspart-idp.impots.gouv.fr/oauth2/authorize?authType=sso&response_type=code&scope=openid+profile+authChoice+otpEscape&redirect_uri=https%3A%2F%2Fcfspart.impots.gouv.fr%2F%3Fopenidconnectcallback%3D1", note:"mensuel"},
+        ]
+      },
+      {
+        nom:"Logement & Énergie", icon:"🏠", color:"#f0a84d",
+        items:[
+          {label:"Électricité (Engie)", mensuel:75.10, annuel:901.19, url:"https://particuliers.engie.fr/login-page/authentification.html", note:"mensuel"},
+          {label:"Eau", mensuel:19.00, annuel:228.00, url:"https://espaceclient.valenceromanseau.fr/#/dashboard", note:"mensuel"},
+          {label:"Bois chauffage", mensuel:28.86, annuel:346.29, url:"", note:"mensuel"},
+          {label:"Ramonage", mensuel:7.50, annuel:90.00, url:"", note:"mensuel"},
+        ]
+      },
+      {
+        nom:"Assurances & Santé", icon:"🛡️", color:"#4d8ff0",
+        items:[
+          {label:"Assurance auto (AXA)", mensuel:28.31, annuel:339.72, url:"https://www.axa.fr/espace-client.html", note:"mensuel"},
+          {label:"Assurance responsabilité (AXA)", mensuel:35.86, annuel:430.32, url:"https://www.axa.fr/espace-client.html", note:"mensuel"},
+          {label:"Assurance habitation (AXA)", mensuel:9.84, annuel:118.08, url:"https://www.axa.fr/espace-client.html", note:"mensuel"},
+          {label:"Mutuelle", mensuel:100.00, annuel:1200.00, url:"", note:"mensuel"},
+        ]
+      },
+      {
+        nom:"Télécom", icon:"📡", color:"#4df0c8",
+        items:[
+          {label:"Téléphone (RED SFR)", mensuel:4.99, annuel:59.88, url:"https://www.sfr.fr/cas/login?service=https%3A%2F%2Fwww.red-by-sfr.fr%2Faccueil%2Fj_spring_cas_security_check", note:"mensuel"},
+          {label:"Internet (RED SFR)", mensuel:9.99, annuel:119.88, url:"https://www.sfr.fr/cas/login?service=https%3A%2F%2Fwww.red-by-sfr.fr%2Faccueil%2Fj_spring_cas_security_check", note:"mensuel"},
+        ]
+      },
+      {
+        nom:"Vie Courante", icon:"🛒", color:"#c8f04d",
+        items:[
+          {label:"Alimentation (E.Leclerc Drive)", mensuel:235.22, annuel:2822.64, url:"https://www.leclercdrive.fr/?mag=082601-082601&sRedirect=false", note:"mensuel"},
+          {label:"Essence (E.Leclerc)", mensuel:35.56, annuel:426.68, url:"", note:"mensuel"},
+          {label:"Entretien voiture (Feu Vert)", mensuel:27.50, annuel:330.00, url:"", note:"mensuel"},
+          {label:"Crédit immobilier", mensuel:0.00, annuel:0.00, url:"", note:"mensuel"},
+          {label:"Chien / Chat", mensuel:0.00, annuel:0.00, url:"", note:"mensuel"},
+          {label:"Ménage", mensuel:0.00, annuel:0.00, url:"", note:"mensuel"},
+        ]
+      },
+    ]
+  },
+};
+
+let masked = false;
+
+// ═══ UTILS ═══════════════════════════════════════════════════════════════
+function fmt(v){return v.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';}
+function fmtN(v,d=2){return v.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function pct(v,t){return t>0?((v/t)*100).toFixed(1)+'%':'0.0%';}
+const el=id=>document.getElementById(id);
+
+// ═══ DEPENSES ════════════════════════════════════════════════════════════
+function depTotal(){return DATA.depenses.categories.reduce((s,c)=>s+c.items.reduce((ss,it)=>ss+it.mensuel,0),0);}
+function depCatTotal(cat){return cat.items.reduce((s,it)=>s+it.mensuel,0);}
+
+function renderDepenses(){_renderDepCore();scheduleAutoSave();}
+function _renderDepCore(){
+  if(!el('depKpiMois'))return;
+  const total=depTotal();const totalAn=total*12;
+  const catTotals=DATA.depenses.categories.map(c=>({nom:c.nom,icon:c.icon,color:c.color,val:depCatTotal(c)}));
+  const logement=catTotals.find(c=>c.nom==='Logement & Énergie')?.val||0;
+  const impots=catTotals.find(c=>c.nom==='Impôts & Taxes')?.val||0;
+  const assurance=catTotals.find(c=>c.nom==='Assurances & Santé')?.val||0;
+  const telecom=catTotals.find(c=>c.nom==='Télécom')?.val||0;
+  const vie=catTotals.find(c=>c.nom==='Vie Courante')?.val||0;
+  el('depKpiMois').textContent=fmt(total);el('depKpiAn').textContent=fmt(totalAn);
+  el('depKpiLogement').textContent=fmt(logement+impots);el('depKpiLogementPct').textContent=total>0?pct(logement+impots,total)+' des dépenses':'—';
+  el('depKpiAssurance').textContent=fmt(assurance);el('depKpiAssurancePct').textContent=total>0?pct(assurance,total)+' des dépenses':'—';
+  el('depKpiVie').textContent=fmt(vie+telecom);el('depKpiViePct').textContent=total>0?pct(vie+telecom,total)+' des dépenses':'—';
+  // ── 2e rangée KPI ──
+  const rev2=DATA.revenuMensuelNet||0;
+  const restant=rev2-total;
+  const tauxEffort=rev2>0?(total/rev2)*100:0;
+  const tauxEpargne=rev2>0?((restant/rev2)*100):0;
+  const coutJour=total/30.44;
+  // Charges fixes = impôts + logement + assurance + télécom (incompressibles)
+  const fixes=impots+logement+assurance+telecom;
+  if(el('depKpiRestant')){
+    el('depKpiRestant').textContent=fmt(restant);
+    el('depKpiRestant').style.color=restant>=0?'var(--green)':'var(--red)';
+    el('depKpiRestantSub').textContent=restant>=0?'disponible / mois':'déficit / mois';
+  }
+  if(el('depKpiEpargne')){
+    el('depKpiEpargne').textContent=fmtN(Math.max(0,tauxEpargne),1)+'%';
+    el('depKpiEpargne').style.color=tauxEpargne>=20?'var(--accent)':tauxEpargne>=10?'var(--gold)':'var(--red)';
+    el('depKpiEpargneSub').textContent=tauxEpargne>=20?'✓ objectif atteint':tauxEpargne>=10?'objectif : 20%':'⚠ insuffisant';
+  }
+  if(el('depKpiJour'))el('depKpiJour').textContent=fmt(coutJour);
+  if(el('depKpiTaux')){
+    el('depKpiTaux').textContent=fmtN(tauxEffort,1)+'%';
+    el('depKpiTaux').style.color=tauxEffort>80?'var(--red)':tauxEffort>60?'var(--gold)':'var(--green)';
+    el('depKpiTauxSub').textContent=tauxEffort>80?'⚠ trop élevé':tauxEffort>60?'à surveiller':'✓ sous contrôle';
+  }
+  if(el('depKpiFixes')){
+    el('depKpiFixes').textContent=fmt(fixes);
+    el('depKpiFixesPct').textContent=total>0?pct(fixes,total)+' des dépenses':'incompressibles';
+  }
+  // ── Épargne annuelle ──
+  const epMois=Math.max(0,restant);
+  const epAn=epMois*12;
+  const revAn=rev2*12;
+  const obj=DATA.epargneObjectifAn||5000;
+  const epPct=obj>0?Math.min((epAn/obj)*100,150):0;
+  const epColor=epPct>=100?'var(--green)':epPct>=50?'var(--gold)':'var(--red)';
+  if(el('epargneKpiMois'))el('epargneKpiMois').textContent=fmt(epMois);
+  if(el('epargneKpiAn'))el('epargneKpiAn').textContent=fmt(epAn);
+  if(el('epargneKpiRevAn'))el('epargneKpiRevAn').textContent=fmt(revAn);
+  if(el('epargneKpiPct')){
+    el('epargneKpiPct').textContent=fmtN(epPct,1)+'%';
+    el('epargneKpiPct').style.color=epColor;
+    el('epargneKpiPctSub').textContent=epPct>=100?'✓ objectif dépassé':epPct>=50?'en bonne voie':'⚠ insuffisant';
+  }
+  if(el('epargneObjEdit'))el('epargneObjEdit').textContent=fmt(obj);
+  if(el('epargneBar')){
+    el('epargneBar').style.width=Math.min(epPct,100).toFixed(1)+'%';
+    el('epargneBar').style.background=epColor;
+  }
+  if(el('epargneBarLabel'))el('epargneBarLabel').textContent=fmtN(epPct,1)+'% de l\'objectif';
+  if(el('epargneBarMax'))el('epargneBarMax').textContent=fmt(obj);
+  const bar=el('depBar'),barLabels=el('depBarLabels');
+  if(bar&&total>0){
+    bar.innerHTML=catTotals.filter(c=>c.val>0).map(c=>`<div class="liq-seg" style="width:${pct(c.val,total)};background:${c.color}"></div>`).join('');
+    barLabels.innerHTML=catTotals.filter(c=>c.val>0).map(c=>`<div class="liq-lbl"><div class="liq-dot" style="background:${c.color}"></div>${c.icon} ${c.nom.split(' ')[0]} ${fmtN(c.val/total*100,1)}%</div>`).join('');
+  }
+  const depEntries=catTotals.filter(c=>c.val>0).map(c=>[c.nom,{val:c.val,color:c.color}]);
+  if(depEntries.length>0){
+    drawDonut('depDonut',depEntries,total);
+    el('depDonutLegend').innerHTML=depEntries.map(([n,v])=>`<div class="legend-item"><div class="legend-dot" style="background:${v.color}"></div><span class="legend-label" style="font-size:11px;">${n}</span><span class="legend-val amount" style="font-size:11px;">${fmt(v.val)}</span><span class="legend-pct">${pct(v.val,total)}</span></div>`).join('');
+  }
+  const rev=DATA.revenuMensuelNet||0;const tauxEl=el('depTauxEffort');
+  if(tauxEl){
+    const restant=rev-total;const taux=rev>0?(total/rev)*100:0;const txCls=taux>80?'gain-neg':taux>60?'':'gain-pos';
+    tauxEl.innerHTML=`<div class="taux-row"><span style="color:var(--muted);font-size:11px;">Revenu net mensuel</span><span class="cell-edit amount" onclick="editRevenu(this)">${fmt(rev)}</span></div>
+      <div class="taux-row"><span style="color:var(--muted);font-size:11px;">Total dépenses</span><span class="amount" style="color:var(--red)">${fmt(total)}</span></div>
+      <div class="taux-row" style="border-top:2px solid var(--border);margin-top:4px;"><span style="color:var(--muted);font-size:11px;">Reste à vivre / épargner</span><span class="amount ${restant>=0?'gain-pos':'gain-neg'}" style="font-weight:700;">${fmt(restant)}</span></div>
+      <div style="margin-top:12px;"><div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;">Taux d'effort</div>
+      <div style="height:10px;background:var(--border);border-radius:5px;overflow:hidden;"><div style="height:100%;width:${Math.min(taux,100).toFixed(1)}%;background:${taux>80?'var(--red)':taux>60?'var(--gold)':'var(--green)'};border-radius:5px;"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:4px;"><span class="${txCls}" style="font-weight:700;">${fmtN(taux,1)}% de charges</span><span style="color:var(--muted);">idéal &lt; 60%</span></div></div>`;
+  }
+  const catsEl=el('depensesCats');if(!catsEl)return;
+  catsEl.innerHTML=DATA.depenses.categories.map((cat,ci)=>{
+    const catTot=depCatTotal(cat);
+    const rows=cat.items.map((item,ii)=>`<tr><td><div style="font-weight:500;">${item.label}</div>${item.url?`<a href="${item.url}" target="_blank" class="dep-link">🔗 Accès compte →</a>`:''}&nbsp;<span class="cell-edit" onclick="editDepUrl(${ci},${ii},this)" style="font-size:9px;color:var(--muted);" title="Éditer le lien">✎ lien</span></td><td><span class="cell-edit amount" onclick="editDep(${ci},${ii},'mensuel',this)">${fmt(item.mensuel)}</span><div class="dep-pct-bar" style="width:${total>0?Math.max(2,item.mensuel/total*100).toFixed(1)+'%':'0'};background:${cat.color};opacity:0.6;"></div></td><td class="dep-annuel amount">${fmt(item.mensuel*12)}</td><td style="color:var(--muted);font-size:11px;">${total>0?pct(item.mensuel,total):'—'}</td></tr>`).join('');
+    return `<div class="dep-category"><div class="dep-cat-header"><div class="dep-cat-title"><span style="font-size:16px;">${cat.icon}</span>${cat.nom}</div><div class="dep-cat-total amount" style="color:${cat.color}">${fmt(catTot)}<span style="color:var(--muted);font-size:10px;font-weight:400;margin-left:6px;">/ mois</span></div></div><table class="dep-table"><thead><tr><th>Poste</th><th>Mensuel ✎</th><th>Annuel</th><th>%</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  }).join('');
+  applyMask();
+}
+
+// ═══ DONUT ═══════════════════════════════════════════════════════════════
+function drawDonut(canvasId,entries,total){
+  const canvas=el(canvasId);if(!canvas)return;
+  const ctx=canvas.getContext('2d'),cx=65,cy=65,R=58,r=36;
+  ctx.clearRect(0,0,130,130);
+  let angle=-Math.PI/2;
+  entries.forEach(([,v])=>{
+    const sw=(v.val/total)*2*Math.PI;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,R,angle,angle+sw);ctx.closePath();ctx.fillStyle=v.color;ctx.fill();angle+=sw;
+  });
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.fillStyle='#111318';ctx.fill();
+  ctx.fillStyle='#e8eaf0';ctx.font='bold 10px DM Mono';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('Total',cx,cy-6);
+  if(!masked){ctx.font='8px DM Mono';ctx.fillStyle='#6b7280';ctx.fillText(fmt(total).replace(' €','€'),cx,cy+7);}
+}
+
+// ═══ ÉDITION ═════════════════════════════════════════════════════════════
+function mkInput(val,w='110px',step='0.01'){
+  const inp=document.createElement('input');inp.type='number';inp.step=step;inp.value=val;
+  inp.style.cssText=`background:#1a1f2e;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:2px 6px;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;width:${w};outline:none;`;
+  return inp;
+}
+
+function mkUrlInput(val,w='320px'){
+  const inp=document.createElement('input');inp.type='url';inp.value=val||'';
+  inp.placeholder='https://...';
+  inp.style.cssText=`background:#1a1f2e;color:var(--accent2);border:1px solid var(--accent2);border-radius:4px;padding:3px 8px;font-family:'DM Mono',monospace;font-size:11px;width:${w};outline:none;`;
+  return inp;
+}
+
+function editDep(ci,ii,field,span){
+  if(masked)return;
+  const inp=mkInput(DATA.depenses.categories[ci].items[ii][field]);span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){const v=parseFloat(inp.value);if(!isNaN(v)&&v>=0){DATA.depenses.categories[ci].items[ii].mensuel=v;DATA.depenses.categories[ci].items[ii].annuel=v*12;}renderDepenses();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderDepenses();});
+}
+
+function editRevenu(span){
+  if(masked)return;
+  const inp=mkInput(DATA.revenuMensuelNet||0);span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){const v=parseFloat(inp.value);if(!isNaN(v)&&v>=0)DATA.revenuMensuelNet=v;renderDepenses();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderDepenses();});
+}
+
+function editObjectif(span){
+  if(masked)return;
+  const inp=mkInput(DATA.epargneObjectifAn||5000,'140px');span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){const v=parseFloat(inp.value);if(!isNaN(v)&&v>=0)DATA.epargneObjectifAn=v;renderDepenses();scheduleAutoSave();}
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderDepenses();});
+}
+
+function editDepUrl(ci,ii,span){
+  const inp=mkUrlInput(DATA.depenses.categories[ci].items[ii].url||'');
+  span.replaceWith(inp);inp.focus();inp.select();
+  function commit(){DATA.depenses.categories[ci].items[ii].url=inp.value.trim();renderDepenses();scheduleAutoSave();}
+  inp.addEventListener('blur',commit);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderDepenses();});
+}
+
+// ═══ MASK ════════════════════════════════════════════════════════════════
+function applyMask(){
+  document.querySelectorAll('.amount').forEach(e=>e.classList.toggle('masked',masked));
+  // masquer aussi les % du taux d'épargne et taux d'effort
+  ['depKpiEpargne','depKpiTaux'].forEach(id=>{const e=el(id);if(e)e.classList.toggle('masked',masked);});
+  el('maskLabel').textContent=masked?'Révéler':'Masquer';
+  el('eyeIcon').textContent=masked?'🙈':'👁';
+}
+function toggleMask(){
+  masked=!masked;applyMask();
+  const total=depTotal();
+  const catTotals=DATA.depenses.categories.map(c=>({nom:c.nom,color:c.color,val:depCatTotal(c)}));
+  const depEntries=catTotals.filter(c=>c.val>0).map(c=>[c.nom,{val:c.val,color:c.color}]);
+  if(depEntries.length>0)drawDonut('depDonut',depEntries,total);
+}
+
+// ═══ SAVE/LOAD ═══════════════════════════════════════════════════════════
+const LS_KEY='depenses_autosave';
+let _autoSaveTimer=null;
+let _lastAutoSave=null;
+
+function saveData(){
+  const blob=new Blob([JSON.stringify(DATA,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='depenses_'+new Date().toISOString().split('T')[0]+'.json';a.click();
+  el('saveStatus').classList.add('show');setTimeout(()=>el('saveStatus').classList.remove('show'),2500);
+}
+
+function autoSave(){
+  try{
+    localStorage.setItem(LS_KEY,JSON.stringify(DATA));
+    _lastAutoSave=new Date();
+    updateAutoSaveIndicator('ok');
+  }catch(e){updateAutoSaveIndicator('err');}
+}
+
+function scheduleAutoSave(){
+  clearTimeout(_autoSaveTimer);
+  updateAutoSaveIndicator('pending');
+  _autoSaveTimer=setTimeout(()=>autoSave(),2000);
+}
+
+function updateAutoSaveIndicator(state){
+  const dot=el('autoSaveDot'),lbl=el('autoSaveLabel');
+  if(!dot||!lbl)return;
+  if(state==='ok'){
+    dot.style.background='var(--green)';lbl.style.color='var(--green)';lbl.textContent='Auto · maintenant';
+    clearInterval(window._autoSaveRelTimer);
+    window._autoSaveRelTimer=setInterval(()=>{
+      if(!_lastAutoSave)return;
+      const s=Math.round((new Date()-_lastAutoSave)/1000);
+      if(s<5)lbl.textContent='Auto · maintenant';
+      else if(s<60)lbl.textContent=`Auto · il y a ${s}s`;
+      else lbl.textContent=`Auto · il y a ${Math.floor(s/60)}min`;
+    },5000);
+  }else if(state==='pending'){dot.style.background='var(--gold)';lbl.style.color='var(--gold)';lbl.textContent='Auto · en attente…';}
+  else if(state==='err'){dot.style.background='var(--red)';lbl.style.color='var(--red)';lbl.textContent='Auto · échec localStorage';}
+  else if(state==='none'){dot.style.background='var(--muted)';lbl.style.color='var(--muted)';lbl.textContent='Aucune sauvegarde auto';}
+}
+
+function loadAutoSave(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(!raw)return false;
+    const saved=JSON.parse(raw);
+    // Fusionner uniquement les clés pertinentes
+    if(saved.revenuMensuelNet!==undefined)DATA.revenuMensuelNet=saved.revenuMensuelNet;
+    if(saved.epargneObjectifAn!==undefined)DATA.epargneObjectifAn=saved.epargneObjectifAn;
+    if(saved.depenses)DATA.depenses=saved.depenses;
+    _lastAutoSave=new Date();updateAutoSaveIndicator('ok');
+    return true;
+  }catch(e){return false;}
+}
+
+function clearAutoSave(){
+  if(!confirm('Effacer la sauvegarde automatique du navigateur ?'))return;
+  localStorage.removeItem(LS_KEY);_lastAutoSave=null;updateAutoSaveIndicator('none');
+}
+
+function loadFile(){el('fileInput').click();}
+function loadData(event){
+  const file=event.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const parsed=JSON.parse(e.target.result);
+      // Accepte soit un JSON complet du dashboard, soit un JSON dépenses seul
+      if(parsed.depenses)DATA.depenses=parsed.depenses;
+      if(parsed.revenuMensuelNet!==undefined)DATA.revenuMensuelNet=parsed.revenuMensuelNet;
+      renderDepenses();
+    }catch{alert('JSON invalide');}
+  };
+  reader.readAsText(file);event.target.value='';
+}
+
+// ═══ INIT ════════════════════════════════════════════════════════════════
+const hadSave=loadAutoSave();
+renderDepenses();
+if(!hadSave)updateAutoSaveIndicator('none');
+document.addEventListener('click',e=>{if(e.target&&e.target.id==='epargneObjEdit')editObjectif(e.target);});
+</script>
+</body>
+</html>
