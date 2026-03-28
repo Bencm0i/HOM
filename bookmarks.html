@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mon Tableau</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗂️</text></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<style>/* Google Fonts remplacé par polices système */@import url("data:text/css,");</style>
 <style>
 :root {
   --c1:#ff6eb4;--c2:#a78bfa;--c3:#38bdf8;--c4:#34d399;--c5:#fbbf24;
@@ -302,11 +302,64 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
 .bgconfirm-btn.apply {
   background:linear-gradient(90deg,var(--c1),var(--c2)); color:white;
 }
-.bgconfirm-btn.launcher {
-  background:rgba(56,189,248,0.12); color:var(--c3);
-  border:1.5px solid rgba(56,189,248,0.35); font-size:0.8rem;
+/* ── SETTINGS MODAL ── */
+#settingsModal {
+  position:fixed; inset:0; z-index:850;
+  background:rgba(0,0,0,0.5); backdrop-filter:blur(8px);
+  display:none; align-items:center; justify-content:center; padding:20px;
 }
-.bgconfirm-btn.launcher:hover { background:rgba(56,189,248,0.25); }
+#settingsModal.open { display:flex; }
+.settings-box {
+  background:rgba(255,255,255,0.96); backdrop-filter:blur(24px);
+  border:1.5px solid rgba(255,255,255,0.95); border-radius:22px;
+  padding:28px 26px 22px; display:flex; flex-direction:column; gap:18px;
+  box-shadow:0 20px 60px rgba(120,80,200,0.25);
+  width:100%; max-width:520px; max-height:88vh; overflow-y:auto;
+}
+.settings-title {
+  font-size:1rem; font-weight:800; color:var(--text);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.settings-close {
+  background:transparent; border:none; font-size:1.1rem; cursor:pointer;
+  color:var(--muted); padding:2px 6px; border-radius:8px; transition:color 0.15s;
+}
+.settings-close:hover { color:var(--text); }
+.settings-section { display:flex; flex-direction:column; gap:8px; }
+.settings-label {
+  font-size:0.72rem; font-weight:800; color:var(--muted);
+  letter-spacing:0.1em; text-transform:uppercase;
+}
+.settings-input {
+  width:100%; background:rgba(167,139,250,0.07); border:1.5px solid rgba(167,139,250,0.25);
+  border-radius:10px; padding:9px 12px; font-family:'Nunito',sans-serif;
+  font-size:0.78rem; font-weight:600; color:var(--text); outline:none; transition:border-color 0.2s;
+}
+.settings-input:focus { border-color:var(--c2); }
+.settings-textarea {
+  width:100%; background:rgba(167,139,250,0.07); border:1.5px solid rgba(167,139,250,0.25);
+  border-radius:10px; padding:9px 12px; font-family:'Nunito',sans-serif;
+  font-size:0.72rem; font-weight:600; color:var(--text); outline:none; resize:vertical;
+  min-height:90px; line-height:1.6; transition:border-color 0.2s;
+}
+.settings-textarea:focus { border-color:var(--c2); }
+.settings-hint { font-size:0.63rem; color:var(--muted); font-weight:600; line-height:1.5; }
+.settings-row { display:flex; gap:8px; }
+.settings-btn {
+  flex:1; padding:10px; border-radius:12px; border:none;
+  font-family:'Nunito',sans-serif; font-size:0.8rem; font-weight:800;
+  cursor:pointer; transition:opacity 0.15s, transform 0.15s;
+}
+.settings-btn:hover { opacity:0.88; transform:translateY(-1px); }
+.settings-btn.primary { background:linear-gradient(90deg,var(--c1),var(--c2)); color:white; }
+.settings-btn.secondary { background:rgba(167,139,250,0.12); color:var(--muted); border:1.5px solid rgba(167,139,250,0.25); }
+.settings-btn.copy { background:rgba(56,189,248,0.12); color:var(--c3); border:1.5px solid rgba(56,189,248,0.3); }
+.settings-sep { height:1px; background:rgba(167,139,250,0.15); margin:2px 0; }
+.settings-preview {
+  width:100%; height:80px; border-radius:10px; object-fit:cover;
+  border:1.5px solid rgba(167,139,250,0.2); display:none; margin-top:4px;
+}
+
 </style>
 </head>
 <body>
@@ -336,6 +389,12 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
 
 <div class="page" id="mainPage">
 
+  <!-- BANDEAU INFO SESSION -->
+  <div id="sessionBanner" style="display:none;margin:0 16px;padding:10px 16px;background:rgba(251,191,36,0.15);border:1.5px solid rgba(251,191,36,0.35);border-radius:14px;font-family:'Nunito',sans-serif;font-size:0.72rem;font-weight:700;color:#92742a;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+    <span>⚠️ Ouverture en mode local — vos données sont conservées pendant cette session uniquement. Utilisez <strong>⬇ Exporter</strong> pour sauvegarder.</span>
+    <button onclick="document.getElementById('sessionBanner').style.display='none'" style="background:transparent;border:none;cursor:pointer;font-size:1rem;opacity:0.6;flex-shrink:0;">✕</button>
+  </div>
+
   <div class="site-header">
     <input id="page-title" value="Mon Tableau ✨" oninput="save()">
     <div style="display:flex;gap:8px;align-items:center">
@@ -343,6 +402,7 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
       <button class="bg-btn" onclick="exportVault()">⬇ Exporter</button>
       <button class="bg-btn" onclick="document.getElementById('vaultImport').click()">⬆ Importer</button>
       <button class="bg-btn" onclick="resetAll()" style="color:#f87171;border-color:rgba(248,113,113,0.3)">🗑 Réinitialiser</button>
+      <button class="bg-btn" onclick="openSettings()">⚙️ Paramètres</button>
       <button class="bg-btn" onclick="document.getElementById('bgPicker').click()">🖼 Fond</button>
       <button class="bg-btn" id="resetBgBtn" onclick="resetBg()" style="display:none;color:#f87171;border-color:rgba(248,113,113,0.3)">✕ Fond</button>
     </div>
@@ -454,6 +514,38 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
 <div class="emoji-picker" id="emojiPicker" style="display:none"></div>
 
 <script>
+// ── STOCKAGE EN MÉMOIRE (compatible file://) ──
+// Remplace localStorage pour fonctionner sans serveur.
+// Les données sont conservées pendant la session.
+// Utilisez ⬇ Exporter / ⬆ Importer pour sauvegarder durablement.
+(function(){
+  const _store = {};
+  // Essaie d'abord le vrai localStorage, sinon bascule en mémoire
+  let _useReal = false;
+  try {
+    localStorage.setItem('__test__', '1');
+    localStorage.removeItem('__test__');
+    _useReal = true;
+  } catch(e) { _useReal = false; }
+
+  if(!_useReal){
+    const _ls = {
+      getItem(k){ return Object.prototype.hasOwnProperty.call(_store, k) ? _store[k] : null; },
+      setItem(k, v){ _store[k] = String(v); },
+      removeItem(k){ delete _store[k]; },
+      clear(){ Object.keys(_store).forEach(k => delete _store[k]); },
+      key(i){ return Object.keys(_store)[i] || null; },
+      get length(){ return Object.keys(_store).length; }
+    };
+    Object.defineProperty(window, 'localStorage', { value: _ls, writable: false, configurable: true });
+    // Afficher le bandeau d'avertissement
+    window.addEventListener('load', () => {
+      const b = document.getElementById('sessionBanner');
+      if(b) b.style.display = 'flex';
+    });
+  }
+})();
+
 const EMOJIS=['🔗','🌐','📧','📁','🎵','🎬','📚','🛒','💼','🏠','⚙️','🎮','📊','🗓️','📸','🔑','💡','🚀','⭐','❤️','🌈','🎯','🔍','💬','📱','🖥️','🎨','📝','🏋️','🌿'];
 const LINK_COLORS=['#ff6eb4','#a78bfa','#38bdf8','#34d399','#fbbf24','#f87171','#fb923c','#e879f9','#ff6eb4','#a78bfa'];
 
@@ -690,6 +782,7 @@ function resetBg(){
   bg.style.backgroundImage = '';
   document.getElementById('resetBgBtn').style.display = 'none';
   localStorage.removeItem('dashboard_bg');
+  localStorage.removeItem('dashboard_bg_url');
 }
 
 function clearGallery(){
@@ -1109,6 +1202,16 @@ async function importVault(e){
 }
 
 
+// ── FONCTIONS MANQUANTES ──
+function clearNotes(){
+  document.getElementById('notesArea').value = '';
+  save();
+}
+
+function bgConfirmApplyLauncher(){
+  bgConfirmApply();
+}
+
 // ── SAVE / LOAD ──
 let saveTimer;
 function save(){
@@ -1132,10 +1235,28 @@ function initApp(){
   if(lks) try{ links=JSON.parse(lks); }catch(e){}
   const notes=localStorage.getItem('dashboard_notes');
   if(notes) document.getElementById('notesArea').value=notes;
-  const gal=localStorage.getItem('dashboard_gallery');
-  if(gal) try{ gallery=JSON.parse(gal); }catch(e){}
-  const bg=localStorage.getItem('dashboard_bg');
-  if(bg){ const el=document.getElementById('bg-layer'); el.style.backgroundImage='url('+bg+')'; el.style.backgroundSize='cover'; document.getElementById('resetBgBtn').style.display=''; }
+  // bg: prefer URL version (persistent) over base64
+  const bgUrl=localStorage.getItem('dashboard_bg_url');
+  const bgB64=localStorage.getItem('dashboard_bg');
+  if(bgUrl){
+    const el=document.getElementById('bg-layer');
+    el.style.backgroundImage=`url('${bgUrl}')`;
+    el.style.backgroundSize='cover';
+    el.style.backgroundPosition='center';
+    document.getElementById('resetBgBtn').style.display='';
+  } else if(bgB64){
+    const el=document.getElementById('bg-layer');
+    el.style.backgroundImage='url('+bgB64+')';
+    el.style.backgroundSize='cover';
+    document.getElementById('resetBgBtn').style.display='';
+  }
+  // gallery: prefer URL gallery (persistent) over blob gallery
+  const urlGal=getUrlGallery();
+  if(urlGal.length){ gallery=urlGal; }
+  else {
+    const gal=localStorage.getItem('dashboard_gallery');
+    if(gal) try{ gallery=JSON.parse(gal); }catch(e){}
+  }
   // compact links
   loadCompactLinks();
   renderCompactLinks();
@@ -1152,7 +1273,132 @@ function initApp(){
   });
 }
 
-window.addEventListener('load', initApp);
+// ── SETTINGS MODAL ──
+function openSettings(){
+  const bgUrl = localStorage.getItem('dashboard_bg_url') || '';
+  document.getElementById('settingsBgUrl').value = bgUrl;
+  if(bgUrl){ const p=document.getElementById('settingsBgPreview'); p.src=bgUrl; p.style.display='block'; }
+  else { document.getElementById('settingsBgPreview').style.display='none'; }
+  // fill gallery urls from urlGallery store
+  const urlGal = getUrlGallery();
+  document.getElementById('settingsGalleryUrls').value = urlGal.map(g=>g.url).join('\n');
+  document.getElementById('permalinkFeedback').textContent = '';
+  document.getElementById('settingsModal').classList.add('open');
+}
+
+function closeSettings(){
+  document.getElementById('settingsModal').classList.remove('open');
+}
+
+function previewBg(url){
+  const p = document.getElementById('settingsBgPreview');
+  if(url.match(/^https?:\/\//)){
+    p.src = url; p.style.display = 'block';
+    p.onerror = () => { p.style.display = 'none'; };
+  } else {
+    p.style.display = 'none';
+  }
+}
+
+function applySettings(){
+  const bgUrl = document.getElementById('settingsBgUrl').value.trim();
+  const galRaw = document.getElementById('settingsGalleryUrls').value;
+
+  // Apply bg url
+  if(bgUrl){
+    const bg = document.getElementById('bg-layer');
+    bg.style.backgroundImage = `url('${bgUrl}')`;
+    bg.style.backgroundSize = 'cover';
+    bg.style.backgroundPosition = 'center';
+    localStorage.setItem('dashboard_bg_url', bgUrl);
+    document.getElementById('resetBgBtn').style.display = '';
+  }
+
+  // Apply gallery from URLs
+  const urls = galRaw.split('\n').map(s=>s.trim()).filter(s=>s.match(/^https?:\/\//));
+  if(urls.length){
+    // clear object URL gallery
+    gallery.forEach(item => { if(item.url && item.url.startsWith('blob:')) URL.revokeObjectURL(item.url); });
+    gallery = urls.map((u,i) => ({ url:u, name:'Photo '+(i+1), id:Math.random(), masked:false, isUrl:true }));
+    saveUrlGallery(urls);
+    ssPlaying = true;
+    document.getElementById('ssPlayBtn').textContent = '⏸';
+    clearTimeout(ssTimer);
+    renderGallery();
+  }
+
+  save();
+  closeSettings();
+}
+
+// ── URL GALLERY store (separate from blob gallery) ──
+function saveUrlGallery(urls){
+  localStorage.setItem('dashboard_url_gallery', JSON.stringify(urls));
+}
+function getUrlGallery(){
+  try{ return JSON.parse(localStorage.getItem('dashboard_url_gallery')||'[]').map((u,i)=>({url:u,name:'Photo '+(i+1),id:i,masked:false,isUrl:true})); }catch(e){ return []; }
+}
+
+// ── PERMALINK ──
+function buildPermalink(){
+  const bgUrl = localStorage.getItem('dashboard_bg_url') || '';
+  const galUrls = JSON.parse(localStorage.getItem('dashboard_url_gallery')||'[]');
+  const clUrls = compactLinks.map(l=>l.url);
+  const params = { bg: bgUrl, gal: galUrls, cl: clUrls };
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(params))));
+  return location.href.split('#')[0] + '#p=' + encoded;
+}
+
+function copyPermalink(){
+  const link = buildPermalink();
+  navigator.clipboard.writeText(link).then(()=>{
+    document.getElementById('permalinkFeedback').textContent = '✅ Lien copié dans le presse-papier !';
+    setTimeout(()=>document.getElementById('permalinkFeedback').textContent='', 3000);
+  }).catch(()=>{
+    prompt('Copie ce lien :', link);
+  });
+}
+
+function openPermalink(){
+  window.open(buildPermalink(), '_blank');
+}
+
+// ── LOAD FROM PERMALINK HASH ──
+function loadFromHash(){
+  const hash = location.hash;
+  if(!hash.startsWith('#p=')) return;
+  try{
+    const raw = decodeURIComponent(escape(atob(hash.slice(3))));
+    const params = JSON.parse(raw);
+    // bg
+    if(params.bg){
+      const bg = document.getElementById('bg-layer');
+      bg.style.backgroundImage = `url('${params.bg}')`;
+      bg.style.backgroundSize = 'cover';
+      bg.style.backgroundPosition = 'center';
+      localStorage.setItem('dashboard_bg_url', params.bg);
+      document.getElementById('resetBgBtn').style.display = '';
+    }
+    // gallery
+    if(params.gal && params.gal.length){
+      gallery = params.gal.map((u,i)=>({url:u,name:'Photo '+(i+1),id:i,masked:false,isUrl:true}));
+      saveUrlGallery(params.gal);
+      renderGallery();
+    }
+    // compact links (only if saved ones are defaults)
+    if(params.cl && params.cl.length){
+      const saved = localStorage.getItem('dashboard_compact_links');
+      if(!saved){
+        compactLinks.forEach((lk,i)=>{ if(params.cl[i]) lk.url=params.cl[i]; });
+        saveCompactLinks();
+        renderCompactLinks();
+      }
+    }
+  }catch(e){ console.warn('Hash parse error', e); }
+}
+
+window.addEventListener('load', () => { initApp(); loadFromHash(); });
+
 </script>
 <!-- LIGHTBOX -->
 <div id="ssLightbox" onclick="ssCloseZoom()">
@@ -1178,5 +1424,51 @@ window.addEventListener('load', initApp);
     <button class="bgconfirm-btn launcher" id="bgConfirmLauncher" onclick="bgConfirmApplyLauncher()" style="display:none;width:100%;margin-top:-4px;">🖥 Aussi sur le Launcher</button>
   </div>
 </div>
+<!-- SETTINGS MODAL -->
+<div id="settingsModal">
+  <div class="settings-box">
+    <div class="settings-title">
+      ⚙️ Paramètres — Fond d'écran &amp; Galerie
+      <button class="settings-close" onclick="closeSettings()">✕</button>
+    </div>
+
+    <div class="settings-sep"></div>
+
+    <div class="settings-section">
+      <div class="settings-label">🖼 URL du fond d'écran</div>
+      <input class="settings-input" id="settingsBgUrl" placeholder="https://exemple.com/mon-image.jpg"
+        oninput="previewBg(this.value)">
+      <img class="settings-preview" id="settingsBgPreview" alt="Aperçu fond">
+      <div class="settings-hint">Colle l'URL directe d'une image en ligne. Elle sera sauvegardée et incluse dans le lien de partage.</div>
+    </div>
+
+    <div class="settings-sep"></div>
+
+    <div class="settings-section">
+      <div class="settings-label">🖼 URLs de la galerie (une par ligne)</div>
+      <textarea class="settings-textarea" id="settingsGalleryUrls"
+        placeholder="https://exemple.com/photo1.jpg&#10;https://exemple.com/photo2.jpg&#10;..."></textarea>
+      <div class="settings-hint">Une URL d'image par ligne. Ces images s'afficheront dans le diaporama.</div>
+    </div>
+
+    <div class="settings-sep"></div>
+
+    <div class="settings-section">
+      <div class="settings-label">🔗 Lien permanent</div>
+      <div class="settings-hint">Génère un lien qui contient le fond d'écran et la galerie — ouvre-le dans un nouvel onglet Firefox et tout sera là.</div>
+      <div class="settings-row" style="margin-top:4px">
+        <button class="settings-btn copy" onclick="copyPermalink()">📋 Copier le lien</button>
+        <button class="settings-btn copy" onclick="openPermalink()">🔗 Ouvrir dans un onglet</button>
+      </div>
+      <div id="permalinkFeedback" style="font-size:0.68rem;color:var(--c4);font-weight:700;min-height:16px;text-align:center;"></div>
+    </div>
+
+    <div class="settings-row">
+      <button class="settings-btn secondary" onclick="closeSettings()">Annuler</button>
+      <button class="settings-btn primary" onclick="applySettings()">✓ Appliquer</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
