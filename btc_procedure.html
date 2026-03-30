@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BTC — Procédure Transaction</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600;700&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #0a0c0b;
+    --surface: #111413;
+    --surface2: #171c19;
+    --surface3: #1c221e;
+    --border: #232e27;
+    --border-bright: #344a3a;
+    --btc: #f7931a;
+    --btc-dim: #7a4208;
+    --btc-bright: #ffb347;
+    --green: #4caf6e;
+    --green-dim: #2d6b45;
+    --green-bright: #6dffaa;
+    --amber: #e8c44a;
+    --amber-dim: #6b5208;
+    --red: #e05252;
+    --red-dim: #6b2020;
+    --blue: #5ab4e8;
+    --text: #c8d4cc;
+    --text-dim: #5a7a62;
+    --text-bright: #e8f5ed;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    min-height: 100vh;
+    padding: 0;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, #1a1005 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, #0a1a0f 0%, transparent 45%);
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, #0f1008 0%, #100c08 100%);
+    border-bottom: 1px solid var(--btc-dim);
+    padding: 24px 32px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: relative; overflow: hidden;
+  }
+  .header::before {
+    content: '₿';
+    position: absolute; right: 32px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 120px; font-weight: 700;
+    color: rgba(247,147,26,0.04);
+    font-family: var(--mono);
+    pointer-events: none;
+  }
+  .header-left { position: relative; z-index: 1; }
+  .sys-tag { font-size: 9px; color: var(--btc-dim); letter-spacing: 0.25em; text-transform: uppercase; margin-bottom: 6px; }
+  h1 { font-size: 22px; font-weight: 700; color: var(--btc); letter-spacing: 0.05em; }
+  h1 span { color: var(--text-dim); font-weight: 300; }
+  .header-sub { font-size: 11px; color: var(--text-dim); margin-top: 5px; letter-spacing: 0.1em; }
+  .header-right { position: relative; z-index: 1; text-align: right; }
+  .warning-badge {
+    background: #2a1408; border: 1px solid var(--btc-dim);
+    border-radius: 4px; padding: 8px 14px;
+    font-size: 10px; color: var(--btc); letter-spacing: 0.12em;
+    text-transform: uppercase; font-weight: 700;
+  }
+
+  /* ── CONTENT ── */
+  .content { padding: 28px 32px; max-width: 900px; margin: 0 auto; }
+
+  /* ── PROGRESS NAV ── */
+  .progress-nav {
+    display: flex; align-items: center; margin-bottom: 32px;
+    padding: 14px 18px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 6px;
+    gap: 0; overflow-x: auto;
+  }
+  .pn-step {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-dim); cursor: pointer; white-space: nowrap;
+    padding: 4px 10px; border-radius: 3px; transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .pn-step:hover { color: var(--text); }
+  .pn-step.active { color: var(--btc); }
+  .pn-step.done { color: var(--green); }
+  .pn-num {
+    width: 20px; height: 20px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; flex-shrink: 0;
+    border: 1px solid currentColor;
+  }
+  .pn-step.active .pn-num { background: var(--btc-dim); border-color: var(--btc); }
+  .pn-step.done .pn-num { background: var(--green-dim); border-color: var(--green); }
+  .pn-arrow { color: var(--border); font-size: 12px; flex-shrink: 0; margin: 0 2px; }
+
+  /* ── PHASE ── */
+  .phase { display: none; }
+  .phase.active { display: block; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+  .phase-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px; padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .phase-icon {
+    width: 44px; height: 44px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; flex-shrink: 0;
+  }
+  .phase-icon.btc  { background: #1a0f04; border: 1px solid var(--btc-dim); }
+  .phase-icon.tails { background: #0a1a10; border: 1px solid var(--green-dim); }
+  .phase-icon.sign  { background: #1a1a04; border: 1px solid var(--amber-dim); }
+  .phase-icon.broad { background: #04101a; border: 1px solid #2a5070; }
+  .phase-title { font-size: 16px; font-weight: 700; color: var(--text-bright); letter-spacing: 0.03em; }
+  .phase-machine {
+    font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    margin-top: 3px; padding: 2px 8px; border-radius: 2px; display: inline-block;
+  }
+  .machine-tails  { background: #0a1a10; color: var(--green); border: 1px solid var(--green-dim); }
+  .machine-online { background: #04101a; color: var(--blue); border: 1px solid #2a5070; }
+  .machine-both   { background: #1a1408; color: var(--amber); border: 1px solid var(--amber-dim); }
+
+  /* ── STEPS ── */
+  .steps { display: flex; flex-direction: column; gap: 10px; }
+
+  .step {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 14px 16px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 5px;
+    cursor: pointer; transition: all 0.15s; position: relative;
+  }
+  .step:hover { border-color: var(--border-bright); }
+  .step.checked { border-color: var(--green-dim); background: #0e1a12; }
+  .step.checked .step-num { background: var(--green-dim); border-color: var(--green); color: var(--green-bright); }
+  .step.warn-step { border-left: 3px solid var(--btc); }
+  .step.critical-step { border-left: 3px solid var(--red); }
+
+  .step-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 1px solid var(--border-bright); background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700; color: var(--text-dim);
+    flex-shrink: 0; transition: all 0.15s; margin-top: 1px;
+  }
+  .step-body { flex: 1; min-width: 0; }
+  .step-title { font-size: 12px; font-weight: 600; color: var(--text-bright); margin-bottom: 4px; }
+  .step.checked .step-title { color: var(--green); }
+  .step-desc { font-size: 11px; color: var(--text-dim); line-height: 1.7; }
+
+  .cmd {
+    display: flex; align-items: center; gap: 8px;
+    background: #060808; border: 1px solid var(--border);
+    border-radius: 4px; padding: 8px 12px; margin: 8px 0;
+    font-size: 11px; color: var(--green-bright);
+  }
+  .cmd code { flex: 1; }
+  .cmd-copy {
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; font-size: 12px; padding: 0 4px;
+    transition: color 0.15s; flex-shrink: 0;
+  }
+  .cmd-copy:hover { color: var(--green); }
+
+  .note {
+    background: #1a0f04; border-left: 3px solid var(--btc-dim);
+    border-radius: 0 4px 4px 0; padding: 8px 12px;
+    font-size: 10px; color: var(--btc); line-height: 1.6; margin: 8px 0;
+  }
+  .note.red { background: #1a0808; border-color: var(--red-dim); color: var(--red); }
+  .note.green { background: #081a10; border-color: var(--green-dim); color: var(--green); }
+  .note.blue { background: #08101a; border-color: #2a5070; color: var(--blue); }
+
+  .badge-inline {
+    font-size: 8px; padding: 2px 6px; border-radius: 2px;
+    letter-spacing: 0.1em; font-weight: 700; text-transform: uppercase;
+    vertical-align: middle; margin-left: 4px;
+  }
+  .bi-tails  { background: #0a1a10; color: var(--green); border: 1px solid var(--green-dim); }
+  .bi-online { background: #04101a; color: var(--blue);  border: 1px solid #2a5070; }
+  .bi-usb    { background: #1a1408; color: var(--amber); border: 1px solid var(--amber-dim); }
+
+  /* ── TRANSFER SELECTOR ── */
+  .transfer-selector {
+    display: flex; gap: 8px; margin: 10px 0;
+  }
+  .ts-btn {
+    font-family: var(--mono); font-size: 10px; font-weight: 600;
+    padding: 6px 16px; border-radius: 4px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--text-dim); letter-spacing: 0.08em; transition: all 0.15s;
+  }
+  .ts-btn.active { background: #1a1408; border-color: var(--amber-dim); color: var(--amber); }
+  .ts-method { display: none; }
+  .ts-method.active { display: block; }
+
+  /* ── NAV BUTTONS ── */
+  .phase-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);
+  }
+  .nav-btn {
+    font-family: var(--mono); font-size: 11px; font-weight: 700;
+    padding: 9px 20px; border-radius: 5px; cursor: pointer;
+    letter-spacing: 0.1em; transition: all 0.15s; border: 1px solid;
+  }
+  .nav-prev { background: transparent; color: var(--text-dim); border-color: var(--border); }
+  .nav-prev:hover { border-color: var(--border-bright); color: var(--text); }
+  .nav-next { background: #1a0f04; color: var(--btc); border-color: var(--btc-dim); }
+  .nav-next:hover { background: #241408; border-color: var(--btc); }
+  .nav-next:disabled { opacity: 0.3; cursor: not-allowed; }
+  .progress-txt { font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; }
+
+  /* ── CHECKLIST SUMMARY ── */
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+  .summary-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 5px; padding: 14px;
+  }
+  .summary-card-title { font-size: 9px; letter-spacing: 0.2em; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; }
+  .summary-item { display: flex; align-items: center; gap: 8px; font-size: 11px; padding: 3px 0; }
+  .si-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── RESET ── */
+  .reset-btn {
+    font-family: var(--mono); font-size: 10px; padding: 5px 12px;
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-dim); border-radius: 3px; cursor: pointer;
+    letter-spacing: 0.08em; transition: all 0.15s;
+  }
+  .reset-btn:hover { border-color: var(--red-dim); color: var(--red); }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 20px; right: 20px;
+    background: #1a0f04; border: 1px solid var(--btc-dim); color: var(--btc);
+    font-family: var(--mono); font-size: 11px; padding: 9px 16px;
+    border-radius: 4px; opacity: 0; transform: translateY(8px);
+    transition: all 0.2s; pointer-events: none; z-index: 99;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 600px) {
+    .content { padding: 16px; }
+    .header { padding: 16px; }
+    .summary-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="sys-tag">Cold Wallet · Electrum + Tails OS</div>
+    <h1>₿ TRANSACTION BTC <span>// Procédure</span></h1>
+    <div class="header-sub">Air-gapped signing · PSBT workflow · guidesk</div>
+  </div>
+  <div class="header-right">
+    <div class="warning-badge">⚠ Usage hors ligne uniquement</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- PROGRESS NAV -->
+  <div class="progress-nav" id="progressNav"></div>
+
+  <!-- ════════════════════════════════════════
+       PHASE 0 — PRÉREQUIS
+  ════════════════════════════════════════ -->
+  <div class="phase active" id="phase-0">
+    <div class="phase-header">
+      <div class="phase-icon btc">🔒</div>
+      <div>
+        <div class="phase-title">Prérequis — Avant de commencer</div>
+        <span class="phase-machine machine-both">Les deux machines</span>
+      </div>
+    </div>
+
+    <div class="steps" id="steps-0">
+
+      <div class="step warn-step" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Vérifier que la transaction est nécessaire</div>
+          <div class="step-desc">
+            Ne jamais signer sous la pression ou dans l'urgence. Confirmer l'adresse destination, le montant et les frais.
+            <div class="note">Tu ne hodl pas pour rien — chaque sortie de cold wallet est irréversible.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Préparer le matériel</div>
+          <div class="step-desc">
+            <span class="badge-inline bi-usb">USB</span> Clé Tails bootable<br>
+            <span class="badge-inline bi-usb">USB</span> Clé USB vierge ou propre pour transfert fichier PSBT (si pas QR)<br>
+            <span class="badge-inline bi-online">PC</span> guidesk connecté à Internet (pour broadcaster)<br>
+            <span class="badge-inline bi-tails">Tails</span> PC air-gappé — guidesk en mode Tails (déconnecté réseau)
+            <div class="note blue">Si tu utilises guidesk pour les deux rôles : boot Tails d'abord (déconnecté), signe, reboot Linux normal, broadcaste.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Récupérer la seed / clé privée</div>
+          <div class="step-desc">
+            Ouvrir le conteneur VeraCrypt → KeePass → récupérer la seed phrase (ou clé privée WIF) du wallet.<br>
+            <div class="note red">⚠ Ne jamais saisir la seed sur un PC connecté à Internet. Uniquement sous Tails, réseau coupé.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="phase-nav">
+      <div></div>
+      <span class="progress-txt" id="prog-0"></span>
+      <button class="nav-btn nav-next" onclick="goPhase(1)">Étape suivante →</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       PHASE 1 — MACHINE EN LIGNE : CRÉER PSBT
+  ════════════════════════════════════════ -->
+  <div class="phase" id="phase-1">
+    <div class="phase-header">
+      <div class="phase-icon broad">📡</div>
+      <div>
+        <div class="phase-title">Machine en ligne — Créer la transaction non signée (PSBT)</div>
+        <span class="phase-machine machine-online">guidesk · Linux normal · connecté</span>
+      </div>
+    </div>
+
+    <div class="steps" id="steps-1">
+
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Ouvrir Electrum en mode watch-only</div>
+          <div class="step-desc">
+            Lancer Electrum sur guidesk (Linux normal, connecté). Le wallet watch-only contient la clé publique uniquement — aucune clé privée présente.
+            <div class="cmd"><code>electrum</code><button class="cmd-copy" onclick="copyCmd(this,'electrum')">⎘</button></div>
+            <div class="note green">Si pas encore configuré : File → New/Restore → Standard wallet → Use a master key → coller la xpub.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Créer la transaction</div>
+          <div class="step-desc">
+            Onglet <strong>Send</strong> → saisir l'adresse destination → montant → ajuster les frais (fee).<br>
+            Cliquer <strong>Pay</strong> puis <strong>Advanced</strong> → vérifier les inputs/outputs.
+            <div class="note">Vérifier 2× l'adresse destination. Copier/coller, ne jamais retaper manuellement.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Exporter le PSBT (transaction non signée)</div>
+          <div class="step-desc">
+            Dans la fenêtre de transaction : <strong>Export</strong> → choisir le format de transfert :
+
+            <div class="transfer-selector" style="margin-top:10px">
+              <button class="ts-btn active" onclick="selectTransfer(this,'usb')">💾 Via USB</button>
+              <button class="ts-btn" onclick="selectTransfer(this,'qr')">📷 Via QR code</button>
+            </div>
+
+            <div class="ts-method active" id="tm-usb">
+              Sauvegarder le fichier <code style="color:var(--amber)">.psbt</code> sur la clé USB de transfert.<br>
+              <div class="cmd"><code>~/Bureau/transaction_unsigned.psbt</code></div>
+              <div class="note">Utiliser une clé USB dédiée au transfert, pas la clé Tails.</div>
+            </div>
+
+            <div class="ts-method" id="tm-qr">
+              Cliquer <strong>Show as QR</strong> — un QR code s'affiche à l'écran.<br>
+              La machine Tails le scannera avec la caméra ou une app QR.<br>
+              <div class="note blue">Plus propre que l'USB — aucun support physique partagé entre les machines.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="phase-nav">
+      <button class="nav-btn nav-prev" onclick="goPhase(0)">← Retour</button>
+      <span class="progress-txt" id="prog-1"></span>
+      <button class="nav-btn nav-next" onclick="goPhase(2)">Étape suivante →</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       PHASE 2 — TAILS : SIGNER
+  ════════════════════════════════════════ -->
+  <div class="phase" id="phase-2">
+    <div class="phase-header">
+      <div class="phase-icon tails">🔐</div>
+      <div>
+        <div class="phase-title">Tails OS — Signer la transaction (air-gappé)</div>
+        <span class="phase-machine machine-tails">Tails · réseau COUPÉ</span>
+      </div>
+    </div>
+
+    <div class="steps" id="steps-2">
+
+      <div class="step critical-step" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Booter sur Tails — Couper le réseau</div>
+          <div class="step-desc">
+            Redémarrer guidesk sur la clé Tails (F11 au démarrage → sélectionner USB).<br>
+            Au démarrage Tails : <strong>ne pas configurer le réseau</strong>, cliquer <strong>+ (More options)</strong> → désactiver Tor/réseau.<br>
+            <div class="note red">⚠ CRITIQUE — Vérifier que le WiFi et l'Ethernet sont bien déconnectés avant de saisir quoi que ce soit.</div>
+            <div class="cmd"><code>ip link show</code><button class="cmd-copy" onclick="copyCmd(this,'ip link show')">⎘</button></div>
+            Tous les états doivent être <code>DOWN</code> ou <code>NO-CARRIER</code>.
+          </div>
+        </div>
+      </div>
+
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Lancer Electrum sur Tails</div>
+          <div class="step-desc">
+            Tails inclut Electrum. Le lancer en mode offline :
+            <div class="cmd"><code>electrum --offline</code><button class="cmd-copy" onclick="copyCmd(this,'electrum --offline')">⎘</button></div>
+            Si premier lancement : <strong>File → New/Restore → Standard wallet → I already have a seed</strong> → saisir la seed phrase.
+            <div class="note">Le wallet créé sur Tails disparaît au reboot (Tails est amnésique). C'est voulu.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Importer le PSBT</div>
+          <div class="step-desc">
+
+            <div class="transfer-selector">
+              <button class="ts-btn active" onclick="selectTransfer2(this,'usb2')">💾 Via USB</button>
+              <button class="ts-btn" onclick="selectTransfer2(this,'qr2')">📷 Via QR code</button>
+            </div>
+
+            <div class="ts-method active" id="tm-usb2">
+              Brancher la clé USB de transfert → <strong>Tools → Load transaction → From file</strong> → sélectionner le <code>.psbt</code>.
+            </div>
+            <div class="ts-method" id="tm-qr2">
+              <strong>Tools → Load transaction → From QR code</strong> → scanner le QR affiché sur l'autre écran (ou photo sur le même écran).
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step warn-step" onclick="toggleStep(this)">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Vérifier la transaction AVANT de signer</div>
+          <div class="step-desc">
+            Dans la fenêtre de transaction vérifier impérativement :
+            <br><br>
+            <strong style="color:var(--btc)">Adresse destination</strong> — correspondre exactement à ce qui était prévu<br>
+            <strong style="color:var(--btc)">Montant</strong> — vérifier en BTC ET en valeur fiat approximative<br>
+            <strong style="color:var(--btc)">Frais (fee)</strong> — raisonnables par rapport au réseau actuel<br>
+            <strong style="color:var(--btc)">Change address</strong> — doit être une adresse de ton wallet
+            <div class="note red">⚠ Si QUOI QUE CE SOIT ne correspond pas — annuler immédiatement. Une transaction signée et broadcastée est IRRÉVERSIBLE.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">Signer la transaction</div>
+          <div class="step-desc">
+            Cliquer <strong>Sign</strong> → saisir le mot de passe du wallet Electrum (pas la seed, le mdp du wallet).<br>
+            La transaction passe de <em>unsigned</em> à <em>signed</em>.
+          </div>
+        </div>
+      </div>
+
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-title">Exporter la transaction signée</div>
+          <div class="step-desc">
+
+            <div class="transfer-selector">
+              <button class="ts-btn active" onclick="selectTransfer3(this,'usb3')">💾 Via USB</button>
+              <button class="ts-btn" onclick="selectTransfer3(this,'qr3')">📷 Via QR code</button>
+            </div>
+
+            <div class="ts-method active" id="tm-usb3">
+              <strong>Export</strong> → sauvegarder <code style="color:var(--green-bright)">transaction_signed.psbt</code> sur la clé USB de transfert.
+            </div>
+            <div class="ts-method" id="tm-qr3">
+              <strong>Show as QR</strong> → la machine en ligne scannera ce QR pour récupérer la transaction signée.
+            </div>
+            <div class="note">Ne pas broadcaster depuis Tails — toujours depuis la machine en ligne.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="phase-nav">
+      <button class="nav-btn nav-prev" onclick="goPhase(1)">← Retour</button>
+      <span class="progress-txt" id="prog-2"></span>
+      <button class="nav-btn nav-next" onclick="goPhase(3)">Étape suivante →</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       PHASE 3 — BROADCASTER
+  ════════════════════════════════════════ -->
+  <div class="phase" id="phase-3">
+    <div class="phase-header">
+      <div class="phase-icon broad">📡</div>
+      <div>
+        <div class="phase-title">Machine en ligne — Broadcaster la transaction</div>
+        <span class="phase-machine machine-online">guidesk · Linux normal · connecté</span>
+      </div>
+    </div>
+
+    <div class="steps" id="steps-3">
+
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-title">Rebooter sur Linux normal</div>
+          <div class="step-desc">
+            Éteindre Tails → retirer la clé Tails → démarrer normalement sur Linux Mint.<br>
+            Rebrancher Internet.
+          </div>
+        </div>
+      </div>
+
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-title">Importer la transaction signée dans Electrum</div>
+          <div class="step-desc">
+
+            <div class="transfer-selector">
+              <button class="ts-btn active" onclick="selectTransfer4(this,'usb4')">💾 Via USB</button>
+              <button class="ts-btn" onclick="selectTransfer4(this,'qr4')">📷 Via QR code</button>
+            </div>
+
+            <div class="ts-method active" id="tm-usb4">
+              Ouvrir Electrum → <strong>Tools → Load transaction → From file</strong> → sélectionner <code>transaction_signed.psbt</code> sur la clé USB.
+            </div>
+            <div class="ts-method" id="tm-qr4">
+              Ouvrir Electrum → <strong>Tools → Load transaction → From QR code</strong> → scanner le QR affiché par Tails.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step warn-step" onclick="toggleStep(this)">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-title">Dernière vérification avant broadcast</div>
+          <div class="step-desc">
+            Vérifier une dernière fois l'adresse destination et le montant dans la fenêtre Electrum.<br>
+            Vérifier le statut : doit afficher <strong style="color:var(--green)">Signed</strong>.
+            <div class="note red">⚠ Dernier point de non-retour. Après broadcast : irréversible.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-title">Broadcaster</div>
+          <div class="step-desc">
+            Cliquer <strong>Broadcast</strong> dans Electrum.<br>
+            Ou via le site mempool.space si Electrum pose problème :
+            <div class="cmd"><code>https://mempool.space/fr/tx/push</code><button class="cmd-copy" onclick="copyCmd(this,'https://mempool.space/fr/tx/push')">⎘</button></div>
+            Copier le hex de la transaction brute (<strong>Tools → Export → As hex</strong>) et le coller sur mempool.
+          </div>
+        </div>
+      </div>
+
+      <div class="step" onclick="toggleStep(this)">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-title">Confirmer et suivre</div>
+          <div class="step-desc">
+            Récupérer le TXID affiché par Electrum après broadcast.<br>
+            Suivre la confirmation sur mempool.space :
+            <div class="cmd"><code>https://mempool.space/fr/tx/TXID</code><button class="cmd-copy" onclick="copyCmd(this,'https://mempool.space/fr/tx/')">⎘</button></div>
+            Attendre <strong style="color:var(--green)">1 confirmation minimum</strong> avant de considérer la transaction comme valide.
+            <div class="note green">✓ Transaction broadcastée — noter le TXID dans KeePass pour traçabilité.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="phase-nav">
+      <button class="nav-btn nav-prev" onclick="goPhase(2)">← Retour</button>
+      <span class="progress-txt" id="prog-3"></span>
+      <button class="nav-btn nav-next" onclick="goPhase(4)">Terminer ✓</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════
+       PHASE 4 — RÉCAP
+  ════════════════════════════════════════ -->
+  <div class="phase" id="phase-4">
+    <div class="phase-header">
+      <div class="phase-icon btc">✅</div>
+      <div>
+        <div class="phase-title">Récapitulatif — Transaction complète</div>
+        <span class="phase-machine machine-both">Bilan</span>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-card">
+        <div class="summary-card-title">Checklist finale</div>
+        <div id="summary-list"></div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-card-title">Sécurité post-transaction</div>
+        <div class="summary-item"><div class="si-dot" style="background:var(--btc)"></div>Supprimer le fichier .psbt de la clé USB</div>
+        <div class="summary-item"><div class="si-dot" style="background:var(--btc)"></div>Fermer KeePass et démonter VeraCrypt</div>
+        <div class="summary-item"><div class="si-dot" style="background:var(--btc)"></div>Éjecter la clé Tails et la ranger</div>
+        <div class="summary-item"><div class="si-dot" style="background:var(--btc)"></div>Noter le TXID dans KeePass</div>
+        <div class="summary-item"><div class="si-dot" style="background:var(--green)"></div>Attendre 6 confirmations pour être serein</div>
+      </div>
+    </div>
+
+    <div class="note green" style="margin-bottom:16px">
+      ✓ Workflow air-gapped respecté — la clé privée n'a jamais touché une machine connectée à Internet.
+    </div>
+
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="nav-btn nav-prev" onclick="goPhase(0)">↺ Recommencer</button>
+      <button class="reset-btn" onclick="resetAll()">Tout décocher</button>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+const PHASES = [
+  { label: 'Prérequis',    icon: '🔒' },
+  { label: 'Créer PSBT',  icon: '📡' },
+  { label: 'Signer',      icon: '🔐' },
+  { label: 'Broadcaster', icon: '📡' },
+  { label: 'Terminé',     icon: '✅' },
+];
+
+let currentPhase = 0;
+let checkedSteps = {}; // "phase-step" → bool
+
+function getKey(phase, stepEl) {
+  const steps = stepEl.parentElement.querySelectorAll('.step');
+  const idx = Array.from(steps).indexOf(stepEl);
+  return `${phase}-${idx}`;
+}
+
+// ══════════════════════════════════════
+// BUILD NAV
+// ══════════════════════════════════════
+function buildNav() {
+  const nav = document.getElementById('progressNav');
+  nav.innerHTML = '';
+  PHASES.forEach((p, i) => {
+    if (i > 0) {
+      const arr = document.createElement('span');
+      arr.className = 'pn-arrow';
+      arr.textContent = '›';
+      nav.appendChild(arr);
+    }
+    const el = document.createElement('div');
+    el.className = 'pn-step' + (i === currentPhase ? ' active' : '') + (isPhaseComplete(i) ? ' done' : '');
+    el.innerHTML = `<div class="pn-num">${isPhaseComplete(i) ? '✓' : (i+1)}</div><span>${p.label}</span>`;
+    el.onclick = () => goPhase(i);
+    nav.appendChild(el);
+  });
+}
+
+function isPhaseComplete(phase) {
+  if (phase >= 4) return false;
+  const steps = document.querySelectorAll(`#phase-${phase} .step`);
+  if (!steps.length) return false;
+  return Array.from(steps).every(s => s.classList.contains('checked'));
+}
+
+// ══════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════
+function goPhase(n) {
+  document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+  document.getElementById(`phase-${n}`).classList.add('active');
+  currentPhase = n;
+  buildNav();
+  updateProgress();
+  if (n === 4) buildSummary();
+  window.scrollTo(0, 0);
+}
+
+// ══════════════════════════════════════
+// STEPS
+// ══════════════════════════════════════
+function toggleStep(el) {
+  el.classList.toggle('checked');
+  updateProgress();
+  buildNav();
+}
+
+function updateProgress() {
+  for (let p = 0; p < 4; p++) {
+    const el = document.getElementById(`prog-${p}`);
+    if (!el) continue;
+    const steps = document.querySelectorAll(`#phase-${p} .step`);
+    const done = Array.from(steps).filter(s => s.classList.contains('checked')).length;
+    el.textContent = `${done} / ${steps.length} étapes`;
+  }
+}
+
+// ══════════════════════════════════════
+// SUMMARY
+// ══════════════════════════════════════
+function buildSummary() {
+  const list = document.getElementById('summary-list');
+  let html = '';
+  for (let p = 0; p < 4; p++) {
+    const steps = document.querySelectorAll(`#phase-${p} .step`);
+    const done = Array.from(steps).filter(s => s.classList.contains('checked')).length;
+    const total = steps.length;
+    const ok = done === total;
+    html += `<div class="summary-item">
+      <div class="si-dot" style="background:${ok ? 'var(--green)' : 'var(--amber)'}"></div>
+      <span style="color:${ok ? 'var(--green)' : 'var(--amber)'}">${PHASES[p].label} : ${done}/${total}</span>
+    </div>`;
+  }
+  list.innerHTML = html;
+}
+
+// ══════════════════════════════════════
+// TRANSFER SELECTORS
+// ══════════════════════════════════════
+function selectTransfer(btn, methodId) {
+  btn.closest('.step-body').querySelectorAll('.ts-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  btn.closest('.step-body').querySelectorAll('.ts-method').forEach(m => m.classList.remove('active'));
+  document.getElementById(methodId).classList.add('active');
+}
+function selectTransfer2(btn, methodId) { selectTransfer(btn, methodId); }
+function selectTransfer3(btn, methodId) { selectTransfer(btn, methodId); }
+function selectTransfer4(btn, methodId) { selectTransfer(btn, methodId); }
+
+// ══════════════════════════════════════
+// COPY
+// ══════════════════════════════════════
+function copyCmd(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓';
+    setTimeout(() => btn.textContent = '⎘', 1500);
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ══════════════════════════════════════
+// RESET
+// ══════════════════════════════════════
+function resetAll() {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('checked'));
+  updateProgress();
+  buildNav();
+  showToast('↺ Checklist réinitialisée');
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+buildNav();
+updateProgress();
+</script>
+</body>
+</html>
