@@ -505,6 +505,136 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
   border:1.5px solid rgba(167,139,250,0.2); display:none; margin-top:4px;
 }
 
+/* ── FAVICON dans emoji-btn ── */
+.compact-link-emoji-btn {
+  position: relative;
+}
+.compact-link-favicon {
+  position: absolute;
+  bottom: 3px; right: 3px;
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  object-fit: contain;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.compact-link-favicon.loaded { opacity: 0.8; }
+.compact-link-item:hover .compact-link-favicon.loaded { opacity: 1; }
+
+/* ── BARRE DE RECHERCHE liens ── */
+.links-search-wrap {
+  padding: 8px 12px 0;
+  position: relative;
+}
+.links-search-input {
+  width: 100%;
+  background: rgba(255,255,255,0.55);
+  border: 1.5px solid rgba(167,139,250,0.25);
+  border-radius: 10px;
+  padding: 6px 30px 6px 28px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.links-search-input:focus {
+  border-color: var(--c2);
+  background: rgba(255,255,255,0.8);
+}
+.links-search-input::placeholder { color: var(--muted); }
+.links-search-icon {
+  position: absolute;
+  left: 20px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.7rem;
+  pointer-events: none;
+  opacity: 0.5;
+}
+.links-search-clear {
+  position: absolute;
+  right: 20px; top: 50%;
+  transform: translateY(-50%);
+  background: transparent; border: none;
+  font-size: 0.7rem; cursor: pointer;
+  color: var(--muted); opacity: 0;
+  transition: opacity 0.15s;
+  padding: 2px;
+}
+.links-search-clear.show { opacity: 0.6; }
+.links-search-clear:hover { opacity: 1; color: var(--c6); }
+.compact-link-item.search-hidden { display: none; }
+
+/* ── RACCOURCIS CLAVIER ── */
+#kbPanel {
+  position: fixed;
+  bottom: 80px; left: 50%;
+  transform: translateX(-50%) translateY(12px);
+  background: rgba(12, 6, 35, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1.5px solid rgba(167,139,250,0.3);
+  border-radius: 18px;
+  padding: 15px 18px 13px;
+  z-index: 600;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  min-width: 290px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.45);
+}
+#kbPanel.show {
+  opacity: 1; pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+.kb-title {
+  font-size: 0.58rem; font-weight: 800; letter-spacing: 0.18em;
+  text-transform: uppercase; color: rgba(167,139,250,0.65);
+  margin-bottom: 10px; font-family: 'Nunito', sans-serif;
+}
+.kb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; }
+.kb-row { display: flex; align-items: center; gap: 6px; }
+.kb-key {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-bottom: 2px solid rgba(255,255,255,0.1);
+  border-radius: 5px; padding: 2px 6px;
+  font-size: 0.57rem; font-weight: 800;
+  color: rgba(255,255,255,0.75);
+  font-family: 'Nunito', sans-serif;
+  min-width: 22px; text-align: center; flex-shrink: 0;
+  white-space: nowrap;
+}
+.kb-desc { font-size: 0.58rem; color: rgba(255,255,255,0.38); font-family: 'Nunito', sans-serif; font-weight: 600; }
+.kb-sep { grid-column: 1/-1; height: 1px; background: rgba(167,139,250,0.12); margin: 3px 0; }
+
+#kbBtn {
+  position: fixed; bottom: 28px; left: 28px; z-index: 500;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(167,139,250,0.18); backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(167,139,250,0.35);
+  color: rgba(167,139,250,0.85); font-size: 0.72rem; font-weight: 800;
+  cursor: pointer; font-family: 'Nunito', sans-serif;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.18s;
+  box-shadow: 0 2px 12px rgba(120,80,200,0.15);
+}
+#kbBtn:hover { background: rgba(167,139,250,0.35); color: white; transform: scale(1.1); }
+#kbBtn.active { background: rgba(167,139,250,0.5); color: white; border-color: rgba(167,139,250,0.9); }
+
+/* flash feedback raccourci */
+.kb-flash {
+  position: fixed; top: 50%; left: 50%;
+  transform: translate(-50%,-50%) scale(0.85);
+  background: rgba(167,139,250,0.88);
+  color: white; font-size: 1.3rem; padding: 10px 18px;
+  border-radius: 12px; font-family: 'Nunito', sans-serif; font-weight: 800;
+  z-index: 700; pointer-events: none; opacity: 0;
+  transition: opacity 0.14s, transform 0.14s;
+}
+.kb-flash.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+
 </style>
 </head>
 <body>
@@ -568,6 +698,11 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
         <div class="card-head">
           <span class="card-title">🔗 Mes liens</span>
           <button class="card-action" onclick="addCompactLink()" title="Ajouter un lien">＋</button>
+        </div>
+        <div class="links-search-wrap">
+          <span class="links-search-icon">🔍</span>
+          <input class="links-search-input" id="linksSearch" placeholder="Rechercher un lien…" oninput="filterLinks(this.value)">
+          <button class="links-search-clear" id="linksSearchClear" onclick="clearLinksSearch()">✕</button>
         </div>
         <div class="compact-links-wrap" id="compactLinksWrap"></div>
       </div>
@@ -1093,6 +1228,22 @@ function renderCompactLinks(){
     emBtn.textContent = lk.emoji || '🔗';
     emBtn.title = 'Changer icône';
     emBtn.onclick = (e) => { e.stopPropagation(); openEmojiCompact(e, i); };
+
+    // ── FAVICON AUTO ──
+    if(lk.url){
+      try {
+        const domain = new URL(lk.url).hostname;
+        if(domain && !domain.startsWith('192.') && !domain.startsWith('10.') && !domain.startsWith('172.')){
+          const fav = document.createElement('img');
+          fav.className = 'compact-link-favicon';
+          fav.src = `https://www.google.com/s2/favicons?sz=32&domain=${domain}`;
+          fav.onload = () => fav.classList.add('loaded');
+          fav.onerror = () => fav.remove();
+          emBtn.appendChild(fav);
+        }
+      } catch(e){}
+    }
+
     item.appendChild(emBtn);
 
     const nameIn = document.createElement('input');
@@ -1818,6 +1969,153 @@ function loadFromHash(){
 
 window.addEventListener('load', () => { initApp(); loadFromHash(); });
 
+// ══════════════════════════════════════════
+// ── RECHERCHE LIENS ──
+// ══════════════════════════════════════════
+function filterLinks(q){
+  const clearBtn = document.getElementById('linksSearchClear');
+  clearBtn.classList.toggle('show', q.length > 0);
+  const term = q.toLowerCase().trim();
+  document.querySelectorAll('.compact-link-item').forEach((item, i) => {
+    if(!term){ item.classList.remove('search-hidden'); return; }
+    const lk = compactLinks[i];
+    if(!lk) return;
+    const match = (lk.name||'').toLowerCase().includes(term) || (lk.url||'').toLowerCase().includes(term);
+    item.classList.toggle('search-hidden', !match);
+  });
+}
+
+function clearLinksSearch(){
+  const inp = document.getElementById('linksSearch');
+  inp.value = '';
+  filterLinks('');
+  inp.focus();
+}
+
+// ══════════════════════════════════════════
+// ── RACCOURCIS CLAVIER ──
+// ══════════════════════════════════════════
+let kbPanelOpen = false;
+let kbFlashTimer = null;
+
+function toggleKbPanel(){
+  kbPanelOpen = !kbPanelOpen;
+  document.getElementById('kbPanel').classList.toggle('show', kbPanelOpen);
+  document.getElementById('kbBtn').classList.toggle('active', kbPanelOpen);
+}
+
+function showKbFlash(text){
+  const el = document.getElementById('kbFlash');
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(kbFlashTimer);
+  kbFlashTimer = setTimeout(() => el.classList.remove('show'), 700);
+}
+
+document.addEventListener('keydown', (e) => {
+  const tag = document.activeElement?.tagName?.toLowerCase();
+  const inInput = tag === 'input' || tag === 'textarea';
+
+  // Échap : ferme panneaux
+  if(e.key === 'Escape'){
+    if(kbPanelOpen){ toggleKbPanel(); return; }
+    // ferme lightbox
+    const lb = document.getElementById('ssLightbox');
+    if(lb && lb.classList.contains('open')){ ssCloseZoom(); return; }
+    // ferme emoji picker
+    const ep = document.getElementById('emojiPicker');
+    if(ep && ep.style.display !== 'none'){ ep.style.display = 'none'; return; }
+    // vide la recherche liens
+    const ls = document.getElementById('linksSearch');
+    if(ls && ls.value){ clearLinksSearch(); return; }
+    return;
+  }
+
+  // ? → aide clavier (même si dans input)
+  if(e.key === '?' && !inInput){
+    toggleKbPanel();
+    return;
+  }
+
+  // / → focus barre de recherche
+  if(e.key === '/' && !inInput){
+    e.preventDefault();
+    const ls = document.getElementById('linksSearch');
+    if(ls){ ls.focus(); ls.select(); }
+    return;
+  }
+
+  // Pas de raccourcis si on tape dans un champ
+  if(inInput) return;
+
+  // ── GALERIE ──
+  if(e.key === 'ArrowLeft'){
+    e.preventDefault();
+    if(ssOrder.length){ ssPrev(); showKbFlash('◀'); }
+    return;
+  }
+  if(e.key === 'ArrowRight'){
+    e.preventDefault();
+    if(ssOrder.length){ ssNext(); showKbFlash('▶'); }
+    return;
+  }
+  if(e.key === ' '){
+    e.preventDefault();
+    if(ssOrder.length){ ssTogglePlay(); showKbFlash(ssPlaying ? '⏸' : '▶'); }
+    return;
+  }
+  if(e.key === 'z' || e.key === 'Z'){
+    if(!e.ctrlKey && !e.metaKey){
+      if(ssOrder.length){ ssOpenZoom(e); }
+    }
+    return;
+  }
+
+  // ── DESSIN — couleurs 1-8 ──
+  const colorMap = {
+    '1':'#ff6eb4','2':'#a78bfa','3':'#38bdf8','4':'#34d399',
+    '5':'#fbbf24','6':'#f87171','7':'#3b2f6e','8':'#ffffff'
+  };
+  if(colorMap[e.key]){
+    const swatch = document.querySelector(`.color-swatch[data-color="${colorMap[e.key]}"]`);
+    if(swatch){ setColor(swatch); showKbFlash(e.key); }
+    return;
+  }
+
+  // ── DESSIN — tailles S/M/L ──
+  const sizeMap = { 's':'3', 'm':'7', 'l':'14' };
+  const kl = e.key.toLowerCase();
+  if(sizeMap[kl]){
+    const btn = document.querySelector(`.size-btn[data-size="${sizeMap[kl]}"]`);
+    if(btn){ setSize(btn); showKbFlash(e.key.toUpperCase()); }
+    return;
+  }
+
+  // ── DESSIN — Ctrl+Z annuler ──
+  if((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')){
+    e.preventDefault();
+    undoDraw();
+    showKbFlash('↩');
+    return;
+  }
+
+  // ── DESSIN — Delete effacer ──
+  if(e.key === 'Delete'){
+    clearCanvas();
+    showKbFlash('🗑');
+    return;
+  }
+});
+
+// Ferme le panel kb si clic ailleurs
+document.addEventListener('click', (e) => {
+  if(kbPanelOpen && !e.target.closest('#kbPanel') && e.target.id !== 'kbBtn'){
+    kbPanelOpen = false;
+    document.getElementById('kbPanel').classList.remove('show');
+    document.getElementById('kbBtn').classList.remove('active');
+  }
+});
+
 </script>
 <!-- LIGHTBOX -->
 <div id="ssLightbox" onclick="ssCloseZoom()">
@@ -1888,6 +2186,28 @@ window.addEventListener('load', () => { initApp(); loadFromHash(); });
     </div>
   </div>
 </div>
+
+<!-- KEYBOARD SHORTCUTS PANEL -->
+<div id="kbPanel">
+  <div class="kb-title">⌨️ Raccourcis clavier</div>
+  <div class="kb-grid">
+    <div class="kb-row"><span class="kb-key">←</span><span class="kb-desc">Photo précédente</span></div>
+    <div class="kb-row"><span class="kb-key">→</span><span class="kb-desc">Photo suivante</span></div>
+    <div class="kb-row"><span class="kb-key">Espace</span><span class="kb-desc">Pause / Play</span></div>
+    <div class="kb-row"><span class="kb-key">Z</span><span class="kb-desc">Zoom photo</span></div>
+    <div class="kb-sep"></div>
+    <div class="kb-row"><span class="kb-key">1–8</span><span class="kb-desc">Couleur pinceau</span></div>
+    <div class="kb-row"><span class="kb-key">S / M / L</span><span class="kb-desc">Taille pinceau</span></div>
+    <div class="kb-row"><span class="kb-key">Ctrl+Z</span><span class="kb-desc">Annuler dessin</span></div>
+    <div class="kb-row"><span class="kb-key">Del</span><span class="kb-desc">Effacer dessin</span></div>
+    <div class="kb-sep"></div>
+    <div class="kb-row"><span class="kb-key">/</span><span class="kb-desc">Recherche liens</span></div>
+    <div class="kb-row"><span class="kb-key">Échap</span><span class="kb-desc">Fermer / Annuler</span></div>
+    <div class="kb-row"><span class="kb-key">?</span><span class="kb-desc">Cette aide</span></div>
+  </div>
+</div>
+<div class="kb-flash" id="kbFlash"></div>
+<button id="kbBtn" onclick="toggleKbPanel()" title="Raccourcis clavier [?]">?</button>
 
 </body>
 </html>
