@@ -752,30 +752,7 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-head">
-          <span class="card-title">🎨 Dessin</span>
-          <div style="display:flex;gap:6px">
-            <button class="card-action" onclick="undoDraw()" title="Annuler">↩</button>
-            <button class="card-action" onclick="clearCanvas()" title="Effacer">🗑</button>
-          </div>
-        </div>
-        <div class="draw-toolbar">
-          <div class="color-swatch active" style="background:#ff6eb4" data-color="#ff6eb4" onclick="setColor(this)"></div>
-          <div class="color-swatch" style="background:#a78bfa" data-color="#a78bfa" onclick="setColor(this)"></div>
-          <div class="color-swatch" style="background:#38bdf8" data-color="#38bdf8" onclick="setColor(this)"></div>
-          <div class="color-swatch" style="background:#34d399" data-color="#34d399" onclick="setColor(this)"></div>
-          <div class="color-swatch" style="background:#fbbf24" data-color="#fbbf24" onclick="setColor(this)"></div>
-          <div class="color-swatch" style="background:#f87171" data-color="#f87171" onclick="setColor(this)"></div>
-          <div class="color-swatch" style="background:#3b2f6e" data-color="#3b2f6e" onclick="setColor(this)"></div>
-          <div class="color-swatch" style="background:#ffffff;border-color:rgba(167,139,250,0.4)" data-color="#ffffff" onclick="setColor(this)"></div>
-          <div class="tool-sep"></div>
-          <button class="size-btn active" data-size="3" onclick="setSize(this)"><div style="width:3px;height:3px;background:var(--text);border-radius:50%"></div></button>
-          <button class="size-btn" data-size="7" onclick="setSize(this)"><div style="width:7px;height:7px;background:var(--text);border-radius:50%"></div></button>
-          <button class="size-btn" data-size="14" onclick="setSize(this)"><div style="width:12px;height:12px;background:var(--text);border-radius:50%"></div></button>
-        </div>
-        <canvas id="drawCanvas" height="200"></canvas>
-      </div>
+
 
       <div class="card">
         <div class="card-head">
@@ -1392,41 +1369,61 @@ function bgConfirmCancel(){
   _pendingBgData = null;
 }
 
-// ── CANVAS ──
-const canvas=document.getElementById('drawCanvas');
-const ctx=canvas.getContext('2d');
+// ── CANVAS PLEIN ÉCRAN ──
+// canvas/ctx initialisés dans initCanvas() appelé depuis window.onload
+let canvas, ctx;
 let drawing=false, currentColor='#ff6eb4', currentSize=3, history=[];
+let drawEnabled=false;
+
+function initCanvas(){
+  canvas = document.getElementById('drawCanvas');
+  ctx = canvas.getContext('2d');
+  resizeCanvas();
+  canvas.addEventListener('mousedown',startDraw);
+  canvas.addEventListener('mousemove',draw);
+  canvas.addEventListener('mouseup',endDraw);
+  canvas.addEventListener('mouseleave',endDraw);
+  canvas.addEventListener('touchstart',startDraw,{passive:false});
+  canvas.addEventListener('touchmove',draw,{passive:false});
+  canvas.addEventListener('touchend',endDraw);
+  window.addEventListener('resize', resizeCanvas);
+}
+
+function toggleDrawMode(){
+  drawEnabled = !drawEnabled;
+  canvas.style.pointerEvents = drawEnabled ? 'auto' : 'none';
+  canvas.style.cursor = drawEnabled ? 'crosshair' : 'default';
+  document.body.style.overflow = drawEnabled ? 'hidden' : '';
+  const btn = document.getElementById('drawToggleBtn');
+  btn.style.background = drawEnabled ? 'rgba(167,139,250,0.55)' : 'rgba(167,139,250,0.12)';
+  btn.style.borderColor = drawEnabled ? 'var(--c2)' : 'rgba(167,139,250,0.4)';
+  btn.title = drawEnabled ? 'Désactiver le dessin' : 'Activer le dessin';
+}
 
 function resizeCanvas(){
-  const w=canvas.offsetWidth;
-  const saved=ctx.getImageData(0,0,canvas.width,canvas.height);
-  canvas.width=w*window.devicePixelRatio;
-  canvas.height=260*window.devicePixelRatio;
-  canvas.style.height='260px';
-  ctx.scale(window.devicePixelRatio,window.devicePixelRatio);
-  ctx.putImageData(saved,0,0);
+  if(!canvas) return;
+  const saved = ctx.getImageData(0,0,canvas.width,canvas.height);
+  canvas.width = window.innerWidth * window.devicePixelRatio;
+  canvas.height = window.innerHeight * window.devicePixelRatio;
+  canvas.style.width = window.innerWidth + 'px';
+  canvas.style.height = window.innerHeight + 'px';
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  ctx.putImageData(saved, 0, 0);
   ctx.lineCap='round'; ctx.lineJoin='round';
 }
 function getPos(e){
   const r=canvas.getBoundingClientRect();
-  if(e.touches) return{x:(e.touches[0].clientX-r.left)*(canvas.offsetWidth/r.width),y:(e.touches[0].clientY-r.top)*(canvas.offsetHeight/r.height)};
-  return{x:(e.clientX-r.left)*(canvas.offsetWidth/r.width),y:(e.clientY-r.top)*(canvas.offsetHeight/r.height)};
+  if(e.touches) return{x:(e.touches[0].clientX-r.left),y:(e.touches[0].clientY-r.top)};
+  return{x:(e.clientX-r.left),y:(e.clientY-r.top)};
 }
-function startDraw(e){ e.preventDefault(); drawing=true; history.push(ctx.getImageData(0,0,canvas.width,canvas.height)); if(history.length>30)history.shift(); const p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.strokeStyle=currentColor; ctx.lineWidth=currentSize; }
-function draw(e){ if(!drawing)return; e.preventDefault(); const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); }
-function endDraw(){ drawing=false; saveCanvas(); }
-canvas.addEventListener('mousedown',startDraw);
-canvas.addEventListener('mousemove',draw);
-canvas.addEventListener('mouseup',endDraw);
-canvas.addEventListener('mouseleave',endDraw);
-canvas.addEventListener('touchstart',startDraw,{passive:false});
-canvas.addEventListener('touchmove',draw,{passive:false});
-canvas.addEventListener('touchend',endDraw);
+function startDraw(e){ if(!drawEnabled)return; e.preventDefault(); drawing=true; history.push(ctx.getImageData(0,0,canvas.width,canvas.height)); if(history.length>30)history.shift(); const p=getPos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.strokeStyle=currentColor; ctx.lineWidth=currentSize; }
+function draw(e){ if(!drawing||!drawEnabled)return; e.preventDefault(); const p=getPos(e); ctx.lineTo(p.x,p.y); ctx.stroke(); }
+function endDraw(){ if(!drawing)return; drawing=false; saveCanvas(); }
 function setColor(el){ document.querySelectorAll('.color-swatch').forEach(s=>s.classList.remove('active')); el.classList.add('active'); currentColor=el.dataset.color; }
 function setSize(el){ document.querySelectorAll('.size-btn').forEach(s=>s.classList.remove('active')); el.classList.add('active'); currentSize=parseInt(el.dataset.size); }
-function undoDraw(){ if(history.length)ctx.putImageData(history.pop(),0,0); }
-function clearCanvas(){ history.push(ctx.getImageData(0,0,canvas.width,canvas.height)); ctx.clearRect(0,0,canvas.width,canvas.height); saveCanvas(); }
-function saveCanvas(){ try{ localStorage.setItem('dashboard_canvas',canvas.toDataURL()); }catch(e){} }
+function undoDraw(){ if(canvas&&history.length)ctx.putImageData(history.pop(),0,0); }
+function clearCanvas(){ if(!canvas)return; history.push(ctx.getImageData(0,0,canvas.width,canvas.height)); ctx.clearRect(0,0,canvas.width,canvas.height); saveCanvas(); }
+function saveCanvas(){ if(!canvas)return; try{ localStorage.setItem('dashboard_canvas',canvas.toDataURL()); }catch(e){} }
 
 // ── FIT TOGGLE (cover ↔ contain) ──
 let ssFit = 'cover'; // 'cover' | 'contain'
@@ -1570,7 +1567,7 @@ async function importVault(e){
       if(data.gallery) { gallery=data.gallery; renderGallery(); }
       if(data.notes) document.getElementById('notesArea').value=data.notes;
       if(data.bg){ const bg=document.getElementById('bg-layer'); bg.style.backgroundImage='url('+data.bg+')'; bg.style.backgroundSize='cover'; localStorage.setItem('dashboard_bg',data.bg); }
-      if(data.canvas){ localStorage.setItem('dashboard_canvas',data.canvas); const img=new Image(); img.onload=()=>ctx.drawImage(img,0,0,canvas.offsetWidth,200); img.src=data.canvas; }
+      if(data.canvas){ localStorage.setItem('dashboard_canvas',data.canvas); const img=new Image(); img.onload=()=>ctx.drawImage(img,0,0,window.innerWidth,window.innerHeight); img.src=data.canvas; }
       save();
       alert('✅ Importé avec succès !');
     }catch(err){ alert('❌ Fichier corrompu ou incompatible.'); }
@@ -1827,10 +1824,9 @@ function initApp(){
   applyClockColor();
   renderLinks();
   renderGallery();
-  resizeCanvas();
+  initCanvas();
   const cv=localStorage.getItem('dashboard_canvas');
-  if(cv){ const img=new Image(); img.onload=()=>ctx.drawImage(img,0,0,canvas.offsetWidth,260); img.src=cv; }
-  window.addEventListener('resize',resizeCanvas);
+  if(cv){ const img=new Image(); img.onload=()=>ctx.drawImage(img,0,0,window.innerWidth,window.innerHeight); img.src=cv; }
   // sunset
   sunsetVisible = localStorage.getItem('dashboard_sunset_visible') !== '0';
   document.getElementById('sunsetWidget').classList.toggle('hidden-widget', !sunsetVisible);
@@ -2124,6 +2120,30 @@ document.addEventListener('click', (e) => {
   <img id="ssLightboxImg" src="" alt="">
   <button id="ssLightboxNext" onclick="ssLightboxNext(event)">›</button>
   <div id="ssLightboxFilename"></div>
+</div>
+
+<!-- CANVAS PLEIN ÉCRAN sur le fond -->
+<canvas id="drawCanvas" style="position:fixed;inset:0;z-index:1;width:100%;height:100%;cursor:crosshair;touch-action:none;pointer-events:none;"></canvas>
+
+<!-- TOOLBAR FLOTTANTE DESSIN -->
+<div id="drawToolbar" style="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:600;display:flex;align-items:center;gap:8px;padding:10px 16px;background:rgba(12,6,35,0.88);backdrop-filter:blur(18px);border:1.5px solid rgba(167,139,250,0.3);border-radius:50px;box-shadow:0 8px 32px rgba(0,0,0,0.35);">
+  <button id="drawToggleBtn" onclick="toggleDrawMode()" title="Activer / désactiver le dessin" style="width:30px;height:30px;border-radius:50%;border:2px solid rgba(255,255,255,0.25);background:rgba(167,139,250,0.18);color:rgba(255,255,255,0.8);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">✏️</button>
+  <div style="width:1px;height:20px;background:rgba(255,255,255,0.15);margin:0 2px;"></div>
+  <div class="color-swatch active" style="background:#ff6eb4" data-color="#ff6eb4" onclick="setColor(this)"></div>
+  <div class="color-swatch" style="background:#a78bfa" data-color="#a78bfa" onclick="setColor(this)"></div>
+  <div class="color-swatch" style="background:#38bdf8" data-color="#38bdf8" onclick="setColor(this)"></div>
+  <div class="color-swatch" style="background:#34d399" data-color="#34d399" onclick="setColor(this)"></div>
+  <div class="color-swatch" style="background:#fbbf24" data-color="#fbbf24" onclick="setColor(this)"></div>
+  <div class="color-swatch" style="background:#f87171" data-color="#f87171" onclick="setColor(this)"></div>
+  <div class="color-swatch" style="background:#3b2f6e" data-color="#3b2f6e" onclick="setColor(this)"></div>
+  <div class="color-swatch" style="background:#ffffff;border-color:rgba(167,139,250,0.4)" data-color="#ffffff" onclick="setColor(this)"></div>
+  <div class="tool-sep"></div>
+  <button class="size-btn active" data-size="3" onclick="setSize(this)"><div style="width:3px;height:3px;background:#fff;border-radius:50%"></div></button>
+  <button class="size-btn" data-size="7" onclick="setSize(this)"><div style="width:7px;height:7px;background:#fff;border-radius:50%"></div></button>
+  <button class="size-btn" data-size="14" onclick="setSize(this)"><div style="width:12px;height:12px;background:#fff;border-radius:50%"></div></button>
+  <div style="width:1px;height:20px;background:rgba(255,255,255,0.15);margin:0 2px;"></div>
+  <button onclick="undoDraw()" title="Annuler (Ctrl+Z)" style="width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(167,139,250,0.3);background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.75);font-size:0.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">↩</button>
+  <button onclick="clearCanvas()" title="Effacer tout (Del)" style="width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(248,113,113,0.3);background:rgba(248,113,113,0.08);color:rgba(248,113,113,0.75);font-size:0.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;">🗑</button>
 </div>
 
 <button id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Remonter en haut">↑</button>
