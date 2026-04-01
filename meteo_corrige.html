@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Météo Bourg-lès-Valence • En direct</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        
+        .weather-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e2937 100%);
+            min-height: 100vh;
+        }
+        
+        .card {
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 25px 30px -10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 340px;
+            width: 100%;
+        }
+        
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="weather-bg text-white">
+    <div class="max-w-7xl mx-auto p-6">
+        
+        <!-- HEADER -->
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-10 gap-4">
+            <div class="flex items-center gap-4">
+                <div class="w-14 h-14 bg-sky-500 rounded-3xl flex items-center justify-center text-4xl shadow-lg">🌤️</div>
+                <div>
+                    <h1 class="text-4xl font-bold">Bourg-lès-Valence</h1>
+                    <p class="text-sky-300 text-lg">Drôme, France</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-8">
+                <div id="local-time" class="text-right">
+                    <div id="current-date" class="text-sm text-sky-300"></div>
+                    <div id="current-time" class="text-4xl font-mono font-semibold"></div>
+                </div>
+                
+                <button onclick="manualRefresh()" 
+                        class="flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-md px-6 py-3 rounded-3xl transition-all active:scale-95">
+                    <i id="refresh-icon" class="fas fa-sync-alt text-lg"></i>
+                    <span class="font-medium">Actualiser</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- MÉTÉO ACTUELLE -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10">
+            <div class="lg:col-span-7 bg-white/10 backdrop-blur-2xl rounded-3xl p-8 card">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-6">
+                        <span id="current-icon" class="text-8xl">⛅</span>
+                        <div>
+                            <div id="current-temp" class="text-8xl font-bold leading-none">13°</div>
+                            <div id="current-desc" class="text-2xl text-sky-200 mt-2">Partiellement nuageux</div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-right">
+                        <div class="text-sm text-sky-300 mb-1">Ressenti</div>
+                        <div class="text-5xl font-light text-white/80" id="feels-like">12°</div>
+                        <div class="mt-4 space-y-2 text-sm">
+                            <div class="flex items-center gap-3 justify-end">
+                                <i class="fas fa-temperature-arrow-up text-red-400"></i>
+                                <span id="day-max" class="font-semibold">--°</span>
+                            </div>
+                            <div class="flex items-center gap-3 justify-end">
+                                <i class="fas fa-temperature-arrow-down text-sky-400"></i>
+                                <span id="day-min" class="font-semibold">--°</span>
+                            </div>
+                            <div class="flex items-center gap-3 justify-end">
+                                <i class="fas fa-sun text-amber-300"></i>
+                                <span id="sunrise">07:18</span>
+                            </div>
+                            <div class="flex items-center gap-3 justify-end">
+                                <i class="fas fa-moon text-slate-300"></i>
+                                <span id="sunset">20:10</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI actuels -->
+                <div class="grid grid-cols-4 gap-6 mt-12 pt-8 border-t border-white/20">
+                    <div class="text-center">
+                        <i class="fas fa-droplet text-sky-400 text-3xl mb-2"></i>
+                        <div id="humidity" class="text-3xl font-bold">72%</div>
+                        <div class="text-xs text-sky-300">Humidité</div>
+                    </div>
+                    <div class="text-center">
+                        <i class="fas fa-wind text-teal-400 text-3xl mb-2"></i>
+                        <div id="wind" class="text-3xl font-bold">12 km/h</div>
+                        <div class="text-xs text-sky-300">Vent</div>
+                    </div>
+                    <div class="text-center">
+                        <i class="fas fa-cloud text-slate-300 text-3xl mb-2"></i>
+                        <div id="cloud" class="text-3xl font-bold">55%</div>
+                        <div class="text-xs text-sky-300">Nuages</div>
+                    </div>
+                    <div class="text-center">
+                        <i class="fas fa-umbrella text-violet-400 text-3xl mb-2"></i>
+                        <div id="precip-prob" class="text-3xl font-bold">20%</div>
+                        <div class="text-xs text-sky-300">Pluie</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- PROCHAINES HEURES (pleine largeur) -->
+        <div class="bg-white/10 backdrop-blur-2xl rounded-3xl p-6 mb-10 card">
+            <h3 class="text-sky-300 font-medium mb-4 flex items-center gap-2">
+                <i class="fas fa-clock"></i> PROCHAINES HEURES
+            </h3>
+            <div id="hourly-forecast" class="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                <!-- JS -->
+            </div>
+        </div>
+
+        <!-- GRAPHIQUE COMBINÉ -->
+        <div class="bg-white/10 backdrop-blur-2xl rounded-3xl p-6 mb-10 card">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <h3 class="font-semibold flex items-center gap-2">
+                    <i class="fas fa-chart-line text-sky-400"></i>
+                    Prévisions 48h
+                </h3>
+                <div class="flex flex-wrap items-center gap-4 text-xs">
+                    <span class="flex items-center gap-1"><span class="inline-block w-3 h-1 rounded bg-amber-400"></span> Température</span>
+                    <span class="flex items-center gap-1"><span class="inline-block w-3 h-1 rounded bg-sky-400"></span> Précip. (mm)</span>
+                    <span class="flex items-center gap-1"><span class="inline-block w-3 h-1 rounded bg-violet-400"></span> Prob. pluie</span>
+                    <span class="flex items-center gap-1"><span class="inline-block w-3 h-1 rounded bg-teal-400"></span> Vent (km/h)</span>
+                </div>
+            </div>
+            <div class="chart-container" style="height: 380px;">
+                <canvas id="combinedChart"></canvas>
+            </div>
+        </div>
+
+        <!-- PRÉVISION 7 JOURS -->
+        <div>
+            <h2 class="text-2xl font-semibold mb-5 flex items-center gap-3">
+                <span>📅</span> Prévision sur 7 jours
+            </h2>
+            <div id="daily-forecast" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                <!-- JS -->
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center text-sky-300/60 text-sm py-10">
+        Données Open-Meteo • Mise à jour auto toutes les 10 minutes • Bourg-lès-Valence
+    </footer>
+
+    <script>
+        // ==================== CONFIG ====================
+        const LAT = 44.9486;
+        const LON = 4.8961;
+        const TIMEZONE = "Europe/Paris";
+
+        let combinedChart = null;
+
+        const WMO = {
+            0: {icon:"☀️", desc:"Ciel dégagé"},
+            1: {icon:"🌤️", desc:"Principalement dégagé"},
+            2: {icon:"⛅️", desc:"Partiellement nuageux"},
+            3: {icon:"☁️", desc:"Nuageux"},
+            45: {icon:"🌫️", desc:"Brouillard"},
+            51: {icon:"🌧️", desc:"Bruine"},
+            61: {icon:"🌦️", desc:"Pluie légère"},
+            63: {icon:"🌧️", desc:"Pluie modérée"},
+            65: {icon:"🌧️", desc:"Pluie forte"},
+            71: {icon:"❄️", desc:"Neige"},
+            80: {icon:"🌦️", desc:"Averses"},
+            95: {icon:"⛈️", desc:"Orage"}
+        };
+
+        function getApiUrl() {
+            return `https://api.open-meteo.com/v1/forecast?` +
+                `latitude=${LAT}&longitude=${LON}` +
+                `&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m` +
+                `&hourly=temperature_2m,precipitation_probability,precipitation,weather_code,wind_speed_10m,wind_direction_10m` +
+                `&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max` +
+                `&timezone=${TIMEZONE}&forecast_days=7`;
+        }
+
+        // ==================== UTILITAIRES ====================
+        function formatHour(time) {
+            // Parsing manuel pour éviter les NaN selon le navigateur
+            const h = time.split("T")[1] ? time.split("T")[1].substring(0, 2) : "0";
+            return parseInt(h, 10) + "h";
+        }
+
+        function getWindDir(deg) {
+            const dirs = ["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSO","SO","OSO","O","ONO","NO","NNO"];
+            return dirs[Math.round(deg / 22.5) % 16];
+        }
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById("current-time").textContent = now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+            document.getElementById("current-date").textContent = now.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+        }
+
+        // ==================== DESTRUCTION GRAPHIQUE ====================
+        function destroyCharts() {
+            if (combinedChart) { combinedChart.destroy(); combinedChart = null; }
+        }
+
+        // ==================== GRAPHIQUE COMBINÉ ====================
+        function createCharts(data) {
+            destroyCharts();
+
+            const labels = data.hourly.time.slice(0, 48).map(t => formatHour(t));
+
+            combinedChart = new Chart(document.getElementById('combinedChart'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            type: 'line',
+                            label: 'Température (°C)',
+                            data: data.hourly.temperature_2m.slice(0, 48),
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245,158,11,0.08)',
+                            borderWidth: 3,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            yAxisID: 'yTemp',
+                            fill: true,
+                            order: 1
+                        },
+                        {
+                            type: 'line',
+                            label: 'Vent (km/h)',
+                            data: data.hourly.wind_speed_10m.slice(0, 48),
+                            borderColor: '#14b8a6',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            yAxisID: 'yWind',
+                            order: 2
+                        },
+                        {
+                            type: 'line',
+                            label: 'Prob. pluie (%)',
+                            data: data.hourly.precipitation_probability.slice(0, 48),
+                            borderColor: '#a5b4fc',
+                            backgroundColor: 'transparent',
+                            borderWidth: 2,
+                            borderDash: [4, 3],
+                            tension: 0.3,
+                            pointRadius: 0,
+                            yAxisID: 'yPct',
+                            order: 3
+                        },
+                        {
+                            type: 'bar',
+                            label: 'Précip. (mm)',
+                            data: data.hourly.precipitation.slice(0, 48),
+                            backgroundColor: 'rgba(56,189,248,0.5)',
+                            borderColor: '#38bdf8',
+                            borderWidth: 1,
+                            yAxisID: 'yPrecip',
+                            order: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(15,23,42,0.9)',
+                            titleColor: '#94a3b8',
+                            bodyColor: '#e2e8f0',
+                            padding: 10,
+                            callbacks: {
+                                label: ctx => {
+                                    const units = ['°C', 'km/h', '%', 'mm'];
+                                    return ` ${ctx.dataset.label}: ${ctx.parsed.y}${units[ctx.datasetIndex] ?? ''}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: '#1e293b' },
+                            ticks: { color: '#94a3b8', maxRotation: 45, autoSkip: true, maxTicksLimit: 12 }
+                        },
+                        yTemp: {
+                            position: 'left',
+                            grid: { color: '#1e293b' },
+                            ticks: { color: '#fed7aa', callback: v => v + '°' }
+                        },
+                        yWind: {
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: '#5eead4', callback: v => v + ' km/h' },
+                            beginAtZero: true
+                        },
+                        yPct: {
+                            display: false,
+                            max: 100,
+                            min: 0
+                        },
+                        yPrecip: {
+                            display: false,
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==================== FETCH WEATHER ====================
+        async function fetchWeather() {
+            try {
+                const res = await fetch(getApiUrl());
+                const data = await res.json();
+
+                const current = data.current;
+                const code = WMO[current.weather_code] || {icon: "🌥️", desc: "Nuageux"};
+
+                // Current weather
+                document.getElementById("current-icon").textContent = code.icon;
+                document.getElementById("current-temp").textContent = Math.round(current.temperature_2m) + "°";
+                document.getElementById("current-desc").textContent = code.desc;
+                document.getElementById("feels-like").textContent = Math.round(current.apparent_temperature) + "°";
+                document.getElementById("humidity").textContent = current.relative_humidity_2m + "%";
+                document.getElementById("wind").innerHTML = `${Math.round(current.wind_speed_10m)} <span class="text-base">km/h</span> <span class="text-xs">(${getWindDir(current.wind_direction_10m)})</span>`;
+                document.getElementById("cloud").textContent = current.cloud_cover + "%";
+                document.getElementById("precip-prob").textContent = data.hourly.precipitation_probability[0] + "%";
+
+                // Max / Min + Soleil
+                document.getElementById("day-max").textContent = Math.round(data.daily.temperature_2m_max[0]) + "°";
+                document.getElementById("day-min").textContent = Math.round(data.daily.temperature_2m_min[0]) + "°";
+                document.getElementById("sunrise").textContent = data.daily.sunrise[0].split("T")[1].substring(0,5);
+                document.getElementById("sunset").textContent = data.daily.sunset[0].split("T")[1].substring(0,5);
+
+                // Hourly forecast — on part de l'heure actuelle
+                const now = new Date();
+                const currentHour = now.getFullYear() + '-' +
+                    String(now.getMonth()+1).padStart(2,'0') + '-' +
+                    String(now.getDate()).padStart(2,'0') + 'T' +
+                    String(now.getHours()).padStart(2,'0') + ':00';
+                let startIdx = data.hourly.time.findIndex(t => t >= currentHour);
+                if (startIdx < 0) startIdx = 0;
+
+                const hourlyDiv = document.getElementById("hourly-forecast");
+                hourlyDiv.innerHTML = "";
+                for (let i = startIdx; i < startIdx + 12 && i < data.hourly.time.length; i++) {
+                    const hCode = WMO[data.hourly.weather_code[i]] || {icon:"⛅"};
+                    const div = document.createElement("div");
+                    div.className = "bg-white/10 rounded-2xl p-4 min-w-[105px] text-center card";
+                    div.innerHTML = `
+                        <div class="text-xs text-sky-300">${formatHour(data.hourly.time[i])}</div>
+                        <div class="text-4xl my-3">${hCode.icon}</div>
+                        <div class="text-2xl font-bold">${Math.round(data.hourly.temperature_2m[i])}°</div>
+                        <div class="text-xs mt-1 text-violet-300">💧 ${data.hourly.precipitation_probability[i]}%</div>
+                        <div class="text-xs mt-1 text-teal-300">💨 ${Math.round(data.hourly.wind_speed_10m[i])} km/h</div>
+                    `;
+                    hourlyDiv.appendChild(div);
+                }
+
+                // Daily forecast
+                const dailyDiv = document.getElementById("daily-forecast");
+                dailyDiv.innerHTML = "";
+                for (let i = 0; i < 7; i++) {
+                    const dCode = WMO[data.daily.weather_code[i]] || {icon:"⛅"};
+                    const date = new Date(data.daily.time[i]);
+                    const dayName = date.toLocaleDateString('fr-FR', {weekday: 'short'}).toUpperCase();
+
+                    const div = document.createElement("div");
+                    div.className = "bg-white/10 rounded-3xl p-5 text-center card";
+                    div.innerHTML = `
+                        <div class="text-sm text-sky-300">${dayName}</div>
+                        <div class="text-5xl my-4">${dCode.icon}</div>
+                        <div class="flex justify-between text-xl font-medium">
+                            <span>${Math.round(data.daily.temperature_2m_max[i])}°</span>
+                            <span class="text-sky-200">${Math.round(data.daily.temperature_2m_min[i])}°</span>
+                        </div>
+                    `;
+                    dailyDiv.appendChild(div);
+                }
+
+                // Création des 3 graphiques
+                createCharts(data);
+
+            } catch (e) {
+                console.error("Erreur météo :", e);
+            }
+        }
+
+        function manualRefresh() {
+            const icon = document.getElementById("refresh-icon");
+            icon.classList.add("fa-spin");
+            fetchWeather().finally(() => {
+                setTimeout(() => icon.classList.remove("fa-spin"), 1200);
+            });
+        }
+
+        // ==================== INIT ====================
+        function init() {
+            updateClock();
+            setInterval(updateClock, 1000);
+
+            fetchWeather();
+            setInterval(fetchWeather, 600000); // 10 minutes
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
