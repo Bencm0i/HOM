@@ -624,6 +624,138 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
 #kbBtn:hover { background: rgba(167,139,250,0.35); color: white; transform: scale(1.1); }
 #kbBtn.active { background: rgba(167,139,250,0.5); color: white; border-color: rgba(167,139,250,0.9); }
 
+/* ── MÉTÉO WIDGET (discret) ── */
+#meteoWidget {
+  position:fixed; top:18px; right:20px; z-index:20;
+  display:flex; align-items:center; gap:7px;
+  background:rgba(255,255,255,0.18); backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,0.35); border-radius:30px;
+  padding:5px 12px 5px 9px;
+  box-shadow:0 2px 14px rgba(120,80,200,0.1);
+  cursor:pointer; transition:background 0.2s, box-shadow 0.2s;
+  font-family:'Nunito',sans-serif;
+}
+#meteoWidget:hover { background:rgba(255,255,255,0.35); box-shadow:0 4px 20px rgba(120,80,200,0.18); }
+#meteoIcon { font-size:1.1rem; line-height:1; }
+#meteoTemp { font-size:0.85rem; font-weight:800; color:var(--text); }
+#meteoCity { font-size:0.6rem; font-weight:700; color:var(--muted); letter-spacing:0.06em; }
+#meteoTooltip {
+  position:fixed; top:52px; right:16px; z-index:21;
+  background:rgba(255,255,255,0.95); backdrop-filter:blur(20px);
+  border:1.5px solid rgba(255,255,255,0.9); border-radius:16px;
+  padding:14px 18px; min-width:180px;
+  box-shadow:0 8px 32px rgba(120,80,200,0.18);
+  font-family:'Nunito',sans-serif; display:none; flex-direction:column; gap:6px;
+}
+#meteoTooltip.open { display:flex; }
+.meteo-row { display:flex; align-items:center; gap:8px; }
+.meteo-label { font-size:0.65rem; font-weight:700; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; flex:1; }
+.meteo-val { font-size:0.75rem; font-weight:800; color:var(--text); }
+
+/* ── THEMES LIENS ── */
+.theme-group { margin-bottom:4px; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.6); background:rgba(255,255,255,0.22); }
+.theme-header {
+  display:flex; align-items:center; gap:6px;
+  padding:6px 10px 6px 12px; cursor:pointer;
+  font-family:'Nunito',sans-serif; font-size:0.68rem; font-weight:800;
+  color:var(--text); letter-spacing:0.06em; text-transform:uppercase;
+  user-select:none; transition:background 0.15s;
+  border-bottom:1px solid rgba(255,255,255,0.4);
+}
+.theme-header:hover { background:rgba(167,139,250,0.1); }
+.theme-arrow { font-size:0.6rem; margin-left:auto; color:var(--muted); transition:transform 0.2s; }
+.theme-group.collapsed .theme-arrow { transform:rotate(-90deg); }
+.theme-group.collapsed .theme-body { display:none; }
+.theme-body { padding:4px 6px 6px; display:flex; flex-direction:column; gap:2px; }
+.theme-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+/* ── MUSIC PLAYER ── */
+#musicPlayer {
+  background:var(--surface); backdrop-filter:blur(16px);
+  border:1.5px solid var(--border); border-radius:var(--radius);
+  box-shadow:var(--shadow); overflow:hidden;
+  padding:14px 16px 12px;
+}
+.music-head {
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;
+}
+.music-title-label {
+  font-size:0.7rem; font-weight:800; letter-spacing:0.15em; text-transform:uppercase;
+  background:linear-gradient(90deg,var(--c5),var(--c7));
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+.music-track-info {
+  text-align:center; margin-bottom:10px;
+}
+.music-track-name {
+  font-size:0.8rem; font-weight:800; color:var(--text);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  max-width:200px; margin:0 auto 2px;
+}
+.music-track-artist {
+  font-size:0.65rem; font-weight:600; color:var(--muted);
+}
+.music-progress-wrap {
+  display:flex; align-items:center; gap:8px; margin-bottom:10px;
+}
+.music-time { font-size:0.6rem; font-weight:700; color:var(--muted); min-width:28px; }
+.music-time.right { text-align:right; }
+#musicProgress {
+  flex:1; -webkit-appearance:none; appearance:none; height:4px;
+  background:rgba(167,139,250,0.2); border-radius:3px; outline:none; cursor:pointer;
+}
+#musicProgress::-webkit-slider-thumb {
+  -webkit-appearance:none; width:12px; height:12px; border-radius:50%;
+  background:linear-gradient(135deg,var(--c5),var(--c7)); cursor:pointer;
+  box-shadow:0 1px 4px rgba(0,0,0,0.15);
+}
+.music-controls {
+  display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:10px;
+}
+.music-btn {
+  background:transparent; border:none; cursor:pointer; font-size:1rem;
+  color:var(--muted); padding:4px; border-radius:8px; transition:all 0.15s;
+  display:flex; align-items:center; justify-content:center;
+}
+.music-btn:hover { color:var(--text); background:rgba(167,139,250,0.12); }
+.music-btn.play-btn {
+  width:36px; height:36px; border-radius:50%;
+  background:linear-gradient(135deg,var(--c5),var(--c7));
+  color:white; font-size:0.9rem; box-shadow:0 2px 10px rgba(251,191,36,0.35);
+}
+.music-btn.play-btn:hover { transform:scale(1.08); box-shadow:0 4px 16px rgba(251,191,36,0.5); }
+.music-btn.active { color:var(--c5); }
+.music-vol-wrap { display:flex; align-items:center; gap:6px; }
+.music-vol-icon { font-size:0.8rem; cursor:pointer; color:var(--muted); }
+#musicVol {
+  flex:1; -webkit-appearance:none; appearance:none; height:3px;
+  background:rgba(167,139,250,0.2); border-radius:2px; outline:none; cursor:pointer;
+}
+#musicVol::-webkit-slider-thumb {
+  -webkit-appearance:none; width:10px; height:10px; border-radius:50%;
+  background:var(--c2); cursor:pointer;
+}
+.music-drop-zone {
+  border:2px dashed rgba(167,139,250,0.3); border-radius:10px;
+  padding:8px; text-align:center; cursor:pointer;
+  font-size:0.62rem; font-weight:700; color:var(--muted); transition:all 0.15s;
+  margin-top:4px;
+}
+.music-drop-zone:hover, .music-drop-zone.over { border-color:var(--c2); color:var(--c2); background:rgba(167,139,250,0.08); }
+.music-playlist {
+  max-height:90px; overflow-y:auto; margin-top:6px; display:flex; flex-direction:column; gap:2px;
+}
+.music-playlist::-webkit-scrollbar { width:3px; }
+.music-playlist::-webkit-scrollbar-thumb { background:rgba(167,139,250,0.3); border-radius:2px; }
+.music-pl-item {
+  display:flex; align-items:center; gap:6px; padding:3px 6px; border-radius:7px;
+  font-family:'Nunito',sans-serif; font-size:0.65rem; font-weight:700; color:var(--muted);
+  cursor:pointer; transition:background 0.12s;
+}
+.music-pl-item:hover { background:rgba(167,139,250,0.1); color:var(--text); }
+.music-pl-item.active { color:var(--c7); background:rgba(251,191,36,0.1); }
+.music-pl-num { font-size:0.58rem; min-width:14px; text-align:right; color:rgba(158,143,192,0.5); }
+
 /* flash feedback raccourci */
 .kb-flash {
   position: fixed; top: 50%; left: 50%;
@@ -666,6 +798,22 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
   </div>
 </div>
 
+<!-- MÉTÉO WIDGET DISCRET -->
+<div id="meteoWidget" onclick="toggleMeteoTooltip()" title="Météo Valence">
+  <span id="meteoIcon">⛅</span>
+  <div>
+    <div id="meteoTemp">--°</div>
+    <div id="meteoCity">VALENCE</div>
+  </div>
+</div>
+<div id="meteoTooltip">
+  <div class="meteo-row"><span class="meteo-label">🌡 Ressenti</span><span class="meteo-val" id="meteoFeels">--°C</span></div>
+  <div class="meteo-row"><span class="meteo-label">💧 Humidité</span><span class="meteo-val" id="meteoHumidity">--%</span></div>
+  <div class="meteo-row"><span class="meteo-label">💨 Vent</span><span class="meteo-val" id="meteoWind">-- km/h</span></div>
+  <div class="meteo-row"><span class="meteo-label">🌂 Pluie</span><span class="meteo-val" id="meteoRain">--</span></div>
+  <div class="meteo-row" style="margin-top:2px;border-top:1px solid rgba(167,139,250,0.15);padding-top:6px;"><span class="meteo-label">📍</span><span class="meteo-val" id="meteoDesc">--</span></div>
+</div>
+
 <div class="blob blob1"></div>
 <div class="blob blob2"></div>
 <div class="blob blob3"></div>
@@ -698,14 +846,20 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
       <div class="card">
         <div class="card-head">
           <span class="card-title">🔗 Mes liens</span>
-          <button class="card-action" onclick="addCompactLink()" title="Ajouter un lien">＋</button>
+          <div style="display:flex;gap:4px;align-items:center">
+            <button class="card-action" onclick="addCompactLink()" title="Ajouter un lien">＋</button>
+            <button class="card-action" onclick="toggleAllThemes()" title="Tout plier/déplier" id="themeToggleAllBtn">⊟</button>
+          </div>
         </div>
         <div class="links-search-wrap">
           <span class="links-search-icon">🔍</span>
           <input class="links-search-input" id="linksSearch" placeholder="Rechercher un lien…" oninput="filterLinks(this.value)">
           <button class="links-search-clear" id="linksSearchClear" onclick="clearLinksSearch()">✕</button>
         </div>
-        <div class="compact-links-wrap" id="compactLinksWrap"></div>
+        <!-- Vue thématique -->
+        <div id="themedLinksWrap" style="padding:6px 10px 10px;display:flex;flex-direction:column;gap:4px;"></div>
+        <!-- Vue plate (recherche) -->
+        <div class="compact-links-wrap" id="compactLinksWrap" style="display:none;"></div>
       </div>
 
       <!-- SUNSET WIDGET CARD -->
@@ -814,6 +968,41 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
         <button class="gallery-add-btn" onclick="clearGallery()" style="border-color:rgba(248,113,113,0.4);color:rgba(248,113,113,0.7)">
           🗑 Vider la galerie
         </button>
+      </div>
+
+      <!-- MUSIC PLAYER -->
+      <div id="musicPlayer">
+        <div class="music-head">
+          <span class="music-title-label">🎵 Musique</span>
+          <button class="music-btn" onclick="togglePlaylist()" title="Playlist" id="musicPlBtn" style="font-size:0.75rem;">📋</button>
+        </div>
+        <div class="music-track-info">
+          <div class="music-track-name" id="musicTrackName">Aucune piste</div>
+          <div class="music-track-artist" id="musicTrackArtist">Glisse des fichiers audio ici</div>
+        </div>
+        <div class="music-progress-wrap">
+          <span class="music-time" id="musicCurrent">0:00</span>
+          <input type="range" id="musicProgress" min="0" max="100" value="0" oninput="musicSeek(this.value)">
+          <span class="music-time right" id="musicDuration">0:00</span>
+        </div>
+        <div class="music-controls">
+          <button class="music-btn" onclick="musicShuffle()" title="Aléatoire" id="musicShuffleBtn">🔀</button>
+          <button class="music-btn" onclick="musicPrev()" title="Précédent">⏮</button>
+          <button class="music-btn play-btn" onclick="musicToggle()" id="musicPlayBtn" title="Lecture/Pause">▶</button>
+          <button class="music-btn" onclick="musicNext()" title="Suivant">⏭</button>
+          <button class="music-btn" onclick="musicRepeat()" title="Répéter" id="musicRepeatBtn">🔁</button>
+        </div>
+        <div class="music-vol-wrap">
+          <span class="music-vol-icon" onclick="musicMute()">🔊</span>
+          <input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.8" oninput="musicSetVol(this.value)">
+        </div>
+        <div id="musicPlaylistWrap" style="display:none;">
+          <div class="music-playlist" id="musicPlaylist"></div>
+        </div>
+        <div class="music-drop-zone" id="musicDropZone" onclick="document.getElementById('musicFilePicker').click()">
+          ♪ Dépose tes fichiers audio ici ou clique pour choisir
+        </div>
+        <input type="file" id="musicFilePicker" accept="audio/*" multiple style="display:none" onchange="musicAddFiles(this.files)">
       </div>
     </div>
 
@@ -1186,128 +1375,13 @@ function addCompactLink(){
 let dragSrcIdx = null;
 
 function renderCompactLinks(){
+  // Render both themed view and flat view
+  renderThemedLinks();
+  // Also populate flat list for search
   const wrap = document.getElementById('compactLinksWrap');
   wrap.innerHTML = '';
   compactLinks.forEach((lk, i) => {
-    const item = document.createElement('div');
-    item.className = 'compact-link-item';
-    item.draggable = true;
-    item.dataset.idx = i;
-
-    // Drag handle
-    const dragHandle = document.createElement('span');
-    dragHandle.className = 'compact-link-drag';
-    dragHandle.textContent = '⠿';
-    dragHandle.title = 'Réordonner';
-    item.appendChild(dragHandle);
-
-    const emBtn = document.createElement('button');
-    emBtn.className = 'compact-link-emoji-btn';
-    emBtn.textContent = lk.emoji || '🔗';
-    emBtn.title = 'Changer icône';
-    emBtn.onclick = (e) => { e.stopPropagation(); openEmojiCompact(e, i); };
-
-    // ── FAVICON AUTO ──
-    if(lk.url){
-      try {
-        const domain = new URL(lk.url).hostname;
-        if(domain && !domain.startsWith('192.') && !domain.startsWith('10.') && !domain.startsWith('172.')){
-          const fav = document.createElement('img');
-          fav.className = 'compact-link-favicon';
-          fav.src = `https://www.google.com/s2/favicons?sz=32&domain=${domain}`;
-          fav.onload = () => fav.classList.add('loaded');
-          fav.onerror = () => fav.remove();
-          emBtn.appendChild(fav);
-        }
-      } catch(e){}
-    }
-
-    item.appendChild(emBtn);
-
-    const nameIn = document.createElement('input');
-    nameIn.className = 'compact-link-name';
-    nameIn.placeholder = 'Nom…';
-    nameIn.value = lk.name || '';
-    nameIn.oninput = () => { compactLinks[i].name = nameIn.value; saveCompactLinks(); };
-    item.appendChild(nameIn);
-
-    const urlIn = document.createElement('input');
-    urlIn.className = 'compact-link-url';
-    urlIn.placeholder = 'https://…';
-    urlIn.value = lk.url || '';
-    urlIn.title = lk.url || '';
-    urlIn.oninput = () => { compactLinks[i].url = urlIn.value; openBtn.href = urlIn.value || '#'; saveCompactLinks(); };
-    item.appendChild(urlIn);
-
-    const openBtn = document.createElement('a');
-    openBtn.className = 'compact-link-open';
-    openBtn.textContent = '▶';
-    openBtn.title = 'Ouvrir';
-    openBtn.href = lk.url || '#';
-    openBtn.target = '_blank';
-    openBtn.rel = 'noopener noreferrer';
-    openBtn.onclick = (e) => { if(!compactLinks[i].url){ e.preventDefault(); } };
-    item.appendChild(openBtn);
-
-    // Delete button with inline confirmation
-    const delBtn = document.createElement('button');
-    delBtn.className = 'compact-link-del';
-    delBtn.textContent = '✕';
-    delBtn.title = 'Supprimer';
-    let delConfirmTimer = null;
-    delBtn.onclick = (e) => {
-      e.stopPropagation();
-      if(delBtn.dataset.confirm === '1'){
-        clearTimeout(delConfirmTimer);
-        compactLinks.splice(i, 1);
-        saveCompactLinks();
-        renderCompactLinks();
-      } else {
-        delBtn.dataset.confirm = '1';
-        delBtn.textContent = '?';
-        delBtn.style.color = '#f87171';
-        delBtn.style.background = 'rgba(248,113,113,0.18)';
-        delBtn.title = 'Confirmer la suppression';
-        delConfirmTimer = setTimeout(() => {
-          if(delBtn.isConnected){
-            delBtn.dataset.confirm = '';
-            delBtn.textContent = '✕';
-            delBtn.style.color = '';
-            delBtn.style.background = '';
-            delBtn.title = 'Supprimer';
-          }
-        }, 2000);
-      }
-    };
-    item.appendChild(delBtn);
-
-    // Drag events
-    item.addEventListener('dragstart', (e) => {
-      dragSrcIdx = i;
-      item.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-    });
-    item.addEventListener('dragend', () => {
-      item.classList.remove('dragging');
-      wrap.querySelectorAll('.compact-link-item').forEach(el => el.classList.remove('drag-over'));
-    });
-    item.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      wrap.querySelectorAll('.compact-link-item').forEach(el => el.classList.remove('drag-over'));
-      item.classList.add('drag-over');
-    });
-    item.addEventListener('drop', (e) => {
-      e.preventDefault();
-      if(dragSrcIdx === null || dragSrcIdx === i) return;
-      const moved = compactLinks.splice(dragSrcIdx, 1)[0];
-      compactLinks.splice(i, 0, moved);
-      dragSrcIdx = null;
-      saveCompactLinks();
-      renderCompactLinks();
-    });
-
-    wrap.appendChild(item);
+    wrap.appendChild(buildCompactLinkEl(lk, i));
   });
 }
 
@@ -1820,6 +1894,7 @@ function initApp(){
   }
   // compact links
   loadCompactLinks();
+  loadThemeCollapsed();
   renderCompactLinks();
   // clock color
   applyClockColor();
@@ -1838,6 +1913,9 @@ function initApp(){
   window.addEventListener('scroll', () => {
     document.getElementById('scrollTop').classList.toggle('visible', window.scrollY > 300);
   });
+  // météo
+  fetchMeteo();
+  setInterval(fetchMeteo, 15 * 60 * 1000); // refresh every 15min
 }
 
 // ── SETTINGS MODAL ──
@@ -1973,8 +2051,19 @@ function filterLinks(q){
   const clearBtn = document.getElementById('linksSearchClear');
   clearBtn.classList.toggle('show', q.length > 0);
   const term = q.toLowerCase().trim();
-  document.querySelectorAll('.compact-link-item').forEach((item, i) => {
-    if(!term){ item.classList.remove('search-hidden'); return; }
+  const themed = document.getElementById('themedLinksWrap');
+  const flat   = document.getElementById('compactLinksWrap');
+
+  if(!term){
+    // Show themed view
+    themed.style.display = '';
+    flat.style.display = 'none';
+    return;
+  }
+  // Show flat view with filter
+  themed.style.display = 'none';
+  flat.style.display = '';
+  document.querySelectorAll('#compactLinksWrap .compact-link-item').forEach((item, i) => {
     const lk = compactLinks[i];
     if(!lk) return;
     const match = (lk.name||'').toLowerCase().includes(term) || (lk.url||'').toLowerCase().includes(term);
@@ -2104,7 +2193,423 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-// Ferme le panel kb si clic ailleurs
+// ══════════════════════════════════════════
+// ── THÈMES DES LIENS ──
+// ══════════════════════════════════════════
+
+const LINK_THEMES = [
+  { id:'infra',   label:'⚙️ Infra & Réseau',  color:'#38bdf8', keys:['Porkbun','Cloudflare','Tailscale','Routeur','ASUS','GitHub'] },
+  { id:'media',   label:'🎬 Médias & Divertissement', color:'#f87171', keys:['YggTorrent','1337x','YouTube','Programme TV','HFR'] },
+  { id:'print3d', label:'🖨️ Impression 3D',   color:'#34d399', keys:['Printables','Cults3D','Thingiverse','GrabCAD'] },
+  { id:'shopping',label:'🛒 Shopping',         color:'#fbbf24', keys:['AliExpress','Amazon','Leclerc','Chemiseur','Airplum'] },
+  { id:'comm',    label:'📬 Communication',    color:'#a78bfa', keys:['Gmail','Outlook','Pinterest'] },
+  { id:'other',   label:'🔗 Autres',           color:'#e879f9', keys:[] }
+];
+
+let themeCollapsed = {};
+
+function getThemeForLink(lk){
+  const name = (lk.name||'').toLowerCase();
+  const url  = (lk.url||'').toLowerCase();
+  for(const th of LINK_THEMES){
+    if(th.id === 'other') continue;
+    for(const k of th.keys){
+      if(name.includes(k.toLowerCase()) || url.includes(k.toLowerCase())) return th.id;
+    }
+  }
+  return 'other';
+}
+
+function renderThemedLinks(){
+  const wrap = document.getElementById('themedLinksWrap');
+  wrap.innerHTML = '';
+
+  // Group links by theme
+  const groups = {};
+  LINK_THEMES.forEach(th => { groups[th.id] = []; });
+  compactLinks.forEach((lk, i) => {
+    const tid = getThemeForLink(lk);
+    groups[tid].push({ lk, i });
+  });
+
+  LINK_THEMES.forEach(th => {
+    const items = groups[th.id];
+    if(!items.length) return;
+
+    const collapsed = themeCollapsed[th.id];
+    const grp = document.createElement('div');
+    grp.className = 'theme-group' + (collapsed ? ' collapsed' : '');
+    grp.dataset.theme = th.id;
+
+    // Header
+    const hdr = document.createElement('div');
+    hdr.className = 'theme-header';
+    hdr.innerHTML = `<span class="theme-dot" style="background:${th.color}"></span><span>${th.label}</span><span style="font-size:0.6rem;color:var(--muted);margin-left:4px;font-weight:600;">${items.length}</span><span class="theme-arrow">▾</span>`;
+    hdr.onclick = () => {
+      themeCollapsed[th.id] = !themeCollapsed[th.id];
+      grp.classList.toggle('collapsed', themeCollapsed[th.id]);
+      saveThemeCollapsed();
+    };
+    grp.appendChild(hdr);
+
+    // Body
+    const body = document.createElement('div');
+    body.className = 'theme-body';
+    items.forEach(({ lk, i }) => {
+      body.appendChild(buildCompactLinkEl(lk, i));
+    });
+    grp.appendChild(body);
+    wrap.appendChild(grp);
+  });
+}
+
+function saveThemeCollapsed(){
+  localStorage.setItem('dashboard_theme_collapsed', JSON.stringify(themeCollapsed));
+}
+function loadThemeCollapsed(){
+  try{ themeCollapsed = JSON.parse(localStorage.getItem('dashboard_theme_collapsed')||'{}'); }catch(e){ themeCollapsed = {}; }
+}
+
+let _themeAllCollapsed = false;
+function toggleAllThemes(){
+  _themeAllCollapsed = !_themeAllCollapsed;
+  LINK_THEMES.forEach(th => { themeCollapsed[th.id] = _themeAllCollapsed; });
+  saveThemeCollapsed();
+  renderThemedLinks();
+  document.getElementById('themeToggleAllBtn').textContent = _themeAllCollapsed ? '⊞' : '⊟';
+}
+
+// Build a single compact link DOM element (refactored from renderCompactLinks)
+function buildCompactLinkEl(lk, i){
+  const item = document.createElement('div');
+  item.className = 'compact-link-item';
+  item.draggable = true;
+  item.dataset.idx = i;
+
+  const dragHandle = document.createElement('span');
+  dragHandle.className = 'compact-link-drag';
+  dragHandle.textContent = '⠿';
+  dragHandle.title = 'Réordonner';
+  item.appendChild(dragHandle);
+
+  const emBtn = document.createElement('button');
+  emBtn.className = 'compact-link-emoji-btn';
+  emBtn.textContent = lk.emoji || '🔗';
+  emBtn.title = 'Changer icône';
+  emBtn.onclick = (e) => { e.stopPropagation(); openEmojiCompact(e, i); };
+  if(lk.url){
+    try {
+      const domain = new URL(lk.url).hostname;
+      if(domain && !domain.startsWith('192.') && !domain.startsWith('10.') && !domain.startsWith('172.')){
+        const fav = document.createElement('img');
+        fav.className = 'compact-link-favicon';
+        fav.src = `https://www.google.com/s2/favicons?sz=32&domain=${domain}`;
+        fav.onload = () => fav.classList.add('loaded');
+        fav.onerror = () => fav.remove();
+        emBtn.appendChild(fav);
+      }
+    } catch(e){}
+  }
+  item.appendChild(emBtn);
+
+  const nameIn = document.createElement('input');
+  nameIn.className = 'compact-link-name';
+  nameIn.placeholder = 'Nom…';
+  nameIn.value = lk.name || '';
+  nameIn.oninput = () => { compactLinks[i].name = nameIn.value; saveCompactLinks(); renderThemedLinks(); };
+  item.appendChild(nameIn);
+
+  const urlIn = document.createElement('input');
+  urlIn.className = 'compact-link-url';
+  urlIn.placeholder = 'https://…';
+  urlIn.value = lk.url || '';
+  urlIn.title = lk.url || '';
+  const openBtn = document.createElement('a');
+  urlIn.oninput = () => { compactLinks[i].url = urlIn.value; openBtn.href = urlIn.value || '#'; saveCompactLinks(); };
+  item.appendChild(urlIn);
+
+  openBtn.className = 'compact-link-open';
+  openBtn.textContent = '▶';
+  openBtn.title = 'Ouvrir';
+  openBtn.href = lk.url || '#';
+  openBtn.target = '_blank';
+  openBtn.rel = 'noopener noreferrer';
+  openBtn.onclick = (e) => {
+    e.stopPropagation();
+    const url = compactLinks[i] && compactLinks[i].url;
+    if(!url){ e.preventDefault(); return; }
+    window.open(url, '_blank', 'noopener,noreferrer');
+    e.preventDefault();
+  };
+  item.appendChild(openBtn);
+
+  const delBtn = document.createElement('button');
+  delBtn.className = 'compact-link-del';
+  delBtn.textContent = '✕';
+  delBtn.title = 'Supprimer';
+  let delConfirmTimer = null;
+  delBtn.onclick = (e) => {
+    e.stopPropagation();
+    if(delBtn.dataset.confirm === '1'){
+      clearTimeout(delConfirmTimer);
+      compactLinks.splice(i, 1);
+      saveCompactLinks();
+      renderThemedLinks();
+    } else {
+      delBtn.dataset.confirm = '1'; delBtn.textContent = '?';
+      delBtn.style.color = '#f87171'; delBtn.style.background = 'rgba(248,113,113,0.18)';
+      delBtn.title = 'Confirmer la suppression';
+      delConfirmTimer = setTimeout(() => {
+        if(delBtn.isConnected){ delBtn.dataset.confirm = ''; delBtn.textContent = '✕'; delBtn.style.color = ''; delBtn.style.background = ''; delBtn.title = 'Supprimer'; }
+      }, 2000);
+    }
+  };
+  item.appendChild(delBtn);
+
+  // Prevent draggable from blocking clicks on interactive children
+  [nameIn, urlIn, openBtn, emBtn, delBtn].forEach(el => {
+    el.addEventListener('mousedown', (e) => e.stopPropagation());
+    el.addEventListener('dragstart', (e) => e.stopPropagation());
+  });
+
+  // Drag
+  item.addEventListener('dragstart', (e) => { dragSrcIdx = i; item.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+  item.addEventListener('dragend', () => { item.classList.remove('dragging'); document.querySelectorAll('.compact-link-item').forEach(el => el.classList.remove('drag-over')); });
+  item.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; document.querySelectorAll('.compact-link-item').forEach(el => el.classList.remove('drag-over')); item.classList.add('drag-over'); });
+  item.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if(dragSrcIdx === null || dragSrcIdx === i) return;
+    const moved = compactLinks.splice(dragSrcIdx, 1)[0];
+    compactLinks.splice(i, 0, moved);
+    dragSrcIdx = null;
+    saveCompactLinks();
+    renderThemedLinks();
+  });
+  return item;
+}
+
+// ══════════════════════════════════════════
+// ── MÉTÉO VALENCE (Open-Meteo, gratuit) ──
+// ══════════════════════════════════════════
+const METEO_LAT = 44.9333, METEO_LON = 4.8917; // Valence, Drôme
+
+function meteoCodeToEmoji(code){
+  if(code === 0) return '☀️';
+  if(code <= 2) return '⛅';
+  if(code === 3) return '☁️';
+  if(code <= 49) return '🌫️';
+  if(code <= 67) return '🌧️';
+  if(code <= 77) return '❄️';
+  if(code <= 82) return '🌦️';
+  if(code <= 99) return '⛈️';
+  return '🌡';
+}
+
+function meteoCodeToText(code){
+  if(code === 0) return 'Ciel dégagé';
+  if(code <= 2) return 'Partiellement nuageux';
+  if(code === 3) return 'Couvert';
+  if(code <= 49) return 'Brouillard';
+  if(code <= 67) return 'Pluie';
+  if(code <= 77) return 'Neige';
+  if(code <= 82) return 'Averses';
+  if(code <= 99) return 'Orage';
+  return '';
+}
+
+async function fetchMeteo(){
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${METEO_LAT}&longitude=${METEO_LON}&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,precipitation&timezone=Europe%2FParis&forecast_days=1`;
+    const r = await fetch(url);
+    const d = await r.json();
+    const c = d.current;
+    const emoji = meteoCodeToEmoji(c.weather_code);
+    const temp  = Math.round(c.temperature_2m);
+    const feels = Math.round(c.apparent_temperature);
+    const hum   = c.relative_humidity_2m;
+    const wind  = Math.round(c.wind_speed_10m);
+    const rain  = c.precipitation > 0 ? c.precipitation + ' mm' : 'Aucune';
+    const desc  = meteoCodeToText(c.weather_code);
+
+    document.getElementById('meteoIcon').textContent = emoji;
+    document.getElementById('meteoTemp').textContent = temp + '°';
+    document.getElementById('meteoFeels').textContent = feels + '°C';
+    document.getElementById('meteoHumidity').textContent = hum + '%';
+    document.getElementById('meteoWind').textContent = wind + ' km/h';
+    document.getElementById('meteoRain').textContent = rain;
+    document.getElementById('meteoDesc').textContent = desc;
+    document.getElementById('meteoWidget').title = `${emoji} ${desc} — ${temp}°C`;
+  } catch(e){ console.warn('Météo indisponible', e); }
+}
+
+let meteoTooltipOpen = false;
+function toggleMeteoTooltip(){
+  meteoTooltipOpen = !meteoTooltipOpen;
+  document.getElementById('meteoTooltip').classList.toggle('open', meteoTooltipOpen);
+}
+document.addEventListener('click', (e) => {
+  if(meteoTooltipOpen && !e.target.closest('#meteoWidget') && !e.target.closest('#meteoTooltip')){
+    meteoTooltipOpen = false;
+    document.getElementById('meteoTooltip').classList.remove('open');
+  }
+});
+
+// ══════════════════════════════════════════
+// ── MUSIC PLAYER ──
+// ══════════════════════════════════════════
+let musicTracks = [];
+let musicCurrent = 0;
+let musicPlaying = false;
+let musicShuffled = false;
+let musicRepeatMode = 0; // 0=none, 1=one, 2=all
+let musicMuted = false;
+let musicOrder = [];
+const musicAudio = new Audio();
+let musicPlaylistOpen = false;
+
+musicAudio.addEventListener('timeupdate', musicUpdateProgress);
+musicAudio.addEventListener('ended', musicOnEnded);
+musicAudio.addEventListener('loadedmetadata', () => {
+  document.getElementById('musicDuration').textContent = musicFmtTime(musicAudio.duration);
+});
+
+function musicFmtTime(s){
+  if(!s || isNaN(s)) return '0:00';
+  const m = Math.floor(s/60);
+  const ss = Math.floor(s%60);
+  return m + ':' + String(ss).padStart(2,'0');
+}
+
+function musicUpdateProgress(){
+  const prog = document.getElementById('musicProgress');
+  const cur  = document.getElementById('musicCurrent');
+  const pct  = musicAudio.duration ? (musicAudio.currentTime / musicAudio.duration) * 100 : 0;
+  prog.value = pct;
+  cur.textContent = musicFmtTime(musicAudio.currentTime);
+  // Progress bar fill
+  prog.style.background = `linear-gradient(90deg, var(--c7) ${pct}%, rgba(167,139,250,0.2) ${pct}%)`;
+}
+
+function musicOnEnded(){
+  if(musicRepeatMode === 1){ musicAudio.currentTime=0; musicAudio.play(); return; }
+  musicNext();
+  if(!musicPlaying && musicRepeatMode === 0 && musicCurrent === 0){ musicStop(); }
+}
+
+function musicStop(){
+  musicPlaying = false;
+  document.getElementById('musicPlayBtn').textContent = '▶';
+}
+
+function musicLoadTrack(idx){
+  if(!musicTracks.length) return;
+  musicCurrent = idx;
+  const t = musicTracks[musicOrder[idx]];
+  musicAudio.src = t.url;
+  document.getElementById('musicTrackName').textContent = t.name;
+  document.getElementById('musicTrackArtist').textContent = t.size || '';
+  musicRenderPlaylist();
+}
+
+function musicToggle(){
+  if(!musicTracks.length) return;
+  if(musicPlaying){ musicAudio.pause(); musicStop(); }
+  else { musicAudio.play(); musicPlaying=true; document.getElementById('musicPlayBtn').textContent = '⏸'; }
+}
+
+function musicSeek(val){
+  if(musicAudio.duration) musicAudio.currentTime = (val/100)*musicAudio.duration;
+}
+
+function musicSetVol(val){
+  musicAudio.volume = val;
+  musicMuted = false;
+  document.querySelector('.music-vol-icon').textContent = val>0.5?'🔊':val>0?'🔉':'🔇';
+}
+
+function musicMute(){
+  musicMuted = !musicMuted;
+  musicAudio.muted = musicMuted;
+  document.querySelector('.music-vol-icon').textContent = musicMuted?'🔇':'🔊';
+}
+
+function musicPrev(){
+  if(!musicTracks.length) return;
+  musicCurrent = (musicCurrent-1+musicTracks.length)%musicTracks.length;
+  musicLoadTrack(musicCurrent);
+  if(musicPlaying) musicAudio.play();
+}
+
+function musicNext(){
+  if(!musicTracks.length) return;
+  musicCurrent = (musicCurrent+1)%musicOrder.length;
+  if(musicCurrent===0 && musicRepeatMode===0){ musicStop(); musicLoadTrack(0); return; }
+  musicLoadTrack(musicCurrent);
+  if(musicPlaying) musicAudio.play();
+}
+
+function musicShuffle(){
+  musicShuffled = !musicShuffled;
+  document.getElementById('musicShuffleBtn').classList.toggle('active', musicShuffled);
+  if(musicShuffled){
+    musicOrder = [...Array(musicTracks.length).keys()].sort(()=>Math.random()-0.5);
+  } else {
+    musicOrder = [...Array(musicTracks.length).keys()];
+  }
+  musicCurrent = 0;
+}
+
+function musicRepeat(){
+  musicRepeatMode = (musicRepeatMode+1)%3;
+  const btn = document.getElementById('musicRepeatBtn');
+  btn.textContent = ['🔁','🔂','🔁'][musicRepeatMode];
+  btn.classList.toggle('active', musicRepeatMode>0);
+  btn.style.opacity = musicRepeatMode>0?'1':'0.55';
+}
+
+function musicAddFiles(files){
+  const arr = [...files].filter(f=>f.type.startsWith('audio/'));
+  arr.sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+  arr.forEach(f=>{
+    const name = f.name.replace(/\.[^.]+$/,'');
+    const kb = Math.round(f.size/1024);
+    musicTracks.push({ name, size: kb+'Ko', url: URL.createObjectURL(f) });
+  });
+  musicOrder = [...Array(musicTracks.length).keys()];
+  if(musicTracks.length && musicCurrent === 0) musicLoadTrack(0);
+  musicRenderPlaylist();
+  document.getElementById('musicDropZone').textContent = `♪ ${musicTracks.length} piste${musicTracks.length>1?'s':''} — Cliquez pour ajouter`;
+}
+
+function musicRenderPlaylist(){
+  const pl = document.getElementById('musicPlaylist');
+  pl.innerHTML = '';
+  musicOrder.forEach((ti, pos) => {
+    const t = musicTracks[ti];
+    const row = document.createElement('div');
+    row.className = 'music-pl-item' + (pos === musicCurrent ? ' active' : '');
+    row.innerHTML = `<span class="music-pl-num">${pos+1}</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.name}</span>`;
+    row.onclick = () => { musicCurrent=pos; musicLoadTrack(pos); musicAudio.play(); musicPlaying=true; document.getElementById('musicPlayBtn').textContent='⏸'; };
+    pl.appendChild(row);
+  });
+}
+
+function togglePlaylist(){
+  musicPlaylistOpen = !musicPlaylistOpen;
+  document.getElementById('musicPlaylistWrap').style.display = musicPlaylistOpen ? '' : 'none';
+  document.getElementById('musicPlBtn').classList.toggle('active', musicPlaylistOpen);
+}
+
+// Drag and drop zone
+const dropZone = document.getElementById ? document.getElementById('musicDropZone') : null;
+document.addEventListener('DOMContentLoaded', () => {
+  const dz = document.getElementById('musicDropZone');
+  if(!dz) return;
+  dz.addEventListener('dragover', (e)=>{ e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave', ()=>dz.classList.remove('over'));
+  dz.addEventListener('drop', (e)=>{ e.preventDefault(); dz.classList.remove('over'); musicAddFiles(e.dataTransfer.files); });
+});
+
 document.addEventListener('click', (e) => {
   if(kbPanelOpen && !e.target.closest('#kbPanel') && e.target.id !== 'kbBtn'){
     kbPanelOpen = false;
