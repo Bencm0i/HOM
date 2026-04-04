@@ -65,10 +65,28 @@ header {
 .toggle-slider::before { content:''; position:absolute; width:20px; height:20px; left:2px; top:2px; background:var(--accent); border-radius:50%; transition:transform .3s; box-shadow:0 0 6px var(--glow); }
 .toggle-switch input:checked + .toggle-slider::before { transform:translateX(26px); }
 
-.container { max-width:1100px; margin:0 auto; padding:2rem 1.5rem; }
+/* === 3-COLUMN FULL-WIDTH LAYOUT === */
+.app-body { display:grid; grid-template-columns:340px 1fr 260px; grid-template-rows:auto 1fr; height:calc(100vh - 64px); overflow:hidden; }
 
-.save-bar { display:flex; gap:.8rem; align-items:center; margin-bottom:1.5rem; padding:.75rem 1rem; background:var(--surface); border:1px solid var(--border); border-radius:4px; flex-wrap:wrap; }
-.save-bar-label { font-family:'Share Tech Mono',monospace; font-size:.68rem; color:var(--text3); letter-spacing:.1em; text-transform:uppercase; flex:1; min-width:120px; }
+.left-panel { grid-column:1; grid-row:1/3; background:var(--surface); border-right:1px solid var(--border); overflow-y:auto; display:flex; flex-direction:column; }
+.center-panel { grid-column:2; grid-row:1/3; overflow-y:auto; padding:1.2rem 1.4rem; display:flex; flex-direction:column; }
+.right-panel { grid-column:3; grid-row:1/3; background:var(--surface); border-left:1px solid var(--border); overflow-y:auto; padding:1rem; display:flex; flex-direction:column; gap:1rem; }
+
+/* Scrollbars for panels */
+.left-panel::-webkit-scrollbar, .center-panel::-webkit-scrollbar, .right-panel::-webkit-scrollbar { width:4px; }
+.left-panel::-webkit-scrollbar-track, .center-panel::-webkit-scrollbar-track, .right-panel::-webkit-scrollbar-track { background:transparent; }
+.left-panel::-webkit-scrollbar-thumb, .center-panel::-webkit-scrollbar-thumb, .right-panel::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+.panel-section { padding:1.2rem 1.2rem; border-bottom:1px solid var(--border); }
+.panel-section:last-child { border-bottom:none; flex:1; }
+
+.right-section { background:var(--bg2); border:1px solid var(--border); border-radius:4px; padding:.8rem; }
+.right-section-title { font-family:'Bebas Neue',sans-serif; font-size:.85rem; letter-spacing:.18em; color:var(--accent); margin-bottom:.7rem; padding-bottom:.3rem; border-bottom:1px solid var(--border); }
+
+.save-bar { display:flex; flex-direction:column; gap:.5rem; padding:1.2rem; background:var(--surface); border-bottom:1px solid var(--border); }
+.save-bar-label { font-family:'Share Tech Mono',monospace; font-size:.62rem; color:var(--text3); letter-spacing:.1em; text-transform:uppercase; margin-bottom:.2rem; }
+.save-bar-actions { display:flex; gap:.4rem; flex-wrap:wrap; }
+.save-bar-label-old { display:none; }
 .save-status { font-family:'Share Tech Mono',monospace; font-size:.68rem; color:var(--text3); transition:color .3s; }
 .save-status.ok { color:var(--accent3); }
 
@@ -80,9 +98,9 @@ header {
 .btn-danger { border-color:var(--delete); color:var(--delete); background:transparent; }
 .btn-danger:hover { background:var(--delete); color:#fff; box-shadow:0 0 8px rgba(192,57,43,.35); }
 
-.add-section { background:var(--surface); border:1.5px solid var(--border); border-radius:5px; padding:1.4rem 1.6rem; margin-bottom:2rem; box-shadow:0 2px 10px var(--shadow); }
+.add-section { background:transparent; border:none; border-radius:0; padding:0; margin-bottom:0; box-shadow:none; }
 .section-title { font-family:'Bebas Neue',sans-serif; font-size:1.1rem; letter-spacing:.18em; color:var(--accent); margin-bottom:1rem; border-bottom:1px solid var(--border); padding-bottom:.4rem; }
-.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+.form-grid { display:grid; grid-template-columns:1fr; gap:.7rem; }
 .form-grid .full { grid-column:1/-1; }
 label { display:block; font-family:'Share Tech Mono',monospace; font-size:.62rem; letter-spacing:.12em; text-transform:uppercase; color:var(--text3); margin-bottom:.3rem; }
 input[type="text"], textarea, select { width:100%; background:var(--input-bg); border:1px solid var(--border); color:var(--text); font-family:'Crimson Pro',serif; font-size:1rem; padding:.45rem .7rem; border-radius:3px; outline:none; transition:border-color .2s,box-shadow .2s; resize:vertical; }
@@ -93,19 +111,19 @@ textarea { min-height:100px; line-height:1.6; }
 .form-actions { display:flex; gap:.6rem; justify-content:flex-end; margin-top:.8rem; align-items:center; }
 .shortcut-hint { font-family:'Share Tech Mono',monospace; font-size:.58rem; color:var(--text3); margin-right:auto; }
 
-.filters-row { display:flex; gap:.5rem; margin-bottom:.6rem; flex-wrap:wrap; align-items:center; }
-.filter-label { font-family:'Share Tech Mono',monospace; font-size:.62rem; text-transform:uppercase; letter-spacing:.1em; color:var(--text3); }
-.filter-btn { font-family:'Share Tech Mono',monospace; font-size:.65rem; padding:.22rem .6rem; border:1px solid var(--border); background:var(--surface); color:var(--text2); border-radius:2px; cursor:pointer; letter-spacing:.05em; transition:all .15s; display:flex; align-items:center; gap:.3rem; }
+.filters-row { display:flex; flex-direction:column; gap:.35rem; margin-bottom:0; flex-wrap:nowrap; align-items:stretch; }
+.filter-label { font-family:'Share Tech Mono',monospace; font-size:.6rem; text-transform:uppercase; letter-spacing:.1em; color:var(--text3); margin-bottom:.1rem; }
+.filter-btn { font-family:'Share Tech Mono',monospace; font-size:.63rem; padding:.28rem .7rem; border:1px solid var(--border); background:var(--bg2); color:var(--text2); border-radius:2px; cursor:pointer; letter-spacing:.05em; transition:all .15s; display:flex; align-items:center; gap:.4rem; width:100%; text-align:left; }
 .filter-btn:hover, .filter-btn.active { border-color:var(--accent); color:var(--accent); background:var(--surface2); }
 .cat-dot { width:7px; height:7px; border-radius:50%; background:var(--cc,var(--text3)); display:inline-block; }
 
-.sort-row { display:flex; gap:.5rem; margin-bottom:1.2rem; align-items:center; flex-wrap:wrap; }
-.sort-btn { font-family:'Share Tech Mono',monospace; font-size:.6rem; padding:.18rem .55rem; border:1px solid var(--border); background:var(--surface); color:var(--text3); border-radius:2px; cursor:pointer; transition:all .15s; }
+.sort-row { display:flex; flex-direction:column; gap:.35rem; margin-bottom:0; align-items:stretch; flex-wrap:nowrap; }
+.sort-btn { font-family:'Share Tech Mono',monospace; font-size:.6rem; padding:.22rem .7rem; border:1px solid var(--border); background:var(--bg2); color:var(--text3); border-radius:2px; cursor:pointer; transition:all .15s; width:100%; text-align:left; }
 .sort-btn.active { border-color:var(--accent2); color:var(--accent); background:var(--surface2); }
-.search-input { margin-left:auto; width:210px; font-family:'Share Tech Mono',monospace; font-size:.72rem; padding:.28rem .7rem; background:var(--input-bg); border:1px solid var(--border); color:var(--text); border-radius:3px; outline:none; }
+.search-input { width:100%; font-family:'Share Tech Mono',monospace; font-size:.72rem; padding:.32rem .7rem; background:var(--input-bg); border:1px solid var(--border); color:var(--text); border-radius:3px; outline:none; }
 .search-input:focus { border-color:var(--accent); }
-.view-toggle { display:flex; gap:.3rem; }
-.view-btn { font-size:.9rem; width:28px; height:26px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--surface); color:var(--text3); border-radius:2px; cursor:pointer; transition:all .15s; }
+.view-toggle { display:flex; gap:.3rem; width:100%; }
+.view-btn { font-size:.9rem; flex:1; height:26px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border); background:var(--surface); color:var(--text3); border-radius:2px; cursor:pointer; transition:all .15s; }
 .view-btn.active { border-color:var(--accent); color:var(--accent); background:var(--surface2); }
 
 .prompt-count { font-family:'Share Tech Mono',monospace; font-size:.65rem; color:var(--text3); letter-spacing:.08em; margin-bottom:.8rem; }
@@ -184,12 +202,20 @@ input[type="file"] { display:none; }
 ::-webkit-scrollbar-track { background:var(--bg2); }
 ::-webkit-scrollbar-thumb { background:var(--border2); border-radius:3px; }
 
-@media (max-width:680px) {
+@media (max-width:960px) {
+  .app-body { grid-template-columns:1fr; height:auto; overflow:auto; }
+  .left-panel, .right-panel { border:none; border-bottom:1px solid var(--border); }
+  .form-grid { grid-template-columns:1fr 1fr; }
+  .form-grid .full { grid-column:1/-1; }
+  .filters-row { flex-direction:row; flex-wrap:wrap; }
+  .sort-row { flex-direction:row; flex-wrap:wrap; }
+  .filter-btn, .sort-btn { width:auto; }
+  .search-input { width:200px; }
+}
+@media (max-width:600px) {
   .form-grid { grid-template-columns:1fr; }
-  .edit-form-row { grid-template-columns:1fr; }
-  .ai-links { display:none; }
-  .search-input { width:130px; }
   header { padding:0 1rem; }
+  .ai-links { display:none; }
 }
 </style>
 </head>
@@ -215,99 +241,131 @@ input[type="file"] { display:none; }
   </div>
 </header>
 
-<div class="container">
+<div class="app-body">
 
-  <!-- Toolbar -->
-  <div class="save-bar">
-    <span class="save-bar-label">💾 Stockage local</span>
-    <span class="save-status" id="saveStatus">Auto-sauvegarde active</span>
-    <button class="btn btn-sm" onclick="exportJSON()">↓ JSON</button>
-    <button class="btn btn-sm" onclick="exportMarkdown()">↓ MD</button>
-    <button class="btn btn-sm" id="exportSelBtn" style="display:none" onclick="exportJSON()">↓ Sélection</button>
-    <button class="btn btn-sm" onclick="document.getElementById('importFile').click()">↑ Import</button>
-    <input type="file" id="importFile" accept=".json" onchange="importJSON(event)">
-    <button class="btn btn-sm" onclick="openModal('gistModal')">☁ Gist</button>
-    <button class="btn btn-sm" onclick="openClipHistory()">📋 Historique</button>
-    <button class="btn btn-sm btn-danger" onclick="openModal('clearModal')">⚠ Effacer tout</button>
-  </div>
+  <!-- LEFT PANEL: Toolbar + Form -->
+  <div class="left-panel">
 
-  <!-- Add form -->
-  <div class="add-section">
-    <div class="section-title">+ Nouveau prompt</div>
-    <div class="form-grid">
-      <div>
-        <label>Titre</label>
-        <input type="text" id="newTitle" placeholder="Ex: Résumé académique…">
+    <!-- Toolbar -->
+    <div class="save-bar">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="save-bar-label">💾 Stockage local</span>
+        <span class="save-status" id="saveStatus">Auto-sauvegarde active</span>
       </div>
-      <div>
-        <label>Catégorie</label>
-        <select id="newCat">
-          <option>Général</option><option>Écriture</option><option>Code</option>
-          <option>Analyse</option><option>Marketing</option><option>Recherche</option>
-          <option>Créatif</option><option>Autre</option>
-        </select>
-      </div>
-      <div class="full">
-        <label>Prompt</label>
-        <textarea id="newPrompt" placeholder="Saisis ton prompt ici…" oninput="updateCounter()"></textarea>
-        <div class="char-counter" id="newCounter">0 caractères</div>
-      </div>
-      <div class="full">
-        <label>Notes (contexte, conseils…)</label>
-        <input type="text" id="newNotes" placeholder="Optionnel — usage recommandé, astuces…">
-      </div>
-      <div class="full">
-        <label>Tags (séparés par des virgules)</label>
-        <input type="text" id="newTags" placeholder="Ex: résumé, académique, gpt4">
+      <div class="save-bar-actions">
+        <button class="btn btn-sm" onclick="exportJSON()">↓ JSON</button>
+        <button class="btn btn-sm" onclick="exportMarkdown()">↓ MD</button>
+        <button class="btn btn-sm" id="exportSelBtn" style="display:none" onclick="exportJSON()">↓ Sélection</button>
+        <button class="btn btn-sm" onclick="document.getElementById('importFile').click()">↑ Import</button>
+        <input type="file" id="importFile" accept=".json" onchange="importJSON(event)">
+        <button class="btn btn-sm" onclick="openModal('gistModal')">☁ Gist</button>
+        <button class="btn btn-sm" onclick="openClipHistory()">📋 Historique</button>
+        <button class="btn btn-sm btn-danger" onclick="openModal('clearModal')">⚠ Tout effacer</button>
       </div>
     </div>
-    <div class="form-actions">
-      <span class="shortcut-hint">Ctrl+Enter pour ajouter</span>
-      <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--text3);text-transform:none;letter-spacing:0">
-        <input type="checkbox" id="showPreview" onchange="togglePreview()"> Aperçu MD
+
+    <!-- Add form -->
+    <div class="panel-section" style="flex:1">
+      <div class="add-section">
+        <div class="section-title">+ Nouveau prompt</div>
+        <div class="form-grid">
+          <div>
+            <label>Titre</label>
+            <input type="text" id="newTitle" placeholder="Ex: Résumé académique…">
+          </div>
+          <div>
+            <label>Catégorie</label>
+            <select id="newCat">
+              <option>Général</option><option>Écriture</option><option>Code</option>
+              <option>Analyse</option><option>Marketing</option><option>Recherche</option>
+              <option>Créatif</option><option>Autre</option>
+            </select>
+          </div>
+          <div>
+            <label>Prompt</label>
+            <textarea id="newPrompt" placeholder="Saisis ton prompt ici…" oninput="updateCounter()"></textarea>
+            <div class="char-counter" id="newCounter">0 caractères</div>
+          </div>
+          <div>
+            <label>Notes (contexte, conseils…)</label>
+            <input type="text" id="newNotes" placeholder="Optionnel — usage recommandé, astuces…">
+          </div>
+          <div>
+            <label>Tags (séparés par des virgules)</label>
+            <input type="text" id="newTags" placeholder="Ex: résumé, académique, gpt4">
+          </div>
+        </div>
+        <div class="form-actions">
+          <span class="shortcut-hint">Ctrl+Enter</span>
+          <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.62rem;color:var(--text3);text-transform:none;letter-spacing:0">
+            <input type="checkbox" id="showPreview" onchange="togglePreview()"> Aperçu MD
+          </label>
+          <button class="btn" onclick="clearForm()">Effacer</button>
+          <button class="btn btn-accent" onclick="addPrompt()">Ajouter</button>
+        </div>
+        <div id="mdPreviewBox" class="md-preview" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTER PANEL: Prompt list -->
+  <div class="center-panel">
+    <div class="prompt-count" id="promptCount"></div>
+    <div class="prompt-grid" id="promptList"></div>
+  </div>
+
+  <!-- RIGHT PANEL: Search + Filters + Sort + View -->
+  <div class="right-panel">
+
+    <!-- Search -->
+    <div class="right-section">
+      <div class="right-section-title">🔍 Recherche</div>
+      <input class="search-input" id="searchInput" type="text" placeholder="Titre, prompt, tag…" oninput="renderList()">
+    </div>
+
+    <!-- Filters -->
+    <div class="right-section">
+      <div class="right-section-title">Filtre catégorie</div>
+      <div class="filters-row">
+        <button class="filter-btn active" onclick="setFilter('Tous',this)">Tous</button>
+        <button class="filter-btn" onclick="setFilter('★',this)">★ Favoris</button>
+        <button class="filter-btn cc-Général"   onclick="setFilter('Général',this)"><span class="cat-dot"></span>Général</button>
+        <button class="filter-btn cc-Écriture"  onclick="setFilter('Écriture',this)"><span class="cat-dot"></span>Écriture</button>
+        <button class="filter-btn cc-Code"      onclick="setFilter('Code',this)"><span class="cat-dot"></span>Code</button>
+        <button class="filter-btn cc-Analyse"   onclick="setFilter('Analyse',this)"><span class="cat-dot"></span>Analyse</button>
+        <button class="filter-btn cc-Marketing" onclick="setFilter('Marketing',this)"><span class="cat-dot"></span>Marketing</button>
+        <button class="filter-btn cc-Recherche" onclick="setFilter('Recherche',this)"><span class="cat-dot"></span>Recherche</button>
+        <button class="filter-btn cc-Créatif"   onclick="setFilter('Créatif',this)"><span class="cat-dot"></span>Créatif</button>
+        <button class="filter-btn cc-Autre"     onclick="setFilter('Autre',this)"><span class="cat-dot"></span>Autre</button>
+      </div>
+    </div>
+
+    <!-- Sort -->
+    <div class="right-section">
+      <div class="right-section-title">Tri</div>
+      <div class="sort-row">
+        <button class="sort-btn active" onclick="setSort('date','desc',this)">Date ↓</button>
+        <button class="sort-btn" onclick="setSort('date','asc',this)">Date ↑</button>
+        <button class="sort-btn" onclick="setSort('title','asc',this)">Titre A→Z</button>
+        <button class="sort-btn" onclick="setSort('title','desc',this)">Titre Z→A</button>
+        <button class="sort-btn" onclick="setSort('used','desc',this)">Récemment copié</button>
+        <button class="sort-btn" onclick="setSort('manual','',this)">Manuel ↕</button>
+      </div>
+    </div>
+
+    <!-- View + select -->
+    <div class="right-section">
+      <div class="right-section-title">Affichage</div>
+      <div class="view-toggle" style="margin-bottom:.6rem">
+        <button class="view-btn active" onclick="setView('card',this)" title="Cartes">▤ Cartes</button>
+        <button class="view-btn" onclick="setView('compact',this)" title="Compact">≡ Compact</button>
+      </div>
+      <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--text3);text-transform:none;letter-spacing:0">
+        <input type="checkbox" id="selectMode" onchange="toggleSelectMode()"> Mode sélection
       </label>
-      <button class="btn" onclick="clearForm()">Effacer</button>
-      <button class="btn btn-accent" onclick="addPrompt()">Ajouter</button>
     </div>
-    <div id="mdPreviewBox" class="md-preview" style="display:none"></div>
-  </div>
 
-  <!-- Filters -->
-  <div class="filters-row">
-    <span class="filter-label">Filtre :</span>
-    <button class="filter-btn active" onclick="setFilter('Tous',this)">Tous</button>
-    <button class="filter-btn" onclick="setFilter('★',this)">★ Favoris</button>
-    <button class="filter-btn cc-Général"   onclick="setFilter('Général',this)"><span class="cat-dot"></span>Général</button>
-    <button class="filter-btn cc-Écriture"  onclick="setFilter('Écriture',this)"><span class="cat-dot"></span>Écriture</button>
-    <button class="filter-btn cc-Code"      onclick="setFilter('Code',this)"><span class="cat-dot"></span>Code</button>
-    <button class="filter-btn cc-Analyse"   onclick="setFilter('Analyse',this)"><span class="cat-dot"></span>Analyse</button>
-    <button class="filter-btn cc-Marketing" onclick="setFilter('Marketing',this)"><span class="cat-dot"></span>Marketing</button>
-    <button class="filter-btn cc-Recherche" onclick="setFilter('Recherche',this)"><span class="cat-dot"></span>Recherche</button>
-    <button class="filter-btn cc-Créatif"   onclick="setFilter('Créatif',this)"><span class="cat-dot"></span>Créatif</button>
-    <button class="filter-btn cc-Autre"     onclick="setFilter('Autre',this)"><span class="cat-dot"></span>Autre</button>
-    <input class="search-input" id="searchInput" type="text" placeholder="🔍 Rechercher…" oninput="renderList()">
   </div>
-
-  <!-- Sort & view -->
-  <div class="sort-row">
-    <span class="filter-label">Tri :</span>
-    <button class="sort-btn active" onclick="setSort('date','desc',this)">Date ↓</button>
-    <button class="sort-btn" onclick="setSort('date','asc',this)">Date ↑</button>
-    <button class="sort-btn" onclick="setSort('title','asc',this)">Titre A-Z</button>
-    <button class="sort-btn" onclick="setSort('title','desc',this)">Titre Z-A</button>
-    <button class="sort-btn" onclick="setSort('used','desc',this)">Récemment copié</button>
-    <button class="sort-btn" onclick="setSort('manual','',this)">Manuel ↕</button>
-    <label style="display:flex;align-items:center;gap:.3rem;margin-left:auto;font-family:'Share Tech Mono',monospace;font-size:.6rem;color:var(--text3);cursor:pointer;text-transform:none;letter-spacing:0">
-      <input type="checkbox" id="selectMode" onchange="toggleSelectMode()"> Sélection
-    </label>
-    <div class="view-toggle">
-      <button class="view-btn active" onclick="setView('card',this)" title="Cartes">▤</button>
-      <button class="view-btn" onclick="setView('compact',this)" title="Compact">≡</button>
-    </div>
-  </div>
-
-  <div class="prompt-count" id="promptCount"></div>
-  <div class="prompt-grid" id="promptList"></div>
 </div>
 
 <!-- Clear modal -->
