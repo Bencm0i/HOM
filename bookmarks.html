@@ -959,60 +959,11 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
         <div class="compact-links-wrap" id="compactLinksWrap" style="display:none;"></div>
       </div>
 
-      <!-- SUNSET WIDGET CARD -->
-      <div class="card" id="sunsetCard">
-        <div class="card-head">
-          <span class="card-title">🌅 Lever / Coucher</span>
-          <div style="display:flex;gap:4px;align-items:center">
-            <button class="card-action" id="sunsetToggleBtn" onclick="toggleSunsetWidget()" title="Masquer/Afficher">👁</button>
-          </div>
-        </div>
-        <div id="sunsetWidget">
-          <div class="sunset-sky" id="sunsetSky">
-            <div class="sunset-gradient" id="sunsetGradient"></div>
-            <div class="sunset-sun" id="sunsetSun"></div>
-            <div class="sunset-horizon"></div>
-            <button class="sunset-hide-btn" onclick="toggleSunsetWidget()" title="Masquer">✕</button>
-          </div>
-          <div class="sunset-bar">
-            <div class="sunset-times">
-              <div class="sunset-time-item">
-                <span class="sunset-time-label">🌄 Lever</span>
-                <span class="sunset-time-val" id="sunriseTime">--:--</span>
-              </div>
-              <div class="sunset-time-item">
-                <span class="sunset-time-label">🕛 Midi</span>
-                <span class="sunset-time-val" id="noonTime">--:--</span>
-              </div>
-              <div class="sunset-time-item">
-                <span class="sunset-time-label">🌇 Coucher</span>
-                <span class="sunset-time-val" id="sunsetTime">--:--</span>
-              </div>
-            </div>
-            <div class="sunset-progress-wrap">
-              <div class="sunset-progress-bar">
-                <div class="sunset-progress-fill" id="sunProgressFill" style="width:0%"></div>
-              </div>
-              <div class="sunset-pct" id="sunProgressPct">0%</div>
-            </div>
-            <div class="sunset-colors">
-              <input type="color" class="sunset-color-inp" id="sunC1" value="#ff9a3c" title="Couleur 1" oninput="updateSunsetColors()">
-              <input type="color" class="sunset-color-inp" id="sunC2" value="#a855f7" title="Couleur 2" oninput="updateSunsetColors()">
-              <input type="color" class="sunset-color-inp" id="sunC3" value="#1e3a5f" title="Couleur nuit" oninput="updateSunsetColors()">
-            </div>
-          </div>
-        </div>
-      </div>
 
 
 
-      <div class="card">
-        <div class="card-head">
-          <span class="card-title">📝 Notes</span>
-          <button class="card-action" onclick="clearNotes()">🗑</button>
-        </div>
-        <textarea class="notes-area" id="notesArea" placeholder="Tes notes ici… 💭" oninput="save()"></textarea>
-      </div>
+
+
 
       <!-- AGENDA WIDGET -->
       <div class="card" id="agendaWidget">
@@ -1388,7 +1339,7 @@ function resetAll(){
   transpTexts = ['','',''];
   compactLinks = DEFAULT_COMPACT_LINKS.map(l=>({...l}));
   document.getElementById('page-title').value = 'Mon Tableau ✨';
-  document.getElementById('notesArea').value = '';
+  const _naC = document.getElementById('notesArea'); if(_naC) _naC.value = '';
   [0,1,2].forEach(i=>{ const el=document.getElementById('transp'+i); if(el) el.value=''; });
   const bg=document.getElementById('bg-layer');
   bg.style.backgroundImage='';
@@ -1734,7 +1685,7 @@ async function exportVault(){
   const pwd='montableau_nolock';
   const data={
     title: document.getElementById('page-title').value,
-    links, gallery, notes: document.getElementById('notesArea').value,
+    links, gallery, notes: (document.getElementById('notesArea') || {value:''}).value,
     canvas: localStorage.getItem('dashboard_canvas')||'',
     bg: localStorage.getItem('dashboard_bg')||'',
     compactLinks,
@@ -1762,7 +1713,7 @@ async function importVault(e){
       if(data.links) { links=data.links; }
       if(data.compactLinks) { compactLinks=data.compactLinks; renderCompactLinks(); }
       if(data.gallery) { gallery=data.gallery; renderGallery(); }
-      if(data.notes) document.getElementById('notesArea').value=data.notes;
+      if(data.notes){ const _naI = document.getElementById('notesArea'); if(_naI) _naI.value=data.notes; }
       if(data.bg){ const bg=document.getElementById('bg-layer'); bg.style.backgroundImage='url('+data.bg+')'; bg.style.backgroundSize='cover'; localStorage.setItem('dashboard_bg',data.bg); }
       if(data.canvas){ localStorage.setItem('dashboard_canvas',data.canvas); const img=new Image(); img.onload=()=>ctx.drawImage(img,0,0,window.innerWidth,window.innerHeight); img.src=data.canvas; }
       save();
@@ -1782,7 +1733,7 @@ function save(){
   saveTimer=setTimeout(()=>{
     localStorage.setItem('dashboard_title',document.getElementById('page-title').value);
     localStorage.setItem('dashboard_links',JSON.stringify(links));
-    localStorage.setItem('dashboard_notes',document.getElementById('notesArea').value);
+    const _na = document.getElementById('notesArea'); if(_na) localStorage.setItem('dashboard_notes', _na.value);
     try{ localStorage.setItem('dashboard_gallery',JSON.stringify(gallery)); }catch(e){}
     setTimeout(()=>document.getElementById('saveDot').classList.remove('show'),600);
   },600);
@@ -1798,7 +1749,7 @@ function toggleSunsetWidget(){
   sunsetVisible = !sunsetVisible;
   const w = document.getElementById('sunsetWidget');
   w.classList.toggle('hidden-widget', !sunsetVisible);
-  document.getElementById('sunsetToggleBtn').textContent = sunsetVisible ? '👁' : '🙈';
+  const _stb = document.getElementById('sunsetToggleBtn'); if(_stb) _stb.textContent = sunsetVisible ? '👁' : '🙈';
   localStorage.setItem('dashboard_sunset_visible', sunsetVisible ? '1' : '0');
 }
 
@@ -1991,7 +1942,7 @@ function initApp(){
   const lks=localStorage.getItem('dashboard_links');
   if(lks) try{ links=JSON.parse(lks); }catch(e){}
   const notes=localStorage.getItem('dashboard_notes');
-  if(notes) document.getElementById('notesArea').value=notes;
+  if(notes){ const _naL=document.getElementById('notesArea'); if(_naL) _naL.value=notes; }
   // bg: prefer URL version (persistent) over base64
   const bgUrl=localStorage.getItem('dashboard_bg_url');
   const bgB64=localStorage.getItem('dashboard_bg');
@@ -2027,9 +1978,6 @@ function initApp(){
   if(cv){ const img=new Image(); img.onload=()=>ctx.drawImage(img,0,0,window.innerWidth,window.innerHeight); img.src=cv; }
   // sunset
   sunsetVisible = localStorage.getItem('dashboard_sunset_visible') !== '0';
-  document.getElementById('sunsetWidget').classList.toggle('hidden-widget', !sunsetVisible);
-  document.getElementById('sunsetToggleBtn').textContent = sunsetVisible ? '👁' : '🙈';
-  loadSunsetColors();
   renderSunset();
   setInterval(renderSunset, 30000);
   window.addEventListener('scroll', () => {
