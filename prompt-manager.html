@@ -127,7 +127,7 @@ textarea { min-height:100px; line-height:1.6; }
 .view-btn.active { border-color:var(--accent); color:var(--accent); background:var(--surface2); }
 
 .prompt-count { font-family:'Share Tech Mono',monospace; font-size:.65rem; color:var(--text3); letter-spacing:.08em; margin-bottom:.8rem; }
-.prompt-grid { display:flex; flex-direction:column; gap:.8rem; }
+.prompt-grid { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; align-items:start; }
 .prompt-grid.compact { gap:.3rem; }
 
 .prompt-card { background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--cc,var(--accent)); border-radius:4px; padding:1rem 1.2rem; box-shadow:0 1px 6px var(--shadow); transition:box-shadow .2s; animation:fadeIn .22s ease; }
@@ -138,9 +138,12 @@ textarea { min-height:100px; line-height:1.6; }
 .prompt-card[draggable="true"] { cursor:grab; }
 .prompt-card.dragging { opacity:.4; }
 .prompt-card.drag-over { box-shadow:0 0 0 2px var(--accent); }
+.prompt-grid.compact { grid-template-columns:1fr; }
 .prompt-grid.compact .prompt-card { padding:.5rem .9rem; border-radius:2px; }
 .prompt-grid.compact .card-body, .prompt-grid.compact .card-notes { display:none; }
 .prompt-grid.compact .card-footer { margin-top:.3rem; }
+.prompt-grid .empty { grid-column:1/-1; }
+.prompt-grid .prompt-card.editing { grid-column:1/-1; }
 
 @keyframes fadeIn { from{opacity:0;transform:translateY(-5px)} to{opacity:1;transform:none} }
 
@@ -211,6 +214,7 @@ input[type="file"] { display:none; }
   .sort-row { flex-direction:row; flex-wrap:wrap; }
   .filter-btn, .sort-btn { width:auto; }
   .search-input { width:200px; }
+  .prompt-grid { grid-template-columns:1fr; }
 }
 @media (max-width:600px) {
   .form-grid { grid-template-columns:1fr; }
