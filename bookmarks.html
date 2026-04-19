@@ -106,6 +106,37 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
 .save-dot{width:7px;height:7px;border-radius:50%;background:var(--c4);display:inline-block;margin-left:4px;opacity:0;transition:opacity 0.3s;}
 .save-dot.show{opacity:1;}
 
+/* ── TRANSMISSION WIDGET ── */
+#transmissionCard { background:var(--surface); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1.5px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
+#transmissionCard .tx-head { display:flex; align-items:center; justify-content:space-between; padding:12px 16px 8px; border-bottom:1.5px solid rgba(255,255,255,0.6); }
+#transmissionCard .tx-title { font-size:0.78rem; font-weight:800; letter-spacing:0.14em; text-transform:uppercase; background:linear-gradient(90deg,#38bdf8,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; }
+#transmissionCard .tx-actions { display:flex; align-items:center; gap:6px; }
+#transmissionCard .tx-badge { font-size:0.6rem; font-weight:800; padding:2px 7px; border-radius:20px; background:rgba(56,189,248,0.15); color:#38bdf8; border:1px solid rgba(56,189,248,0.25); }
+#transmissionCard .tx-badge.err { background:rgba(248,113,113,0.15); color:#f87171; border-color:rgba(248,113,113,0.25); }
+#transmissionCard .tx-badge.ok { background:rgba(52,211,153,0.15); color:#34d399; border-color:rgba(52,211,153,0.25); }
+#txList { padding:6px 10px 10px; display:flex; flex-direction:column; gap:4px; max-height:320px; overflow-y:auto; }
+#txList::-webkit-scrollbar { width:3px; }
+#txList::-webkit-scrollbar-thumb { background:rgba(56,189,248,0.3); border-radius:2px; }
+.tx-item { background:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.75); border-radius:10px; padding:7px 10px; display:flex; flex-direction:column; gap:3px; }
+.tx-item-row { display:flex; align-items:center; justify-content:space-between; gap:6px; }
+.tx-item-name { font-size:0.7rem; font-weight:700; color:var(--text); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tx-item-status { font-size:0.6rem; font-weight:800; padding:1px 6px; border-radius:20px; flex-shrink:0; }
+.tx-status-dl   { background:rgba(56,189,248,0.15);  color:#38bdf8;  border:1px solid rgba(56,189,248,0.3); }
+.tx-status-seed { background:rgba(52,211,153,0.15);  color:#34d399;  border:1px solid rgba(52,211,153,0.3); }
+.tx-status-stop { background:rgba(158,143,192,0.12); color:var(--muted); border:1px solid rgba(158,143,192,0.2); }
+.tx-status-chk  { background:rgba(251,191,36,0.15);  color:#fbbf24;  border:1px solid rgba(251,191,36,0.3); }
+.tx-item-bar-wrap { height:3px; border-radius:2px; background:rgba(167,139,250,0.15); overflow:hidden; }
+.tx-item-bar { height:100%; border-radius:2px; transition:width 0.5s; }
+.tx-item-meta { font-size:0.58rem; color:var(--muted); font-weight:600; display:flex; justify-content:space-between; }
+.tx-empty { font-size:0.72rem; color:var(--muted); text-align:center; padding:14px 0; font-weight:600; }
+#txSpeedBar { display:flex; justify-content:space-between; align-items:center; padding:4px 10px 8px; font-size:0.62rem; font-weight:700; color:var(--muted); border-top:1px solid rgba(255,255,255,0.4); }
+.tx-speed-item { display:flex; align-items:center; gap:4px; }
+.tx-url-row { display:flex; align-items:center; gap:6px; padding:6px 10px 10px; border-top:1px solid rgba(255,255,255,0.4); }
+.tx-url-input { flex:1; background:rgba(255,255,255,0.35); border:1.5px solid rgba(255,255,255,0.6); border-radius:8px; padding:4px 8px; font-family:'Nunito',sans-serif; font-size:0.68rem; color:var(--text); outline:none; }
+.tx-url-input:focus { border-color:rgba(56,189,248,0.5); }
+.tx-open-btn { padding:4px 10px; border-radius:8px; border:none; background:linear-gradient(90deg,#38bdf8,#a78bfa); color:#fff; font-family:'Nunito',sans-serif; font-size:0.68rem; font-weight:800; cursor:pointer; flex-shrink:0; text-decoration:none; transition:opacity 0.15s; }
+.tx-open-btn:hover { opacity:0.85; }
+
 /* ── TICKER BAR ── */
 #tickerBar {
   position:fixed; top:0; left:0; right:0; z-index:900;
@@ -1338,6 +1369,27 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
           ♪ Dépose tes fichiers audio ici ou clique pour choisir
         </div>
         <input type="file" id="musicFilePicker" accept="audio/*" multiple style="display:none" onchange="musicAddFiles(this.files)">
+      </div>
+
+      <!-- TRANSMISSION P2P -->
+      <div id="transmissionCard">
+        <div class="tx-head">
+          <span class="tx-title">🧲 Transmission</span>
+          <div class="tx-actions">
+            <span id="txBadge" class="tx-badge">—</span>
+            <button class="card-action" onclick="txFetch(true)" title="Actualiser">🔄</button>
+            <a class="tx-open-btn" href="http://localhost:9091/transmission/web/" target="_blank" rel="noopener">Ouvrir</a>
+          </div>
+        </div>
+        <div id="txList"><div class="tx-empty">Connexion…</div></div>
+        <div id="txSpeedBar">
+          <span class="tx-speed-item">⬇ <span id="txDl">—</span></span>
+          <span id="txCount" style="color:var(--muted)">—</span>
+          <span class="tx-speed-item">⬆ <span id="txUl">—</span></span>
+        </div>
+        <div class="tx-url-row">
+          <input class="tx-url-input" id="txHostInput" value="http://localhost:9091" placeholder="http://localhost:9091" onchange="txSaveHost()">
+        </div>
       </div>
 
       <!-- TODO / TÂCHES -->
@@ -3433,7 +3485,121 @@ document.addEventListener('click', (e) => {
 });
 
 // ══════════════════════════════════════════
-// ── HORLOGE DÉPLAÇABLE ──
+// ══════════════════════════════════════════
+// ── TRANSMISSION RPC ──
+// ══════════════════════════════════════════
+let txSessionId = '';
+let txRefreshTimer = null;
+const TX_FIELDS = ['id','name','status','percentDone','rateDownload','rateUpload','totalSize','addedDate','doneDate','eta','errorString'];
+const TX_STATUS = { 0:'Arrêté', 1:'Vérif…', 2:'Vérif…', 3:'En attente', 4:'↓ DL', 5:'En attente', 6:'↑ Seed', 7:'Erreur' };
+const TX_STATUS_CLS = { 0:'tx-status-stop', 1:'tx-status-chk', 2:'tx-status-chk', 3:'tx-status-stop', 4:'tx-status-dl', 5:'tx-status-stop', 6:'tx-status-seed', 7:'tx-status-stop' };
+
+function txHost(){
+  const v = (document.getElementById('txHostInput')?.value || 'http://localhost:9091').replace(/\/$/, '');
+  return v + '/transmission/rpc';
+}
+function txSaveHost(){ localStorage.setItem('tx_host', document.getElementById('txHostInput')?.value || ''); }
+
+async function txCall(body){
+  const url = txHost();
+  const opts = { method:'POST', headers:{ 'Content-Type':'application/json', 'X-Transmission-Session-Id': txSessionId }, body: JSON.stringify(body) };
+  let r = await fetch(url, opts);
+  if(r.status === 409){
+    txSessionId = r.headers.get('X-Transmission-Session-Id') || '';
+    opts.headers['X-Transmission-Session-Id'] = txSessionId;
+    r = await fetch(url, opts);
+  }
+  if(!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+
+function txFmtSize(b){
+  if(b == null) return '';
+  if(b >= 1e9) return (b/1e9).toFixed(1) + ' Go';
+  if(b >= 1e6) return (b/1e6).toFixed(0) + ' Mo';
+  if(b >= 1e3) return (b/1e3).toFixed(0) + ' Ko';
+  return b + ' o';
+}
+function txFmtSpeed(bps){
+  if(!bps) return '0';
+  if(bps >= 1e6) return (bps/1e6).toFixed(1) + ' Mo/s';
+  if(bps >= 1e3) return (bps/1e3).toFixed(0) + ' Ko/s';
+  return bps + ' o/s';
+}
+function txFmtEta(s){
+  if(!s || s < 0) return '';
+  if(s < 60) return s + 's';
+  if(s < 3600) return Math.round(s/60) + 'min';
+  return Math.round(s/3600) + 'h';
+}
+
+async function txFetch(manual){
+  const badge = document.getElementById('txBadge');
+  try {
+    const data = await txCall({ method:'torrent-get', arguments:{ fields: TX_FIELDS } });
+    const torrents = data?.arguments?.torrents || [];
+    // Sort: downloading first, then seeding, then stopped — by addedDate desc
+    torrents.sort((a,b) => {
+      const order = {4:0, 1:1, 2:1, 6:2, 3:3, 5:3, 0:4, 7:5};
+      const od = (order[a.status]??9) - (order[b.status]??9);
+      if(od !== 0) return od;
+      return (b.addedDate||0) - (a.addedDate||0);
+    });
+
+    const list = document.getElementById('txList');
+    if(!torrents.length){
+      list.innerHTML = '<div class="tx-empty">Aucun torrent</div>';
+    } else {
+      list.innerHTML = torrents.map(t => {
+        const pct = Math.round((t.percentDone||0)*100);
+        const barColor = t.status===4 ? '#38bdf8' : t.status===6 ? '#34d399' : '#9e8fc0';
+        const statusCls = TX_STATUS_CLS[t.status] || 'tx-status-stop';
+        const statusLabel = TX_STATUS[t.status] || '?';
+        const eta = t.status===4 ? txFmtEta(t.eta) : '';
+        const meta = [txFmtSize(t.totalSize), eta ? 'ETA '+eta : '', t.status===4 ? '⬇ '+txFmtSpeed(t.rateDownload) : t.status===6 ? '⬆ '+txFmtSpeed(t.rateUpload) : ''].filter(Boolean).join(' · ');
+        const err = t.errorString ? `<span style="color:#f87171;font-size:0.58rem;font-weight:700">⚠ ${t.errorString.substring(0,40)}</span>` : '';
+        return `<div class="tx-item">
+  <div class="tx-item-row">
+    <span class="tx-item-name" title="${t.name}">${t.name}</span>
+    <span class="tx-item-status ${statusCls}">${statusLabel}</span>
+  </div>
+  <div class="tx-item-bar-wrap"><div class="tx-item-bar" style="width:${pct}%;background:${barColor}"></div></div>
+  <div class="tx-item-meta"><span>${pct}%${meta?' · '+meta:''}</span>${err}</div>
+</div>`;
+      }).join('');
+    }
+
+    // Session stats
+    const stats = await txCall({ method:'session-stats' });
+    const st = stats?.arguments || {};
+    document.getElementById('txDl').textContent  = txFmtSpeed(st.downloadSpeed);
+    document.getElementById('txUl').textContent  = txFmtSpeed(st.uploadSpeed);
+    const active = st.activeTorrentCount ?? torrents.length;
+    const total  = st.torrentCount      ?? torrents.length;
+    document.getElementById('txCount').textContent = active + ' actif' + (active>1?'s':'') + ' / ' + total;
+
+    badge.textContent = total;
+    badge.className = 'tx-badge ok';
+  } catch(e){
+    document.getElementById('txList').innerHTML = '<div class="tx-empty">⚠️ Transmission inaccessible<br><small style="font-size:0.58rem;opacity:0.6">Vérifie que Transmission tourne sur ' + (document.getElementById('txHostInput')?.value||'localhost:9091') + '</small></div>';
+    badge.textContent = '✕';
+    badge.className = 'tx-badge err';
+    document.getElementById('txDl').textContent = '—';
+    document.getElementById('txUl').textContent = '—';
+    document.getElementById('txCount').textContent = '—';
+  }
+}
+
+function txInit(){
+  const saved = localStorage.getItem('tx_host');
+  if(saved){ const el = document.getElementById('txHostInput'); if(el) el.value = saved; }
+  txFetch();
+  txRefreshTimer = setInterval(txFetch, 10000); // refresh toutes les 10s
+}
+
+document.addEventListener('DOMContentLoaded', txInit);
+
+
 // ══════════════════════════════════════════
 (function(){
   const cw = document.getElementById('clockWidget');
