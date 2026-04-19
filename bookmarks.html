@@ -2406,6 +2406,9 @@ function tickerGetAllItems(){
   // Inject next agenda event
   const next = tickerGetNextAgendaEvent();
   if(next) items.push(next);
+  // Inject last Transmission download
+  const tx = tickerGetTxItem();
+  if(tx) items.push(tx);
   return items;
 }
 
@@ -3490,6 +3493,8 @@ document.addEventListener('click', (e) => {
 // ══════════════════════════════════════════
 let txSessionId = '';
 let txRefreshTimer = null;
+let txLastDone = null; // { name, addedDate, doneDate } — dernier torrent terminé
+
 const TX_FIELDS = ['id','name','status','percentDone','rateDownload','rateUpload','totalSize','addedDate','doneDate','eta','errorString'];
 const TX_STATUS = { 0:'Arrêté', 1:'Vérif…', 2:'Vérif…', 3:'En attente', 4:'↓ DL', 5:'En attente', 6:'↑ Seed', 7:'Erreur' };
 const TX_STATUS_CLS = { 0:'tx-status-stop', 1:'tx-status-chk', 2:'tx-status-chk', 3:'tx-status-stop', 4:'tx-status-dl', 5:'tx-status-stop', 6:'tx-status-seed', 7:'tx-status-stop' };
@@ -3532,12 +3537,46 @@ function txFmtEta(s){
   if(s < 3600) return Math.round(s/60) + 'min';
   return Math.round(s/3600) + 'h';
 }
+function txFmtDate(ts){
+  if(!ts) return '';
+  const d = new Date(ts * 1000);
+  return d.toLocaleDateString('fr-FR', { day:'2-digit', month:'short' });
+}
+
+// Retourne un item ticker pour le dernier torrent terminé (ou en cours le + avancé)
+function tickerGetTxItem(){
+  if(!txLastDone) return null;
+  return {
+    id: 'tx_last',
+    text: `🧲 ${txLastDone.name}  ${txLastDone.pct < 100 ? '— ' + txLastDone.pct + '%' : '— ✓ ' + txFmtDate(txLastDone.doneDate)}`,
+    color: txLastDone.pct >= 100 ? '#34d399' : '#38bdf8',
+    _tx: true
+  };
+}
 
 async function txFetch(manual){
   const badge = document.getElementById('txBadge');
   try {
     const data = await txCall({ method:'torrent-get', arguments:{ fields: TX_FIELDS } });
     const torrents = data?.arguments?.torrents || [];
+
+    // Trouver le dernier torrent terminé (doneDate max) ou, à défaut, le + avancé
+    const done = torrents.filter(t => t.percentDone >= 1 && t.doneDate > 0);
+    if(done.length){
+      done.sort((a,b) => b.doneDate - a.doneDate);
+      const t = done[0];
+      txLastDone = { name: t.name, pct: 100, doneDate: t.doneDate };
+    } else if(torrents.length){
+      // Pas de terminé : prendre le plus avancé en DL
+      const dl = [...torrents].sort((a,b) => b.percentDone - a.percentDone);
+      const t = dl[0];
+      txLastDone = { name: t.name, pct: Math.round(t.percentDone * 100), doneDate: 0 };
+    } else {
+      txLastDone = null;
+    }
+    // Rafraîchir le ticker avec la nouvelle info TX
+    tickerRender();
+
     // Sort: downloading first, then seeding, then stopped — by addedDate desc
     torrents.sort((a,b) => {
       const order = {4:0, 1:1, 2:1, 6:2, 3:3, 5:3, 0:4, 7:5};
@@ -3594,12 +3633,12 @@ function txInit(){
   const saved = localStorage.getItem('tx_host');
   if(saved){ const el = document.getElementById('txHostInput'); if(el) el.value = saved; }
   txFetch();
-  txRefreshTimer = setInterval(txFetch, 10000); // refresh toutes les 10s
+  txRefreshTimer = setInterval(txFetch, 10000);
 }
 
 document.addEventListener('DOMContentLoaded', txInit);
 
-
+// ── HORLOGE DÉPLAÇABLE ──
 // ══════════════════════════════════════════
 (function(){
   const cw = document.getElementById('clockWidget');
