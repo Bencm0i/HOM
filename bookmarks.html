@@ -1130,6 +1130,68 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
 }
 .kb-flash.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
 
+
+/* ── COMPTEUR DE CLICS / TOP FAVORIS ── */
+.compact-link-hits {
+  font-size: 0.55rem; font-weight: 800;
+  min-width: 18px; height: 18px; padding: 0 4px;
+  border-radius: 9px;
+  background: rgba(167,139,250,0.15);
+  border: 1px solid rgba(167,139,250,0.25);
+  color: var(--muted);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; letter-spacing: 0;
+  transition: background 0.2s, color 0.2s;
+}
+.compact-link-hits.hot {
+  background: linear-gradient(135deg,rgba(255,110,180,0.22),rgba(167,139,250,0.22));
+  border-color: rgba(255,110,180,0.4);
+  color: var(--c1);
+}
+.cl-top-divider {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px 2px;
+  font-size: 0.6rem; font-weight: 800; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted);
+}
+.cl-top-divider::after {
+  content:''; flex:1; height:1px;
+  background: linear-gradient(90deg,rgba(167,139,250,0.25),transparent);
+}
+.cl-rest-divider {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 12px 2px;
+  font-size: 0.58rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: rgba(158,143,192,0.5);
+}
+.cl-rest-divider::after {
+  content:''; flex:1; height:1px; background:rgba(167,139,250,0.1);
+}
+/* Seuil slider panel */
+#clThreshPanel {
+  padding: 8px 12px 10px;
+  border-top: 1px solid rgba(255,255,255,0.45);
+  display: none; flex-direction: column; gap: 4px;
+}
+#clThreshPanel.open { display: flex; }
+#clThreshPanel label {
+  font-size: 0.6rem; font-weight: 800; color: var(--muted);
+  letter-spacing: 0.08em; text-transform: uppercase;
+}
+#clThreshRow { display: flex; align-items: center; gap: 8px; }
+#clThreshSlider { flex:1; accent-color: var(--c2); cursor:pointer; }
+#clThreshVal {
+  font-size: 0.65rem; font-weight: 800; color: var(--c2);
+  min-width: 28px; text-align: right;
+}
+#clResetHitsBtn {
+  font-size: 0.6rem; font-weight: 700; color: var(--muted);
+  background: none; border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 8px; padding: 3px 8px; cursor: pointer;
+  font-family: 'Nunito', sans-serif; transition: color 0.15s, border-color 0.15s;
+}
+#clResetHitsBtn:hover { color: var(--c6); border-color: var(--c6); }
+
 </style>
 </head>
 <body>
@@ -1239,8 +1301,15 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
         <div class="card-head">
           <span class="card-title">🔗 Mes liens</span>
           <div style="display:flex;gap:4px;align-items:center">
+            <button class="card-action" onclick="toggleClThreshPanel()" title="Seuil remontée auto" id="clThreshBtn">⚡</button>
             <button class="card-action" onclick="addCompactLink()" title="Ajouter un lien">＋</button>
-            
+          </div>
+        </div>
+        <div id="clThreshPanel">
+          <label>Remonter automatiquement après <span id="clThreshVal">5</span> clics</label>
+          <div id="clThreshRow">
+            <input type="range" id="clThreshSlider" min="1" max="30" value="5" oninput="clSetThresh(this.value)">
+            <button id="clResetHitsBtn" onclick="clResetHits()">Réinitialiser</button>
           </div>
         </div>
         <div class="links-search-wrap">
@@ -1830,13 +1899,83 @@ function addCompactLink(){
 
 let dragSrcIdx = null;
 
+
+// ══════════════════════════════════════════
+// ── COMPTEUR DE CLICS — REMONTÉE AUTO ──
+// ══════════════════════════════════════════
+let linkHits = {};       // { url → count }
+let clThresh = 5;        // seuil par défaut
+
+function clLoadHits(){
+  try { linkHits = JSON.parse(localStorage.getItem('dashboard_link_hits') || '{}'); } catch(e){ linkHits = {}; }
+  clThresh = parseInt(localStorage.getItem('dashboard_cl_thresh') || '5');
+  const sl = document.getElementById('clThreshSlider');
+  const vl = document.getElementById('clThreshVal');
+  if(sl) sl.value = clThresh;
+  if(vl) vl.textContent = clThresh;
+}
+
+function clSaveHits(){
+  localStorage.setItem('dashboard_link_hits', JSON.stringify(linkHits));
+}
+
+function clRecordClick(url){
+  if(!url) return;
+  linkHits[url] = (linkHits[url] || 0) + 1;
+  clSaveHits();
+  // Re-render after short delay to not interrupt navigation
+  setTimeout(renderCompactLinks, 50);
+}
+
+function clSetThresh(val){
+  clThresh = parseInt(val);
+  localStorage.setItem('dashboard_cl_thresh', clThresh);
+  document.getElementById('clThreshVal').textContent = clThresh;
+  renderCompactLinks();
+}
+
+function clResetHits(){
+  if(!confirm('Réinitialiser tous les compteurs de clics ?')) return;
+  linkHits = {};
+  clSaveHits();
+  renderCompactLinks();
+}
+
+function toggleClThreshPanel(){
+  const p = document.getElementById('clThreshPanel');
+  const b = document.getElementById('clThreshBtn');
+  p.classList.toggle('open');
+  b.style.opacity = p.classList.contains('open') ? '1' : '0.5';
+}
+
 function renderCompactLinks(){
-  // Render flat list only
   const wrap = document.getElementById('compactLinksWrap');
   wrap.innerHTML = '';
+
+  // Split: hot (>= threshold) vs rest
+  const hot = [], rest = [];
   compactLinks.forEach((lk, i) => {
-    wrap.appendChild(buildCompactLinkEl(lk, i));
+    const hits = linkHits[lk.url] || 0;
+    if(lk.url && hits >= clThresh) hot.push({ lk, i, hits });
+    else rest.push({ lk, i, hits });
   });
+
+  // Sort hot by hits desc
+  hot.sort((a, b) => b.hits - a.hits);
+
+  if(hot.length){
+    const topDiv = document.createElement('div');
+    topDiv.className = 'cl-top-divider';
+    topDiv.innerHTML = '⚡ Favoris fréquents';
+    wrap.appendChild(topDiv);
+    hot.forEach(({ lk, i }) => wrap.appendChild(buildCompactLinkEl(lk, i)));
+
+    const restDiv = document.createElement('div');
+    restDiv.className = 'cl-rest-divider';
+    restDiv.innerHTML = 'Autres';
+    wrap.appendChild(restDiv);
+  }
+  rest.forEach(({ lk, i }) => wrap.appendChild(buildCompactLinkEl(lk, i)));
 }
 
 function openEmojiCompact(e, idx){
@@ -2350,6 +2489,7 @@ function initApp(){
   }
   // compact links
   loadCompactLinks();
+  clLoadHits();
   renderCompactLinks();
   // clock color
   applyClockColor();
@@ -2974,10 +3114,19 @@ function buildCompactLinkEl(lk, i){
     e.stopPropagation();
     const url = compactLinks[i] && compactLinks[i].url;
     if(!url){ e.preventDefault(); return; }
+    clRecordClick(url);
     window.open(url, '_blank', 'noopener,noreferrer');
     e.preventDefault();
   };
   item.appendChild(openBtn);
+
+  // Badge compteur de clics
+  const hits = linkHits[lk.url] || 0;
+  const hitBadge = document.createElement('span');
+  hitBadge.className = 'compact-link-hits' + (hits >= clThresh ? ' hot' : '');
+  hitBadge.textContent = hits > 0 ? hits : '·';
+  hitBadge.title = hits + ' clic' + (hits > 1 ? 's' : '');
+  item.appendChild(hitBadge);
 
   const delBtn = document.createElement('button');
   delBtn.className = 'compact-link-del';
