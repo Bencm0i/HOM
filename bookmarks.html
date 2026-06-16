@@ -337,6 +337,79 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
 .todo-del:hover { color:#f87171 !important; background:rgba(248,113,113,0.12); }
 .todo-empty { font-size:0.72rem; color:var(--muted); text-align:center; padding:14px 0; font-weight:600; }
 .todo-filters {
+
+/* ── DOWNLOADS WIDGET ── */
+#ffDlCard {
+  background:var(--surface); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
+  border:1.5px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.ffdl-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px 8px; border-bottom:1.5px solid rgba(255,255,255,0.6);
+}
+.ffdl-title {
+  font-size:0.78rem; font-weight:800; letter-spacing:0.14em; text-transform:uppercase;
+  background:linear-gradient(90deg,#fb923c,#fbbf24); -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent; background-clip:text;
+}
+.ffdl-open-btn {
+  padding:3px 10px; border-radius:8px; border:none;
+  background:linear-gradient(90deg,#fb923c,#fbbf24); color:#fff;
+  font-family:'Nunito',sans-serif; font-size:0.68rem; font-weight:800;
+  cursor:pointer; transition:opacity 0.15s; white-space:nowrap; flex-shrink:0;
+}
+.ffdl-open-btn:hover { opacity:0.85; }
+.ffdl-list {
+  display:flex; flex-direction:column; gap:3px;
+  padding:8px 10px 10px; max-height:340px; overflow-y:auto;
+}
+.ffdl-list::-webkit-scrollbar { width:3px; }
+.ffdl-list::-webkit-scrollbar-thumb { background:rgba(251,146,60,0.3); border-radius:2px; }
+.ffdl-item {
+  display:flex; align-items:center; gap:8px; padding:6px 8px;
+  border-radius:10px; background:rgba(255,255,255,0.5);
+  border:1px solid rgba(255,255,255,0.75); transition:background 0.15s;
+  cursor:default;
+}
+.ffdl-item:hover { background:rgba(255,255,255,0.8); }
+.ffdl-icon { font-size:1.1rem; flex-shrink:0; }
+.ffdl-info { flex:1; min-width:0; }
+.ffdl-name {
+  font-size:0.72rem; font-weight:700; color:var(--text);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.ffdl-meta { font-size:0.58rem; color:var(--muted); font-weight:600; margin-top:1px; }
+.ffdl-empty {
+  font-size:0.72rem; color:var(--muted); text-align:center;
+  padding:14px 0; font-weight:600;
+}
+.ffdl-pick-btn {
+  display:block; width:calc(100% - 20px); margin:0 10px 10px;
+  padding:8px; border-radius:10px; border:1.5px dashed rgba(251,146,60,0.4);
+  background:rgba(251,146,60,0.06); font-family:'Nunito',sans-serif;
+  font-size:0.72rem; font-weight:700; color:rgba(251,146,60,0.8);
+  cursor:pointer; transition:all 0.15s; text-align:center;
+}
+.ffdl-pick-btn:hover { background:rgba(251,146,60,0.14); border-color:rgba(251,146,60,0.7); color:#fb923c; }
+.ffdl-sort-row {
+  display:flex; gap:4px; padding:4px 10px 0; flex-wrap:wrap; border-top:1px solid rgba(255,255,255,0.4);
+}
+.ffdl-sort-btn {
+  padding:2px 8px; border-radius:20px; border:1.5px solid rgba(251,146,60,0.2);
+  background:transparent; font-family:'Nunito',sans-serif; font-size:0.58rem; font-weight:800;
+  color:var(--muted); cursor:pointer; transition:all 0.15s; letter-spacing:0.04em;
+}
+.ffdl-sort-btn.active { background:rgba(251,146,60,0.15); border-color:rgba(251,146,60,0.5); color:#fb923c; }
+.ffdl-search {
+  display:block; width:calc(100% - 20px); margin:8px 10px 0;
+  background:rgba(255,255,255,0.35); border:1.5px solid rgba(255,255,255,0.6);
+  border-radius:10px; padding:5px 10px; font-family:'Nunito',sans-serif;
+  font-size:0.72rem; color:var(--text); outline:none; transition:border-color 0.15s;
+}
+.ffdl-search:focus { border-color:rgba(251,146,60,0.5); }
+.ffdl-search::placeholder { color:var(--muted); }
+
   display:flex; gap:4px; padding:6px 12px 0; flex-wrap:wrap;
 }
 .todo-filter-btn {
@@ -1523,6 +1596,27 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
           <button class="todo-add-btn" onclick="todoAdd()" title="Ajouter">＋</button>
         </div>
         <div class="todo-list" id="todoList"></div>
+      </div>
+
+      <!-- FIREFOX DOWNLOADS -->
+      <div id="ffDlCard">
+        <div class="ffdl-head">
+          <span class="ffdl-title">📥 Téléchargements</span>
+          <div style="display:flex;align-items:center;gap:6px">
+            <button class="card-action" onclick="ffDlRefresh()" title="Actualiser">🔄</button>
+            <button class="ffdl-open-btn" onclick="ffDlPickFolder()">📁 Dossier</button>
+          </div>
+        </div>
+        <input class="ffdl-search" id="ffDlSearch" placeholder="🔍 Filtrer les fichiers…" oninput="ffDlRender()">
+        <div class="ffdl-sort-row">
+          <button class="ffdl-sort-btn active" data-sort="date" onclick="ffDlSetSort('date',this)">Date ↓</button>
+          <button class="ffdl-sort-btn" data-sort="name" onclick="ffDlSetSort('name',this)">Nom</button>
+          <button class="ffdl-sort-btn" data-sort="size" onclick="ffDlSetSort('size',this)">Taille</button>
+          <button class="ffdl-sort-btn" data-sort="type" onclick="ffDlSetSort('type',this)">Type</button>
+        </div>
+        <div class="ffdl-list" id="ffDlList">
+          <div class="ffdl-empty">📂 Clique sur « Dossier » pour<br>ouvrir ton dossier Téléchargements</div>
+        </div>
       </div>
 
     </div>
@@ -3790,8 +3884,143 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ══════════════════════════════════════════
-// ── NOW PLAYING ──
+// ── FIREFOX DOWNLOADS WIDGET ──
 // ══════════════════════════════════════════
+let ffDlDirHandle = null;
+let ffDlFiles     = [];   // [{name, size, lastModified, type}]
+let ffDlSort      = 'date';
+const FF_DL_MAX   = 80;
+
+function ffDlExtIcon(name){
+  const ext = (name.split('.').pop()||'').toLowerCase();
+  const map = {
+    // video
+    mp4:'🎬', mkv:'🎬', avi:'🎬', mov:'🎬', webm:'🎬', ts:'🎬', m4v:'🎬',
+    // audio
+    mp3:'🎵', flac:'🎵', ogg:'🎵', wav:'🎵', m4a:'🎵', aac:'🎵',
+    // image
+    jpg:'🖼', jpeg:'🖼', png:'🖼', gif:'🖼', webp:'🖼', svg:'🖼', bmp:'🖼', avif:'🖼',
+    // archive
+    zip:'📦', rar:'📦', '7z':'📦', tar:'📦', gz:'📦', bz2:'📦',
+    // document
+    pdf:'📄', doc:'📝', docx:'📝', xls:'📊', xlsx:'📊', ppt:'📊', pptx:'📊', txt:'📝', odt:'📝',
+    // code
+    js:'💻', ts:'💻', py:'💻', html:'💻', css:'💻', json:'💻', sh:'💻', xml:'💻',
+    // exec / app
+    exe:'⚙️', deb:'⚙️', rpm:'⚙️', dmg:'⚙️', appimage:'⚙️', iso:'💿',
+    // torrent
+    torrent:'🧲',
+  };
+  return map[ext] || '📄';
+}
+
+function ffDlFmtSize(bytes){
+  if(bytes == null) return '';
+  if(bytes >= 1e9) return (bytes/1e9).toFixed(1) + ' Go';
+  if(bytes >= 1e6) return (bytes/1e6).toFixed(0) + ' Mo';
+  if(bytes >= 1e3) return (bytes/1e3).toFixed(0) + ' Ko';
+  return bytes + ' o';
+}
+
+function ffDlFmtDate(ts){
+  const d = new Date(ts);
+  const now = new Date();
+  const diff = now - d;
+  if(diff < 60000) return 'à l\'instant';
+  if(diff < 3600000) return Math.floor(diff/60000) + ' min';
+  if(diff < 86400000) return Math.floor(diff/3600000) + ' h';
+  if(diff < 604800000) return Math.floor(diff/86400000) + ' j';
+  return d.toLocaleDateString('fr-FR', {day:'2-digit',month:'short',year:'2-digit'});
+}
+
+function ffDlSetSort(s, btn){
+  ffDlSort = s;
+  document.querySelectorAll('.ffdl-sort-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  ffDlRender();
+}
+
+function ffDlRender(){
+  const list = document.getElementById('ffDlList');
+  if(!ffDlFiles.length){
+    list.innerHTML = '<div class="ffdl-empty">📂 Clique sur « Dossier » pour<br>ouvrir ton dossier Téléchargements</div>';
+    return;
+  }
+  const q = (document.getElementById('ffDlSearch')?.value || '').toLowerCase().trim();
+  let files = ffDlFiles.filter(f => !f.name.endsWith('.part') && !f.name.startsWith('.'));
+  if(q) files = files.filter(f => f.name.toLowerCase().includes(q));
+
+  // Sort
+  if(ffDlSort === 'date') files.sort((a,b)=>b.lastModified-a.lastModified);
+  else if(ffDlSort === 'name') files.sort((a,b)=>a.name.localeCompare(b.name));
+  else if(ffDlSort === 'size') files.sort((a,b)=>b.size-a.size);
+  else if(ffDlSort === 'type'){
+    files.sort((a,b)=>{
+      const ea = a.name.split('.').pop().toLowerCase();
+      const eb = b.name.split('.').pop().toLowerCase();
+      return ea.localeCompare(eb) || b.lastModified - a.lastModified;
+    });
+  }
+
+  const shown = files.slice(0, FF_DL_MAX);
+  if(!shown.length){
+    list.innerHTML = '<div class="ffdl-empty">Aucun fichier trouvé</div>';
+    return;
+  }
+  list.innerHTML = shown.map(f => {
+    const icon = ffDlExtIcon(f.name);
+    const size = ffDlFmtSize(f.size);
+    const date = ffDlFmtDate(f.lastModified);
+    const nameEsc = f.name.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const ext = (f.name.split('.').pop()||'').toUpperCase();
+    return `<div class="ffdl-item" title="${nameEsc}">
+      <span class="ffdl-icon">${icon}</span>
+      <div class="ffdl-info">
+        <div class="ffdl-name">${nameEsc}</div>
+        <div class="ffdl-meta">${ext}${size?' · '+size:''} · ${date}</div>
+      </div>
+    </div>`;
+  }).join('');
+  if(files.length > FF_DL_MAX){
+    list.innerHTML += `<div class="ffdl-empty" style="padding:6px 0">${files.length - FF_DL_MAX} fichiers supplémentaires…</div>`;
+  }
+}
+
+async function ffDlPickFolder(){
+  try {
+    const handle = await window.showDirectoryPicker({ id:'ff-downloads', mode:'read' });
+    ffDlDirHandle = handle;
+    await ffDlReadDir();
+  } catch(e){
+    // user cancelled or API not available
+    if(e.name !== 'AbortError') alert('Impossible d\'ouvrir le dossier. Assure-toi d\'utiliser Firefox 111+ ou un navigateur compatible.');
+  }
+}
+
+async function ffDlReadDir(){
+  if(!ffDlDirHandle) return;
+  ffDlFiles = [];
+  for await(const entry of ffDlDirHandle.values()){
+    if(entry.kind !== 'file') continue;
+    try {
+      const file = await entry.getFile();
+      ffDlFiles.push({ name: file.name, size: file.size, lastModified: file.lastModified });
+    } catch(e){}
+  }
+  ffDlRender();
+}
+
+async function ffDlRefresh(){
+  if(!ffDlDirHandle){
+    ffDlPickFolder();
+    return;
+  }
+  await ffDlReadDir();
+  // Flash the refresh button briefly
+  const btn = document.querySelector('#ffDlCard .card-action');
+  if(btn){ btn.style.transform='rotate(360deg)'; btn.style.transition='transform 0.4s'; setTimeout(()=>{ btn.style.transform=''; btn.style.transition=''; }, 400); }
+}
+
 // ── HORLOGE DÉPLAÇABLE ──
 // ══════════════════════════════════════════
 (function(){
