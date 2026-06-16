@@ -337,16 +337,28 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
 .todo-del:hover { color:#f87171 !important; background:rgba(248,113,113,0.12); }
 .todo-empty { font-size:0.72rem; color:var(--muted); text-align:center; padding:14px 0; font-weight:600; }
 .todo-filters {
+  display:flex; gap:4px; padding:6px 12px 0; flex-wrap:wrap;
+}
+.todo-filter-btn {
+  padding:3px 10px; border-radius:20px; border:1.5px solid rgba(167,139,250,0.2);
+  background:transparent; font-family:'Nunito',sans-serif; font-size:0.62rem; font-weight:800;
+  color:var(--muted); cursor:pointer; transition:all 0.15s; letter-spacing:0.04em;
+}
+.todo-filter-btn.active { background:rgba(52,211,153,0.15); border-color:rgba(52,211,153,0.4); color:#34d399; }
 
 /* ── DOWNLOADS WIDGET ── */
 #ffDlCard {
-  background:var(--surface); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px);
-  border:1.5px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);
+  background:rgba(255,255,255,0.55);
+  backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border:1.5px solid rgba(255,255,255,0.85);
+  border-radius:var(--radius); box-shadow:var(--shadow);
   overflow:hidden;
 }
 .ffdl-head {
   display:flex; align-items:center; justify-content:space-between;
-  padding:12px 16px 8px; border-bottom:1.5px solid rgba(255,255,255,0.6);
+  padding:12px 16px 8px;
+  background:rgba(251,146,60,0.08);
+  border-bottom:1.5px solid rgba(251,146,60,0.18);
 }
 .ffdl-title {
   font-size:0.78rem; font-weight:800; letter-spacing:0.14em; text-transform:uppercase;
@@ -360,19 +372,40 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
   cursor:pointer; transition:opacity 0.15s; white-space:nowrap; flex-shrink:0;
 }
 .ffdl-open-btn:hover { opacity:0.85; }
+.ffdl-search {
+  display:block; width:calc(100% - 20px); margin:8px 10px 0;
+  background:rgba(255,255,255,0.7); border:1.5px solid rgba(251,146,60,0.25);
+  border-radius:10px; padding:5px 10px; font-family:'Nunito',sans-serif;
+  font-size:0.72rem; color:var(--text); outline:none; transition:border-color 0.15s;
+}
+.ffdl-search:focus { border-color:rgba(251,146,60,0.6); }
+.ffdl-search::placeholder { color:var(--muted); }
+.ffdl-sort-row {
+  display:flex; gap:4px; padding:6px 10px 4px; flex-wrap:wrap;
+  border-bottom:1px solid rgba(251,146,60,0.12);
+}
+.ffdl-sort-btn {
+  padding:2px 8px; border-radius:20px; border:1.5px solid rgba(251,146,60,0.2);
+  background:rgba(255,255,255,0.5); font-family:'Nunito',sans-serif; font-size:0.58rem; font-weight:800;
+  color:var(--muted); cursor:pointer; transition:all 0.15s; letter-spacing:0.04em;
+}
+.ffdl-sort-btn.active { background:rgba(251,146,60,0.18); border-color:rgba(251,146,60,0.55); color:#fb923c; }
 .ffdl-list {
   display:flex; flex-direction:column; gap:3px;
   padding:8px 10px 10px; max-height:340px; overflow-y:auto;
 }
 .ffdl-list::-webkit-scrollbar { width:3px; }
-.ffdl-list::-webkit-scrollbar-thumb { background:rgba(251,146,60,0.3); border-radius:2px; }
+.ffdl-list::-webkit-scrollbar-thumb { background:rgba(251,146,60,0.35); border-radius:2px; }
 .ffdl-item {
   display:flex; align-items:center; gap:8px; padding:6px 8px;
-  border-radius:10px; background:rgba(255,255,255,0.5);
-  border:1px solid rgba(255,255,255,0.75); transition:background 0.15s;
+  border-radius:10px;
+  background:rgba(255,255,255,0.7);
+  border:1px solid rgba(255,255,255,0.9);
+  box-shadow:0 1px 4px rgba(251,146,60,0.07);
+  transition:background 0.15s, box-shadow 0.15s;
   cursor:default;
 }
-.ffdl-item:hover { background:rgba(255,255,255,0.8); }
+.ffdl-item:hover { background:rgba(255,255,255,0.95); box-shadow:0 2px 10px rgba(251,146,60,0.15); }
 .ffdl-icon { font-size:1.1rem; flex-shrink:0; }
 .ffdl-info { flex:1; min-width:0; }
 .ffdl-name {
@@ -384,40 +417,6 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
   font-size:0.72rem; color:var(--muted); text-align:center;
   padding:14px 0; font-weight:600;
 }
-.ffdl-pick-btn {
-  display:block; width:calc(100% - 20px); margin:0 10px 10px;
-  padding:8px; border-radius:10px; border:1.5px dashed rgba(251,146,60,0.4);
-  background:rgba(251,146,60,0.06); font-family:'Nunito',sans-serif;
-  font-size:0.72rem; font-weight:700; color:rgba(251,146,60,0.8);
-  cursor:pointer; transition:all 0.15s; text-align:center;
-}
-.ffdl-pick-btn:hover { background:rgba(251,146,60,0.14); border-color:rgba(251,146,60,0.7); color:#fb923c; }
-.ffdl-sort-row {
-  display:flex; gap:4px; padding:4px 10px 0; flex-wrap:wrap; border-top:1px solid rgba(255,255,255,0.4);
-}
-.ffdl-sort-btn {
-  padding:2px 8px; border-radius:20px; border:1.5px solid rgba(251,146,60,0.2);
-  background:transparent; font-family:'Nunito',sans-serif; font-size:0.58rem; font-weight:800;
-  color:var(--muted); cursor:pointer; transition:all 0.15s; letter-spacing:0.04em;
-}
-.ffdl-sort-btn.active { background:rgba(251,146,60,0.15); border-color:rgba(251,146,60,0.5); color:#fb923c; }
-.ffdl-search {
-  display:block; width:calc(100% - 20px); margin:8px 10px 0;
-  background:rgba(255,255,255,0.35); border:1.5px solid rgba(255,255,255,0.6);
-  border-radius:10px; padding:5px 10px; font-family:'Nunito',sans-serif;
-  font-size:0.72rem; color:var(--text); outline:none; transition:border-color 0.15s;
-}
-.ffdl-search:focus { border-color:rgba(251,146,60,0.5); }
-.ffdl-search::placeholder { color:var(--muted); }
-
-  display:flex; gap:4px; padding:6px 12px 0; flex-wrap:wrap;
-}
-.todo-filter-btn {
-  padding:3px 10px; border-radius:20px; border:1.5px solid rgba(167,139,250,0.2);
-  background:transparent; font-family:'Nunito',sans-serif; font-size:0.62rem; font-weight:800;
-  color:var(--muted); cursor:pointer; transition:all 0.15s; letter-spacing:0.04em;
-}
-.todo-filter-btn.active { background:rgba(52,211,153,0.15); border-color:rgba(52,211,153,0.4); color:#34d399; }
 
 .page{position:relative;z-index:1;width:100%;max-width:100%;padding:170px 0 60px;display:flex;flex-direction:column;gap:24px;}
 
