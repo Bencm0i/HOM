@@ -1617,6 +1617,8 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
         <div class="ffdl-list" id="ffDlList">
           <div class="ffdl-empty">📂 Clique sur « Dossier » pour<br>ouvrir ton dossier Téléchargements</div>
         </div>
+        <!-- Input caché compatible Firefox -->
+        <input type="file" id="ffDlFolderInput" webkitdirectory multiple style="display:none" onchange="ffDlLoadFromInput(this)">
       </div>
 
     </div>
@@ -3886,8 +3888,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // ══════════════════════════════════════════
 // ── FIREFOX DOWNLOADS WIDGET ──
 // ══════════════════════════════════════════
-let ffDlDirHandle = null;
-let ffDlFiles     = [];   // [{name, size, lastModified, type}]
+let ffDlFiles = [];   // [{name, size, lastModified, type}]
 let ffDlSort      = 'date';
 const FF_DL_MAX   = 80;
 
@@ -3986,39 +3987,28 @@ function ffDlRender(){
   }
 }
 
-async function ffDlPickFolder(){
-  try {
-    const handle = await window.showDirectoryPicker({ id:'ff-downloads', mode:'read' });
-    ffDlDirHandle = handle;
-    await ffDlReadDir();
-  } catch(e){
-    // user cancelled or API not available
-    if(e.name !== 'AbortError') alert('Impossible d\'ouvrir le dossier. Assure-toi d\'utiliser Firefox 111+ ou un navigateur compatible.');
-  }
+function ffDlPickFolder(){
+  // webkitdirectory est supporté par Firefox, Chrome et Edge
+  document.getElementById('ffDlFolderInput').click();
 }
 
-async function ffDlReadDir(){
-  if(!ffDlDirHandle) return;
-  ffDlFiles = [];
-  for await(const entry of ffDlDirHandle.values()){
-    if(entry.kind !== 'file') continue;
-    try {
-      const file = await entry.getFile();
-      ffDlFiles.push({ name: file.name, size: file.size, lastModified: file.lastModified });
-    } catch(e){}
-  }
+function ffDlLoadFromInput(input){
+  const files = Array.from(input.files);
+  // Ne garder que les fichiers à la racine (pas les sous-dossiers)
+  ffDlFiles = files
+    .filter(f => (f.webkitRelativePath.split('/').length <= 2))
+    .map(f => ({ name: f.name, size: f.size, lastModified: f.lastModified }));
   ffDlRender();
+  if(files.length > 0){
+    const folderName = files[0].webkitRelativePath.split('/')[0];
+    const btn = document.querySelector('#ffDlCard .ffdl-open-btn');
+    if(btn) btn.textContent = '📁 ' + folderName;
+  }
 }
 
-async function ffDlRefresh(){
-  if(!ffDlDirHandle){
-    ffDlPickFolder();
-    return;
-  }
-  await ffDlReadDir();
-  // Flash the refresh button briefly
-  const btn = document.querySelector('#ffDlCard .card-action');
-  if(btn){ btn.style.transform='rotate(360deg)'; btn.style.transition='transform 0.4s'; setTimeout(()=>{ btn.style.transform=''; btn.style.transition=''; }, 400); }
+function ffDlRefresh(){
+  // Réouvre le sélecteur pour actualiser
+  ffDlPickFolder();
 }
 
 // ── HORLOGE DÉPLAÇABLE ──
