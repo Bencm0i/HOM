@@ -1203,6 +1203,42 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
 .kb-flash.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
 
 
+/* ── LAUNCHER ICÔNES FLOTTANTES (bureau) ── */
+#launcherDesktop{position:fixed;inset:0;z-index:2;pointer-events:none;}
+.lch-icon{position:absolute;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;pointer-events:all;user-select:none;width:68px;}
+.lch-icon-btn{width:56px;height:56px;border-radius:16px;background:rgba(255,255,255,0.22);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1.5px solid rgba(255,255,255,0.45);display:flex;align-items:center;justify-content:center;font-size:26px;box-shadow:0 4px 18px rgba(0,0,0,0.18);transition:transform 0.12s,box-shadow 0.12s;position:relative;}
+.lch-icon:hover .lch-icon-btn{transform:scale(1.1);box-shadow:0 6px 24px rgba(0,0,0,0.28);}
+.lch-icon:active .lch-icon-btn{transform:scale(0.94);}
+.lch-label{font-family:'Nunito',sans-serif;font-size:0.62rem;font-weight:800;color:#fff;text-align:center;max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 6px rgba(0,0,0,0.7),0 0 2px rgba(0,0,0,0.9);line-height:1.2;}
+/* mode édition */
+.lch-edit .lch-icon-btn{animation:lchJiggle 0.45s infinite alternate;}
+@keyframes lchJiggle{0%{transform:rotate(-2.5deg);}100%{transform:rotate(2.5deg);}}
+.lch-del{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;background:#f87171;border:2.5px solid rgba(255,255,255,0.9);color:#fff;font-size:10px;line-height:20px;text-align:center;display:none;cursor:pointer;z-index:10;box-shadow:0 2px 6px rgba(248,113,113,0.5);}
+.lch-edit .lch-del{display:block;}
+/* bouton flottant toggle edit + add */
+#lchControls{position:fixed;bottom:140px;right:36px;z-index:500;display:flex;flex-direction:column;gap:8px;pointer-events:all;}
+.lch-ctrl-btn{width:38px;height:38px;border-radius:50%;background:rgba(12,6,35,0.75);backdrop-filter:blur(12px);border:1.5px solid rgba(167,139,250,0.4);color:rgba(255,255,255,0.85);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.3);transition:all 0.15s;font-family:'Nunito',sans-serif;}
+.lch-ctrl-btn:hover{background:rgba(167,139,250,0.35);border-color:rgba(167,139,250,0.8);}
+.lch-ctrl-btn.active{background:rgba(167,139,250,0.5);border-color:#a78bfa;color:#fff;}
+/* zone de dépôt (drag) */
+.lch-icon.lch-drag-over .lch-icon-btn{box-shadow:0 0 0 3px var(--c2),0 6px 24px rgba(0,0,0,0.3);}
+/* Modal launcher */
+#launcherModal{position:fixed;inset:0;z-index:600;background:rgba(0,0,0,0.45);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;}
+#launcherModal.open{display:flex;}
+.launcher-modal-box{background:rgba(255,255,255,0.96);backdrop-filter:blur(24px);border:1.5px solid rgba(255,255,255,0.95);border-radius:22px;padding:24px 22px 20px;display:flex;flex-direction:column;gap:12px;box-shadow:0 20px 60px rgba(120,80,200,0.25);width:290px;}
+.launcher-modal-title{font-size:0.85rem;font-weight:800;color:var(--text);}
+.launcher-emoji-grid{display:flex;flex-wrap:wrap;gap:5px;}
+.launcher-emoji-pick{font-size:18px;width:32px;height:32px;border-radius:8px;border:1.5px solid rgba(167,139,250,0.2);background:rgba(167,139,250,0.06);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.1s;}
+.launcher-emoji-pick:hover,.launcher-emoji-pick.sel{border-color:var(--c2);background:rgba(167,139,250,0.18);}
+.launcher-modal-input{width:100%;background:rgba(167,139,250,0.07);border:1.5px solid rgba(167,139,250,0.25);border-radius:10px;padding:8px 11px;font-family:'Nunito',sans-serif;font-size:0.78rem;font-weight:600;color:var(--text);outline:none;transition:border-color 0.2s;}
+.launcher-modal-input:focus{border-color:var(--c2);}
+.launcher-modal-input::placeholder{color:var(--muted);}
+.launcher-modal-btns{display:flex;gap:8px;}
+.launcher-modal-btns button{flex:1;padding:9px;border-radius:12px;border:none;font-family:'Nunito',sans-serif;font-size:0.78rem;font-weight:800;cursor:pointer;transition:opacity 0.15s,transform 0.15s;}
+.launcher-modal-btns button:hover{opacity:0.87;transform:translateY(-1px);}
+.launcher-modal-cancel{background:rgba(167,139,250,0.12);color:var(--muted);border:1.5px solid rgba(167,139,250,0.25)!important;}
+.launcher-modal-save{background:linear-gradient(90deg,var(--c1),var(--c2));color:#fff;}
+
 /* ── COMPTEUR DE CLICS / TOP FAVORIS ── */
 .compact-link-hits {
   font-size: 0.55rem; font-weight: 800;
@@ -1294,6 +1330,13 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
 <button id="tickerRevealBtn" onclick="tickerToggleHide()" title="Afficher la barre ticker">▼ Ticker</button>
 
 <div id="bg-layer"></div>
+
+<!-- LAUNCHER BUREAU FLOTTANT -->
+<div id="launcherDesktop"></div>
+<div id="lchControls">
+  <button class="lch-ctrl-btn" id="lchEditBtn" onclick="launcherToggleEdit()" title="Éditer les icônes">✏️</button>
+  <button class="lch-ctrl-btn" onclick="launcherOpenAdd()" title="Ajouter un raccourci">＋</button>
+</div>
 
 <!-- CLOCK WIDGET -->
 <div id="clockWidget">
@@ -1885,6 +1928,8 @@ function resetAll(){
   gallery = [];
   transpTexts = ['','',''];
   compactLinks = DEFAULT_COMPACT_LINKS.map(l=>({...l}));
+  launcherLinks = DEFAULT_LAUNCHER.map(l=>({...l}));
+  localStorage.removeItem('dashboard_launcher');
   document.getElementById('page-title').value = 'Mon Tableau ✨';
   const _naC = document.getElementById('notesArea'); if(_naC) _naC.value = '';
   [0,1,2].forEach(i=>{ const el=document.getElementById('transp'+i); if(el) el.value=''; });
@@ -2586,6 +2631,9 @@ function initApp(){
   loadCompactLinks();
   clLoadHits();
   renderCompactLinks();
+  // launcher
+  launcherLoad();
+  launcherRender();
   // clock color
   applyClockColor();
   renderLinks();
@@ -3004,7 +3052,241 @@ function loadFromHash(){
 window.addEventListener('load', () => { initApp(); loadFromHash(); });
 
 // ══════════════════════════════════════════
-// ── RECHERCHE LIENS ──
+// ── LAUNCHER BUREAU FLOTTANT ──
+// Drag toujours actif (style Windows).
+// Clic simple = ouvre le lien.
+// Double-clic = édite l'icône.
+// Clic droit = menu contextuel (suppr / éditer).
+// ══════════════════════════════════════════
+const LAUNCHER_EMOJIS = ['🌐','📧','🎵','📺','🛒','📰','💻','🔧','🎮','📡','🏠','📁','🔒','💬','🌍','⚡','📊','🎨','🚀','🔗','🤖','🧠','⭐','❤️','🔍','🎯','📱','🖥️','📝','🎬','☁️','🧲','🖨️','📐','✂️','🏪','✈️','📬','📦','🌈'];
+const DEFAULT_LAUNCHER = [
+  {emoji:'🤖', name:'Claude',   url:'https://claude.ai/',        x:80, y:160},
+  {emoji:'🧠', name:'ChatGPT',  url:'https://chatgpt.com/',      x:80, y:270},
+  {emoji:'💻', name:'GitHub',   url:'https://github.com/',       x:80, y:380},
+  {emoji:'📧', name:'Gmail',    url:'https://mail.google.com/',  x:80, y:490},
+  {emoji:'📺', name:'YouTube',  url:'https://www.youtube.com/',  x:80, y:600},
+  {emoji:'🌐', name:'Google',   url:'https://www.google.com/',   x:80, y:710},
+];
+
+let launcherLinks  = [];
+let launcherEditIdx = null;
+
+// ── état drag global ──
+const _lch = {
+  dragging: false,   // un drag est en cours
+  idx: -1,           // index de l'icône draguée
+  el: null,          // élément DOM
+  offX: 0, offY: 0, // offset souris/coin icône au mousedown
+  startX: 0, startY: 0, // position souris au mousedown (pour détecter si c'est un vrai drag)
+  moved: false       // a bougé de plus de 5px → c'est un drag, pas un clic
+};
+
+function launcherLoad(){
+  try{ launcherLinks = JSON.parse(localStorage.getItem('dashboard_launcher')||'null') || DEFAULT_LAUNCHER.map(l=>({...l})); }
+  catch(e){ launcherLinks = DEFAULT_LAUNCHER.map(l=>({...l})); }
+}
+function launcherSave(){ localStorage.setItem('dashboard_launcher', JSON.stringify(launcherLinks)); }
+
+function launcherRender(){
+  const desktop = document.getElementById('launcherDesktop');
+  desktop.innerHTML = '';
+
+  launcherLinks.forEach((lk, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'lch-icon';
+    wrap.style.left = (lk.x ?? 80) + 'px';
+    wrap.style.top  = (lk.y ?? 160 + i * 110) + 'px';
+
+    // ── icône ──
+    const btn = document.createElement('div');
+    btn.className = 'lch-icon-btn';
+    btn.textContent = lk.emoji || '🔗';
+
+    // favicon overlay
+    if(lk.url){ try{
+      const d = new URL(lk.url).hostname;
+      if(d && !d.startsWith('192.') && !d.startsWith('10.')){
+        const fav = document.createElement('img');
+        fav.style.cssText = 'position:absolute;bottom:4px;right:4px;width:12px;height:12px;border-radius:2px;opacity:0;transition:opacity .3s;pointer-events:none;';
+        fav.src = `https://www.google.com/s2/favicons?sz=32&domain=${d}`;
+        fav.onload  = () => { fav.style.opacity = '0.8'; };
+        fav.onerror = () => fav.remove();
+        btn.appendChild(fav);
+      }
+    }catch(e){} }
+
+    // ── label ──
+    const label = document.createElement('div');
+    label.className = 'lch-label';
+    label.textContent = lk.name || '';
+
+    wrap.appendChild(btn);
+    wrap.appendChild(label);
+    desktop.appendChild(wrap);
+
+    // ══ MOUSEDOWN : démarre le potentiel drag ══
+    wrap.addEventListener('mousedown', e => {
+      if(e.button !== 0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const r = wrap.getBoundingClientRect();
+      _lch.dragging = false;
+      _lch.moved    = false;
+      _lch.idx      = i;
+      _lch.el       = wrap;
+      _lch.offX     = e.clientX - r.left;
+      _lch.offY     = e.clientY - r.top;
+      _lch.startX   = e.clientX;
+      _lch.startY   = e.clientY;
+    });
+
+    // ── double-clic → éditer ──
+    wrap.addEventListener('dblclick', e => {
+      e.stopPropagation();
+      if(_lch.moved) return; // ne pas ouvrir si on vient de draguer
+      launcherOpenEdit(i);
+    });
+
+    // ── clic droit → menu contextuel léger ──
+    wrap.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      lchShowCtxMenu(e.clientX, e.clientY, i);
+    });
+  });
+}
+
+// ══ MOUSEMOVE global : déplace l'icône dès 5px de mouvement ══
+document.addEventListener('mousemove', e => {
+  if(_lch.idx < 0 || !_lch.el) return;
+
+  const dx = e.clientX - _lch.startX;
+  const dy = e.clientY - _lch.startY;
+
+  if(!_lch.moved && Math.hypot(dx, dy) < 5) return; // seuil de 5px
+
+  if(!_lch.moved){
+    _lch.moved    = true;
+    _lch.dragging = true;
+    _lch.el.style.transition = 'none';
+    _lch.el.style.zIndex     = '300';
+    _lch.el.style.opacity    = '0.85';
+    _lch.el.style.cursor     = 'grabbing';
+  }
+
+  const x = Math.max(0, Math.min(e.clientX - _lch.offX, window.innerWidth  - 68));
+  const y = Math.max(0, Math.min(e.clientY - _lch.offY, window.innerHeight - 90));
+  _lch.el.style.left = x + 'px';
+  _lch.el.style.top  = y + 'px';
+});
+
+// ══ MOUSEUP global : finalise drag ou déclenche clic ══
+document.addEventListener('mouseup', e => {
+  if(_lch.idx < 0 || !_lch.el) return;
+
+  if(_lch.moved){
+    // Sauvegarder la nouvelle position
+    const x = Math.round(parseFloat(_lch.el.style.left));
+    const y = Math.round(parseFloat(_lch.el.style.top));
+    launcherLinks[_lch.idx].x = x;
+    launcherLinks[_lch.idx].y = y;
+    _lch.el.style.zIndex  = '';
+    _lch.el.style.opacity = '';
+    _lch.el.style.cursor  = '';
+    launcherSave();
+  } else {
+    // vrai clic → ouvrir le lien
+    const lk = launcherLinks[_lch.idx];
+    if(lk && lk.url) window.open(lk.url, '_blank', 'noopener');
+  }
+
+  _lch.idx = -1;
+  _lch.el  = null;
+  _lch.moved = false;
+});
+
+// ── menu contextuel (clic droit) ──
+let _lchCtx = null;
+function lchShowCtxMenu(cx, cy, idx){
+  lchHideCtxMenu();
+  const m = document.createElement('div');
+  m.id = 'lchCtxMenu';
+  m.style.cssText = `position:fixed;left:${Math.min(cx, window.innerWidth-160)}px;top:${Math.min(cy, window.innerHeight-80)}px;z-index:800;background:rgba(20,12,48,0.96);backdrop-filter:blur(16px);border:1.5px solid rgba(167,139,250,0.35);border-radius:12px;padding:6px 0;min-width:150px;box-shadow:0 8px 32px rgba(0,0,0,0.4);font-family:'Nunito',sans-serif;`;
+  const items = [
+    {icon:'✏️', label:'Modifier', fn: () => { launcherOpenEdit(idx); }},
+    {icon:'🗑', label:'Supprimer', fn: () => { launcherLinks.splice(idx,1); launcherSave(); launcherRender(); }, danger:true},
+  ];
+  items.forEach(it => {
+    const row = document.createElement('div');
+    row.style.cssText = `display:flex;align-items:center;gap:8px;padding:7px 14px;cursor:pointer;font-size:0.78rem;font-weight:700;color:${it.danger?'#f87171':'rgba(255,255,255,0.85)'};transition:background .12s;`;
+    row.innerHTML = `<span>${it.icon}</span><span>${it.label}</span>`;
+    row.onmouseenter = () => { row.style.background = 'rgba(167,139,250,0.2)'; };
+    row.onmouseleave = () => { row.style.background = ''; };
+    row.onclick = (e) => { e.stopPropagation(); lchHideCtxMenu(); it.fn(); };
+    m.appendChild(row);
+  });
+  document.body.appendChild(m);
+  _lchCtx = m;
+  setTimeout(() => document.addEventListener('click', lchHideCtxMenu, {once:true}), 0);
+}
+function lchHideCtxMenu(){ if(_lchCtx){ _lchCtx.remove(); _lchCtx = null; } }
+
+// ── modal ──
+function launcherToggleEdit(){} // plus utilisé mais gardé pour compatibilité bouton
+
+function launcherBuildEmojiGrid(sel){
+  const g = document.getElementById('launcherEmojiGrid');
+  g.innerHTML = '';
+  LAUNCHER_EMOJIS.forEach(em => {
+    const b = document.createElement('div');
+    b.className = 'launcher-emoji-pick' + (em === sel ? ' sel' : '');
+    b.textContent = em;
+    b.onclick = () => { g.querySelectorAll('.launcher-emoji-pick').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); };
+    g.appendChild(b);
+  });
+}
+function launcherSelEmoji(){ return document.querySelector('.launcher-emoji-pick.sel')?.textContent || '🔗'; }
+
+function launcherOpenAdd(){
+  launcherEditIdx = null;
+  document.getElementById('launcherModalTitle').textContent = 'Nouveau raccourci';
+  document.getElementById('launcherModalName').value = '';
+  document.getElementById('launcherModalUrl').value = '';
+  launcherBuildEmojiGrid(LAUNCHER_EMOJIS[0]);
+  document.getElementById('launcherModal').classList.add('open');
+}
+function launcherOpenEdit(i){
+  launcherEditIdx = i;
+  const lk = launcherLinks[i];
+  document.getElementById('launcherModalTitle').textContent = 'Modifier le raccourci';
+  document.getElementById('launcherModalName').value  = lk.name  || '';
+  document.getElementById('launcherModalUrl').value   = lk.url   || '';
+  launcherBuildEmojiGrid(lk.emoji || LAUNCHER_EMOJIS[0]);
+  document.getElementById('launcherModal').classList.add('open');
+}
+function launcherCloseModal(){ document.getElementById('launcherModal').classList.remove('open'); }
+function launcherSaveModal(){
+  let url  = document.getElementById('launcherModalUrl').value.trim();
+  const name  = document.getElementById('launcherModalName').value.trim() || 'Lien';
+  const emoji = launcherSelEmoji();
+  if(url && !url.startsWith('http')) url = 'https://' + url;
+  if(launcherEditIdx === null){
+    const lastY = launcherLinks.length ? Math.max(...launcherLinks.map(l => l.y||0)) + 110 : 160;
+    launcherLinks.push({emoji, name, url, x:80, y:lastY});
+  } else {
+    const lk = launcherLinks[launcherEditIdx];
+    launcherLinks[launcherEditIdx] = {emoji, name, url, x:lk.x, y:lk.y};
+  }
+  launcherSave();
+  launcherCloseModal();
+  launcherRender();
+}
+document.addEventListener('click', e => {
+  const modal = document.getElementById('launcherModal');
+  if(modal && modal.classList.contains('open') && e.target === modal) launcherCloseModal();
+});
+
+
 // ══════════════════════════════════════════
 function filterLinks(q){
   const clearBtn = document.getElementById('linksSearchClear');
@@ -4187,6 +4469,19 @@ function ffDlRefresh(){
 
 
 
+
+<div id="launcherModal">
+  <div class="launcher-modal-box">
+    <div class="launcher-modal-title" id="launcherModalTitle">Nouveau raccourci</div>
+    <div class="launcher-emoji-grid" id="launcherEmojiGrid"></div>
+    <input class="launcher-modal-input" id="launcherModalName" placeholder="Nom (ex: GitHub)">
+    <input class="launcher-modal-input" id="launcherModalUrl" placeholder="https://…">
+    <div class="launcher-modal-btns">
+      <button class="launcher-modal-cancel" onclick="launcherCloseModal()">Annuler</button>
+      <button class="launcher-modal-save" onclick="launcherSaveModal()">Enregistrer</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
