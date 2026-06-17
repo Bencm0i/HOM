@@ -1277,6 +1277,31 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
 .cl-rest-divider::after {
   content:''; flex:1; height:1px; background:rgba(167,139,250,0.1);
 }
+
+/* ── ACCORDÉON liens non-fréquents ── */
+.cl-accordion-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 12px 4px;
+  font-size: 0.58rem; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; color: rgba(158,143,192,0.6);
+  background: none; border: none; cursor: pointer;
+  width: 100%; font-family: 'Nunito', sans-serif;
+  transition: color 0.15s;
+}
+.cl-accordion-btn:hover { color: var(--c2); }
+.cl-accordion-btn::after {
+  content:''; flex:1; height:1px; background:rgba(167,139,250,0.1);
+}
+.cl-accordion-chevron {
+  font-size: 0.55rem; transition: transform 0.25s;
+  display: inline-block; margin-left: 2px;
+}
+.cl-accordion-btn.open .cl-accordion-chevron { transform: rotate(180deg); }
+.cl-accordion-body {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease;
+}
 /* Seuil slider panel */
 #clThreshPanel {
   padding: 8px 12px 10px;
@@ -1964,6 +1989,9 @@ function toggleClThreshPanel(){
   b.style.opacity = p.classList.contains('open') ? '1' : '0.5';
 }
 
+// ── État accordéon ──
+let clAccordionOpen = JSON.parse(localStorage.getItem('dashboard_cl_accordion') ?? 'false');
+
 function renderCompactLinks(){
   const wrap = document.getElementById('compactLinksWrap');
   wrap.innerHTML = '';
@@ -1985,13 +2013,32 @@ function renderCompactLinks(){
     topDiv.innerHTML = '⚡ Favoris fréquents';
     wrap.appendChild(topDiv);
     hot.forEach(({ lk, i }) => wrap.appendChild(buildCompactLinkEl(lk, i)));
-
-    const restDiv = document.createElement('div');
-    restDiv.className = 'cl-rest-divider';
-    restDiv.innerHTML = 'Autres';
-    wrap.appendChild(restDiv);
   }
-  rest.forEach(({ lk, i }) => wrap.appendChild(buildCompactLinkEl(lk, i)));
+
+  // ── Accordéon pour les liens non-fréquents ──
+  if(rest.length){
+    const count = rest.length;
+    const btn = document.createElement('button');
+    btn.className = 'cl-accordion-btn' + (clAccordionOpen ? ' open' : '');
+    btn.innerHTML = `Autres <span class="cl-accordion-chevron">▼</span> <span style="font-size:0.55rem;opacity:0.5">(${count})</span>`;
+    btn.onclick = () => {
+      clAccordionOpen = !clAccordionOpen;
+      localStorage.setItem('dashboard_cl_accordion', JSON.stringify(clAccordionOpen));
+      btn.classList.toggle('open', clAccordionOpen);
+      body.style.maxHeight = clAccordionOpen ? body.scrollHeight + 'px' : '0';
+    };
+    wrap.appendChild(btn);
+
+    const body = document.createElement('div');
+    body.className = 'cl-accordion-body';
+    rest.forEach(({ lk, i }) => body.appendChild(buildCompactLinkEl(lk, i)));
+    wrap.appendChild(body);
+
+    // Appliquer état initial après insertion dans le DOM
+    requestAnimationFrame(() => {
+      if(clAccordionOpen) body.style.maxHeight = body.scrollHeight + 'px';
+    });
+  }
 }
 
 function openEmojiCompact(e, idx){
