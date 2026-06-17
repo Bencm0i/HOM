@@ -423,8 +423,8 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
 .site-header{padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
 
 /* LAYOUT : coller les colonnes aux bords */
-.three-col{display:grid;grid-template-columns:280px 1fr 280px;gap:0;align-items:start;width:100%;}
-@media(max-width:900px){.three-col{grid-template-columns:220px 1fr 220px;}}
+.three-col{display:grid;grid-template-columns:280px 1fr;gap:0;align-items:start;width:100%;}
+@media(max-width:900px){.three-col{grid-template-columns:220px 1fr;}}
 @media(max-width:600px){.three-col{grid-template-columns:1fr;}}
 
 /* COL LEFT padding */
@@ -968,9 +968,11 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
   border:1px solid rgba(255,255,255,0.35); border-radius:30px;
   padding:5px 12px 5px 9px;
   box-shadow:0 2px 14px rgba(120,80,200,0.1);
-  cursor:pointer; transition:background 0.2s, box-shadow 0.2s;
+  cursor:grab; transition:background 0.2s, box-shadow 0.2s;
   font-family:'Nunito',sans-serif;
+  user-select:none;
 }
+#meteoWidget.dragging { cursor:grabbing; box-shadow:0 8px 28px rgba(120,80,200,0.22); }
 #meteoWidget:hover { background:rgba(255,255,255,0.35); box-shadow:0 4px 20px rgba(120,80,200,0.18); }
 #meteoIcon { font-size:1.1rem; line-height:1; }
 #meteoTemp { font-size:0.85rem; font-weight:800; color:var(--text); }
@@ -1363,7 +1365,7 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
 </div>
 
 <!-- MÉTÉO WIDGET DISCRET -->
-<div id="meteoWidget" onclick="toggleMeteoTooltip()" title="Météo Valence">
+<div id="meteoWidget" title="Météo Valence (déplaçable)">
   <span id="meteoIcon">⛅</span>
   <div>
     <div id="meteoTemp">--°</div>
@@ -1395,9 +1397,6 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
     <input id="page-title" value="Mon Tableau ✨" oninput="save()">
     <div style="display:flex;gap:8px;align-items:center">
       <span class="save-dot" id="saveDot"></span>
-      <a class="bg-btn" href="https://bencm0i.github.io/HOM/" target="_blank" style="text-decoration:none;">🏡 HOM</a>
-      <a class="bg-btn" href="https://bencm0i.github.io/HOM/prompt-manager.html" target="_blank" style="text-decoration:none;">🧠 Prompts</a>
-      <a class="bg-btn" href="http://192.168.50.234:8123/lovelace/0" target="_blank" style="text-decoration:none;">🏠 HA</a>
       <button class="bg-btn" onclick="exportVault()">⬇ Exporter</button>
       <button class="bg-btn" onclick="document.getElementById('vaultImport').click()">⬆ Importer</button>
       <button class="bg-btn" onclick="resetAll()" style="color:#f87171;border-color:rgba(248,113,113,0.3)">🗑 Réinitialiser</button>
@@ -1489,9 +1488,9 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
       <input type="color" id="sunC3" value="#1e1b4b" style="display:none">
     </div>
 
-    <!-- COL 3 : GALERIE -->
-    <div class="col-right" style="display:flex;flex-direction:column;gap:12px;min-height:100px">
-      <!-- SLIDESHOW -->
+    <!-- COL 3 supprimée -->
+    <div style="display:none">
+      <!-- SLIDESHOW (éléments requis par le JS) -->
       <div class="slideshow-wrap empty" id="slideshowWrap">
         <div class="slideshow-empty-msg" id="ssEmpty">📷<br>Aucune photo<br><span style="font-size:0.65rem;opacity:0.6">Ouvre un dossier ci-dessous</span></div>
         <div class="ss-filename" id="ssFilename"></div>
@@ -1527,145 +1526,22 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
         </div>
         <div class="gal-list-scroll" id="galListScroll"></div>
       </div>
-      <!-- BUTTONS -->
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <button class="gallery-add-btn" onclick="document.getElementById('galleryPicker').click()">
-          📁 Ouvrir un dossier de photos
-        </button>
-        <button class="gallery-add-btn" onclick="clearGallery()" style="border-color:rgba(248,113,113,0.4);color:rgba(248,113,113,0.7)">
-          🗑 Vider la galerie
-        </button>
-      </div>
-
       <!-- MUSIC PLAYER -->
-      <div id="musicPlayer">
+      <div id="musicPlayer" style="display:none">
         <div class="music-head">
-          <span class="music-title-label">🎵 Musique</span>
-          <button class="music-btn" onclick="togglePlaylist()" title="Playlist" id="musicPlBtn" style="font-size:0.75rem;">📋</button>
-        </div>
-        <div class="music-track-info">
-          <div class="music-track-name" id="musicTrackName">Aucune piste</div>
-          <div class="music-track-artist" id="musicTrackArtist">Glisse des fichiers audio ici</div>
-        </div>
-        <div class="music-progress-wrap">
-          <span class="music-time" id="musicCurrent">0:00</span>
-          <input type="range" id="musicProgress" min="0" max="100" value="0" oninput="musicSeek(this.value)">
-          <span class="music-time right" id="musicDuration">0:00</span>
-        </div>
-        <div class="music-controls">
-          <button class="music-btn" onclick="musicShuffle()" title="Aléatoire" id="musicShuffleBtn">🔀</button>
-          <button class="music-btn" onclick="musicPrev()" title="Précédent">⏮</button>
-          <button class="music-btn play-btn" onclick="musicToggle()" id="musicPlayBtn" title="Lecture/Pause">▶</button>
-          <button class="music-btn" onclick="musicNext()" title="Suivant">⏭</button>
-          <button class="music-btn" onclick="musicRepeat()" title="Répéter" id="musicRepeatBtn">🔁</button>
-        </div>
-        <div class="music-vol-wrap">
-          <span class="music-vol-icon" onclick="musicMute()">🔊</span>
-          <input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.8" oninput="musicSetVol(this.value)">
-        </div>
-        <div id="musicPlaylistWrap" style="display:none;">
-          <div class="music-playlist" id="musicPlaylist"></div>
-        </div>
-        <div class="music-drop-zone" id="musicDropZone" onclick="document.getElementById('musicFilePicker').click()">
-          ♪ Dépose tes fichiers audio ici ou clique pour choisir
-        </div>
-        <input type="file" id="musicFilePicker" accept="audio/*" multiple style="display:none" onchange="musicAddFiles(this.files)">
-      </div>
-
-      <!-- YOUTUBE SEARCH -->
-      <div id="youtubeCard">
-        <div class="yt-head">
-          <span class="yt-title">▶ YouTube</span>
-          <a href="https://www.youtube.com" target="_blank" rel="noopener" class="tx-open-btn" style="background:linear-gradient(90deg,#f87171,#fb923c)">Ouvrir</a>
-        </div>
-        <div class="yt-search-row">
-          <input class="yt-search-input" id="ytSearchInput" placeholder="Rechercher une vidéo…" maxlength="120"
-            onkeydown="if(event.key==='Enter') ytSearch()">
-          <button class="yt-search-btn" onclick="ytSearch()" title="Rechercher">🔍</button>
-        </div>
-        <div class="yt-shortcuts" id="ytShortcuts">
-          <a class="yt-shortcut-item" href="https://www.youtube.com/feed/trending" target="_blank" rel="noopener">
-            <span class="yt-shortcut-icon">🔥</span><span class="yt-shortcut-label">Tendances</span><span class="yt-shortcut-sub">Vidéos populaires</span>
-          </a>
-          <a class="yt-shortcut-item" href="https://www.youtube.com/feed/subscriptions" target="_blank" rel="noopener">
-            <span class="yt-shortcut-icon">🔔</span><span class="yt-shortcut-label">Abonnements</span><span class="yt-shortcut-sub">Nouveautés</span>
-          </a>
-          <a class="yt-shortcut-item" href="https://www.youtube.com/playlist?list=WL" target="_blank" rel="noopener">
-            <span class="yt-shortcut-icon">🕐</span><span class="yt-shortcut-label">À regarder plus tard</span><span class="yt-shortcut-sub">Ma liste</span>
-          </a>
-        </div>
-        <div id="ytHistWrap" style="display:none">
-          <div class="yt-hist-title">🕑 Recherches récentes</div>
-          <div class="yt-history" id="ytHistory"></div>
-        </div>
-      </div>
-
-      <!-- TRANSMISSION P2P -->
-      <div id="transmissionCard">
-        <div class="tx-head">
-          <span class="tx-title">🧲 Transmission</span>
-          <div class="tx-actions">
-            <span id="txBadge" class="tx-badge">—</span>
-            <button class="card-action" onclick="txFetch(true)" title="Actualiser">🔄</button>
-            <a class="tx-open-btn" href="http://localhost:9091/transmission/web/" target="_blank" rel="noopener">Ouvrir</a>
-          </div>
-        </div>
-        <div id="txList"><div class="tx-empty">Connexion…</div></div>
-        <div id="txSpeedBar">
-          <span class="tx-speed-item">⬇ <span id="txDl">—</span></span>
-          <span id="txCount" style="color:var(--muted)">—</span>
-          <span class="tx-speed-item">⬆ <span id="txUl">—</span></span>
-        </div>
-        <div class="tx-url-row">
-          <input class="tx-url-input" id="txHostInput" value="http://localhost:9091" placeholder="http://localhost:9091" onchange="txSaveHost()">
-        </div>
-      </div>
-
-      <!-- TODO / TÂCHES -->
-      <div id="todoCard">
-        <div class="todo-head">
-          <span class="todo-title">✅ À faire</span>
-          <span class="todo-stats" id="todoStats"></span>
-        </div>
-        <div class="todo-filters">
-          <button class="todo-filter-btn active" data-filter="all" onclick="todoSetFilter('all',this)">Toutes</button>
-          <button class="todo-filter-btn" data-filter="active" onclick="todoSetFilter('active',this)">En cours</button>
-          <button class="todo-filter-btn" data-filter="done" onclick="todoSetFilter('done',this)">Faites</button>
-        </div>
-        <div class="todo-input-row">
-          <input class="todo-input" id="todoInput" placeholder="Nouvelle tâche…" maxlength="120"
-            onkeydown="if(event.key==='Enter') todoAdd()">
-          <button class="todo-add-btn" onclick="todoAdd()" title="Ajouter">＋</button>
-        </div>
-        <div class="todo-list" id="todoList"></div>
-      </div>
-
-      <!-- FIREFOX DOWNLOADS -->
-      <div id="ffDlCard">
-        <div class="ffdl-head">
-          <span class="ffdl-title">📥 Téléchargements</span>
-          <div style="display:flex;align-items:center;gap:6px">
-            <button class="card-action" onclick="ffDlRefresh()" title="Actualiser">🔄</button>
-            <button class="ffdl-open-btn" onclick="ffDlPickFolder()">📁 Dossier</button>
-          </div>
-        </div>
-        <input class="ffdl-search" id="ffDlSearch" placeholder="🔍 Filtrer les fichiers…" oninput="ffDlRender()">
-        <div class="ffdl-sort-row">
-          <button class="ffdl-sort-btn active" data-sort="date" onclick="ffDlSetSort('date',this)">Date ↓</button>
-          <button class="ffdl-sort-btn" data-sort="name" onclick="ffDlSetSort('name',this)">Nom</button>
-          <button class="ffdl-sort-btn" data-sort="size" onclick="ffDlSetSort('size',this)">Taille</button>
-          <button class="ffdl-sort-btn" data-sort="type" onclick="ffDlSetSort('type',this)">Type</button>
-        </div>
-        <div class="ffdl-list" id="ffDlList">
-          <div class="ffdl-empty">📂 Clique sur « Dossier » pour<br>ouvrir ton dossier Téléchargements</div>
-        </div>
-        <!-- Input caché compatible Firefox -->
-        <input type="file" id="ffDlFolderInput" webkitdirectory multiple style="display:none" onchange="ffDlLoadFromInput(this)">
-      </div>
-
     </div>
 
   </div>
+</div>
+
+<!-- Éléments cachés requis par le JS (col-right supprimée) -->
+<div style="display:none">
+  <div id="todoCard"><span class="todo-stats" id="todoStats"></span><div class="todo-list" id="todoList"></div><input id="todoInput"><button onclick="todoAdd()"></button></div>
+  <div id="ffDlCard"><div class="ffdl-list" id="ffDlList"></div><input id="ffDlSearch"><input type="file" id="ffDlFolderInput" webkitdirectory multiple onchange="ffDlLoadFromInput(this)"></div>
+  <div id="transmissionCard"><div id="txList"></div><span id="txBadge"></span><span id="txDl"></span><span id="txUl"></span><span id="txCount"></span><input id="txHostInput" value="http://localhost:9091"></div>
+  <div id="youtubeCard"><input id="ytSearchInput"><div id="ytHistory"></div><div id="ytHistWrap"></div><div id="ytShortcuts"></div></div>
+  <div id="musicPlayer"><input type="range" id="musicProgress" min="0" max="100" value="0"><input type="range" id="musicVol" min="0" max="1" step="0.01" value="0.8"><div id="musicPlaylist"></div><div id="musicPlaylistWrap"></div><span id="musicTrackName"></span><span id="musicTrackArtist"></span><span id="musicCurrent"></span><span id="musicDuration"></span><button id="musicPlayBtn"></button><button id="musicShuffleBtn"></button><button id="musicRepeatBtn"></button><button id="musicPlBtn"></button></div>
+  <input type="file" id="musicFilePicker" accept="audio/*" multiple onchange="musicAddFiles(this.files)">
 </div>
 
 <div class="emoji-picker" id="emojiPicker" style="display:none"></div>
@@ -3619,7 +3495,17 @@ async function fetchMeteo(manual){
 let meteoTooltipOpen = false;
 function toggleMeteoTooltip(){
   meteoTooltipOpen = !meteoTooltipOpen;
-  document.getElementById('meteoTooltip').classList.toggle('open', meteoTooltipOpen);
+  const tt = document.getElementById('meteoTooltip');
+  tt.classList.toggle('open', meteoTooltipOpen);
+  if(meteoTooltipOpen) positionMeteoTooltip();
+}
+function positionMeteoTooltip(){
+  const w = document.getElementById('meteoWidget');
+  const tt = document.getElementById('meteoTooltip');
+  const r = w.getBoundingClientRect();
+  tt.style.top = (r.bottom + 6) + 'px';
+  tt.style.left = Math.max(4, Math.min(r.left, window.innerWidth - tt.offsetWidth - 4)) + 'px';
+  tt.style.right = 'auto';
 }
 document.addEventListener('click', (e) => {
   if(meteoTooltipOpen && !e.target.closest('#meteoWidget') && !e.target.closest('#meteoTooltip')){
@@ -3627,6 +3513,49 @@ document.addEventListener('click', (e) => {
     document.getElementById('meteoTooltip').classList.remove('open');
   }
 });
+
+// ── Drag meteoWidget ──
+(function(){
+  const el = document.getElementById('meteoWidget');
+  let dragging = false, startX, startY, origLeft, origTop, didDrag = false;
+  const SK = 'meteoWidgetPos';
+  function applyPos(left, top){
+    el.style.left = left + 'px';
+    el.style.top = top + 'px';
+    el.style.right = 'auto';
+  }
+  const saved = JSON.parse(localStorage.getItem(SK) || 'null');
+  if(saved) applyPos(saved.left, saved.top);
+
+  el.addEventListener('mousedown', e => {
+    if(e.button !== 0) return;
+    dragging = true; didDrag = false;
+    startX = e.clientX; startY = e.clientY;
+    const r = el.getBoundingClientRect();
+    origLeft = r.left; origTop = r.top;
+    el.classList.add('dragging');
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if(!dragging) return;
+    const dx = e.clientX - startX, dy = e.clientY - startY;
+    if(Math.abs(dx) > 3 || Math.abs(dy) > 3) didDrag = true;
+    const left = Math.max(0, Math.min(origLeft + dx, window.innerWidth - el.offsetWidth));
+    const top = Math.max(30, Math.min(origTop + dy, window.innerHeight - el.offsetHeight - 4));
+    applyPos(left, top);
+    if(meteoTooltipOpen) positionMeteoTooltip();
+  });
+  document.addEventListener('mouseup', e => {
+    if(!dragging) return;
+    dragging = false;
+    el.classList.remove('dragging');
+    if(!didDrag){ toggleMeteoTooltip(); }
+    else {
+      const r = el.getBoundingClientRect();
+      localStorage.setItem(SK, JSON.stringify({left: r.left, top: r.top}));
+    }
+  });
+})();
 
 // ══════════════════════════════════════════
 // ── MUSIC PLAYER ──
