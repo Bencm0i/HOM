@@ -1632,7 +1632,16 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
           card.addEventListener('click', (e) => {
             if(e.target.closest('.lc-actions')) return;
             const cfg = haCfg();
-            window.open(cfg.url + s.path, '_blank');
+            if(!cfg.url){ alert("Configure d'abord l'URL de Home Assistant (⚙️)."); return; }
+            let full;
+            try{
+              const path = (s.path || '').trim();
+              full = new URL(path.startsWith('/') ? path : '/' + path, cfg.url).href;
+            }catch(err){
+              alert("Chemin de raccourci invalide : " + s.path);
+              return;
+            }
+            window.open(full, '_blank');
           });
           card.querySelector('.lc-edit').onclick = (e) => { e.stopPropagation(); lcEditShortcut(i); };
           card.querySelector('.lc-del').onclick  = (e) => { e.stopPropagation(); lcDeleteShortcut(i); };
