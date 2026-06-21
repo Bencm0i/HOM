@@ -1427,9 +1427,6 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
       <button class="bg-btn" onclick="exportVault()">⬇ Exporter</button>
       <button class="bg-btn" onclick="document.getElementById('vaultImport').click()">⬆ Importer</button>
       <button class="bg-btn" onclick="resetAll()" style="color:#f87171;border-color:rgba(248,113,113,0.3)">🗑 Réinitialiser</button>
-      <button class="bg-btn" onclick="openSettings()">⚙️ Paramètres</button>
-      <button class="bg-btn" onclick="document.getElementById('bgPicker').click()">🖼 Fond</button>
-      <button class="bg-btn" id="resetBgBtn" onclick="resetBg()" style="display:none;color:#f87171;border-color:rgba(248,113,113,0.3)">✕ Fond</button>
     </div>
   </div>
 
@@ -1520,9 +1517,40 @@ canvas{display:block;width:100%;cursor:crosshair;border-top:1.5px solid rgba(255
             Aucune configuration. Clique sur ⚙️ pour renseigner l'URL de ton Home Assistant.
           </div>
         </div>
+
+        <div class="ha-sidebar-head" style="border-top:1.5px solid rgba(255,255,255,0.6);border-bottom:none;">
+          <span class="card-title">⭐ Raccourcis fréquents</span>
+        </div>
+        <div id="freqShortcutsRow" style="padding:4px 16px 16px;display:flex;flex-wrap:wrap;gap:8px;flex-shrink:0;"></div>
+
+        <div class="ha-sidebar-head" style="border-top:1.5px solid rgba(255,255,255,0.6);border-bottom:none;">
+          <span class="card-title">🖼 Fond &amp; Galerie</span>
+        </div>
+        <div style="padding:10px 16px 16px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
+          <button class="bg-btn" onclick="openSettings()" style="width:100%;justify-content:center;">⚙️ Paramètres</button>
+          <button class="bg-btn" onclick="document.getElementById('bgPicker').click()" style="width:100%;justify-content:center;">🖼 Fond</button>
+          <button class="bg-btn" id="resetBgBtn" onclick="resetBg()" style="width:100%;justify-content:center;display:none;color:#f87171;border-color:rgba(248,113,113,0.3)">✕ Fond</button>
+          <button class="bg-btn" onclick="saveBgFavorite()" style="width:100%;justify-content:center;">💾 Sauvegarder ce fond</button>
+          <div id="bgFavRow" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;"></div>
+        </div>
       </div>
     </div>
     <button id="haTab" class="ha-tab" onclick="haToggleSidebar()" title="Afficher / masquer les raccourcis Lovelace">🏠</button>
+
+    <style>
+      .freq-shortcut{display:flex;flex-direction:column;align-items:center;gap:2px;width:54px;text-decoration:none;cursor:pointer;}
+      .freq-shortcut-icon{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,0.55);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.2rem;transition:transform 0.15s,box-shadow 0.15s;}
+      .freq-shortcut:hover .freq-shortcut-icon{transform:scale(1.1);box-shadow:0 4px 14px rgba(120,80,200,0.2);}
+      .freq-shortcut-name{font-size:0.6rem;font-weight:700;color:var(--text);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;}
+      .freq-shortcut-empty{padding:6px 0;font-size:0.7rem;color:var(--muted);}
+    </style>
+
+    <style>
+      .bg-fav-thumb{position:relative;width:42px;height:42px;border-radius:10px;background-size:cover;background-position:center;border:1.5px solid var(--border);cursor:pointer;transition:transform 0.15s;flex-shrink:0;}
+      .bg-fav-thumb:hover{transform:scale(1.08);border-color:var(--c2);}
+      .bg-fav-thumb .bg-fav-del{position:absolute;top:-5px;right:-5px;width:16px;height:16px;border-radius:50%;background:#f87171;color:#fff;font-size:0.55rem;line-height:16px;text-align:center;display:none;cursor:pointer;}
+      .bg-fav-thumb:hover .bg-fav-del{display:block;}
+    </style>
 
     <style>
       .ha-sidebar{
@@ -2189,7 +2217,7 @@ function clRecordClick(url){
   linkHits[url] = (linkHits[url] || 0) + 1;
   clSaveHits();
   // Re-render after short delay to not interrupt navigation
-  setTimeout(renderCompactLinks, 50);
+  setTimeout(() => { renderCompactLinks(); renderFrequentShortcuts(); }, 50);
 }
 
 function clSetThresh(val){
@@ -2204,6 +2232,7 @@ function clResetHits(){
   linkHits = {};
   clSaveHits();
   renderCompactLinks();
+  renderFrequentShortcuts();
 }
 
 function toggleClThreshPanel(){
@@ -2211,6 +2240,26 @@ function toggleClThreshPanel(){
   const b = document.getElementById('clThreshBtn');
   p.classList.toggle('open');
   b.style.opacity = p.classList.contains('open') ? '1' : '0.5';
+}
+
+// ── RACCOURCIS FRÉQUENTS (sidebar) : top liens par nombre de clics ──
+function renderFrequentShortcuts(){
+  const row = document.getElementById('freqShortcutsRow');
+  if(!row) return;
+  const top = compactLinks
+    .filter(lk => lk.url && (linkHits[lk.url] || 0) > 0)
+    .sort((a, b) => (linkHits[b.url] || 0) - (linkHits[a.url] || 0))
+    .slice(0, 8);
+  if(!top.length){
+    row.innerHTML = '<div class="freq-shortcut-empty">Clique sur tes liens pour qu\'ils apparaissent ici.</div>';
+    return;
+  }
+  row.innerHTML = top.map(lk => `
+    <a class="freq-shortcut" href="${lk.url}" target="_blank" rel="noopener" onclick="clRecordClick('${lk.url.replace(/'/g,"\\'")}')" title="${(lk.name||lk.url).replace(/"/g,'&quot;')}">
+      <span class="freq-shortcut-icon">${lk.emoji || '🔗'}</span>
+      <span class="freq-shortcut-name">${lk.name || 'Lien'}</span>
+    </a>
+  `).join('');
 }
 
 // ── État accordéon ──
@@ -2785,6 +2834,8 @@ function initApp(){
   applyClockColor();
   renderLinks();
   renderGallery();
+  renderBgFavorites();
+  renderFrequentShortcuts();
   initCanvas();
   const cv=localStorage.getItem('dashboard_canvas');
   if(cv){ const img=new Image(); img.onload=()=>ctx.drawImage(img,0,0,window.innerWidth,window.innerHeight); img.src=cv; }
@@ -3079,8 +3130,6 @@ function openSettings(){
   if(bgUrl){ const p=document.getElementById('settingsBgPreview'); p.src=bgUrl; p.style.display='block'; }
   else { document.getElementById('settingsBgPreview').style.display='none'; }
   // fill gallery urls from urlGallery store
-  const urlGal = getUrlGallery();
-  document.getElementById('settingsGalleryUrls').value = urlGal.map(g=>g.url).join('\n');
   document.getElementById('permalinkFeedback').textContent = '';
   document.getElementById('settingsModal').classList.add('open');
 }
@@ -3101,7 +3150,6 @@ function previewBg(url){
 
 function applySettings(){
   const bgUrl = document.getElementById('settingsBgUrl').value.trim();
-  const galRaw = document.getElementById('settingsGalleryUrls').value;
 
   // Apply bg url
   if(bgUrl){
@@ -3113,24 +3161,52 @@ function applySettings(){
     document.getElementById('resetBgBtn').style.display = '';
   }
 
-  // Apply gallery from URLs
-  const urls = galRaw.split('\n').map(s=>s.trim()).filter(s=>s.match(/^https?:\/\//));
-  if(urls.length){
-    // clear object URL gallery
-    gallery.forEach(item => { if(item.url && item.url.startsWith('blob:')) URL.revokeObjectURL(item.url); });
-    gallery = urls.map((u,i) => ({ url:u, name:'Photo '+(i+1), id:Math.random(), masked:false, isUrl:true }));
-    saveUrlGallery(urls);
-    ssPlaying = true;
-    document.getElementById('ssPlayBtn').textContent = '⏸';
-    clearTimeout(ssTimer);
-    renderGallery();
-  }
-
   save();
   closeSettings();
 }
 
-// ── URL GALLERY store (separate from blob gallery) ──
+// ── FONDS SAUVEGARDÉS (favoris / raccourcis fréquents) ──
+function getBgFavorites(){
+  try{ return JSON.parse(localStorage.getItem('dashboard_bg_favorites')||'[]'); }catch(e){ return []; }
+}
+function saveBgFavorite(){
+  const bg = document.getElementById('bg-layer');
+  const m = (bg.style.backgroundImage||'').match(/url\(['"]?(.*?)['"]?\)/);
+  const current = m ? m[1] : '';
+  if(!current){ alert('Aucun fond d\'écran actif à sauvegarder.'); return; }
+  let favs = getBgFavorites();
+  favs = favs.filter(f => f !== current);
+  favs.unshift(current);
+  if(favs.length > 10) favs = favs.slice(0, 10);
+  localStorage.setItem('dashboard_bg_favorites', JSON.stringify(favs));
+  renderBgFavorites();
+}
+function applyBgFavorite(url){
+  const bg = document.getElementById('bg-layer');
+  bg.style.backgroundImage = `url('${url}')`;
+  bg.style.backgroundSize = 'cover';
+  bg.style.backgroundPosition = 'center';
+  localStorage.setItem('dashboard_bg_url', url);
+  document.getElementById('resetBgBtn').style.display = '';
+}
+function removeBgFavorite(url, ev){
+  if(ev) ev.stopPropagation();
+  let favs = getBgFavorites().filter(f => f !== url);
+  localStorage.setItem('dashboard_bg_favorites', JSON.stringify(favs));
+  renderBgFavorites();
+}
+function renderBgFavorites(){
+  const row = document.getElementById('bgFavRow');
+  if(!row) return;
+  const favs = getBgFavorites();
+  row.innerHTML = favs.map(url => `
+    <div class="bg-fav-thumb" style="background-image:url('${url}')" onclick="applyBgFavorite('${url.replace(/'/g,"\\'")}')" title="Appliquer ce fond">
+      <span class="bg-fav-del" onclick="removeBgFavorite('${url.replace(/'/g,"\\'")}', event)">✕</span>
+    </div>
+  `).join('');
+}
+
+
 function saveUrlGallery(urls){
   localStorage.setItem('dashboard_url_gallery', JSON.stringify(urls));
 }
@@ -4620,15 +4696,6 @@ function ffDlRefresh(){
         oninput="previewBg(this.value)">
       <img class="settings-preview" id="settingsBgPreview" alt="Aperçu fond">
       <div class="settings-hint">Colle l'URL directe d'une image en ligne. Elle sera sauvegardée et incluse dans le lien de partage.</div>
-    </div>
-
-    <div class="settings-sep"></div>
-
-    <div class="settings-section">
-      <div class="settings-label">🖼 URLs de la galerie (une par ligne)</div>
-      <textarea class="settings-textarea" id="settingsGalleryUrls"
-        placeholder="https://exemple.com/photo1.jpg&#10;https://exemple.com/photo2.jpg&#10;..."></textarea>
-      <div class="settings-hint">Une URL d'image par ligne. Ces images s'afficheront dans le diaporama.</div>
     </div>
 
     <div class="settings-sep"></div>
